@@ -1,0 +1,124 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD International Services                                       00030000
+      *                                                                 00040000
+      * Copy-area R116L030.                                             00050000
+      *                                                                 00060000
+      * Exchange of currency amounts.                                   00070000
+      *                                                                 00080000
+      *                                                                 00090000
+      * An ordinary call may look like this:                            00100000
+      *                                                                 00110000
+      *    Initialize                          R116L030-Currency-Xchange00120000
+      *    Set   R116L030-Version        To    True                     00130000
+      *                                                                 00140000
+      * One of these:                                                   00150000
+      * 1) Move  &from currency          To    R116L030-In-From-Currency00160000
+      * 2) Set   R116L030-In-From-Basic-Cur                             00170000
+      *                                  To    True                     00180000
+      *                                                                 00190000
+      * One of these:                                                   00200000
+      * 1) Move  &to currency            To    R116L030-In-To-Currency  00210000
+      * 2) Set   R116L030-In-To-Basic-Cur                               00220000
+      *                                  To    True                     00230000
+      *    Move  &from amount            To    R116L030-In-From-Amount  00240000
+      *                                                                 00250000
+      * At least one of these:                                          00260000
+      * 1) Move  &bank no.               To    R116L030-In-Fin-Inst-No  00270004
+      * 2) Move  &rate                   To    R116L030-In-Rate         00280000
+      *    Move  &denomination           To    R116L030-In-Denomination 00290000
+      *                                                                 00300000
+      * You may specify which rate is to be used.                       00310008
+      * This is relevant even when input rate is given, as this is used 00320008
+      * to check rate deviation.                                        00330008
+      * Default is parameter rate.                                      00340008
+      * 1) Set   R116L030-In-Use-Parameter-Rate                         00350007
+      *                                  To    True                     00360007
+      * 2) Set   R116L030-In-Use-Buy-Rate                               00370007
+      *                                  To    True                     00380007
+      * 3) Set   R116L030-In-Use-Sell-Rate                              00390007
+      *                                  To    True                     00400007
+      *                                                                 00410007
+      *    Call  'F116L030'              Using R116L030-Currency-Xchange00420000
+      *                                        R7919999-Error           00430000
+      *    End-Call                                                     00440000
+      *                                                                 00450000
+      *    Evaluate True                                                00460000
+      *      When R7919999-Retur-Abend                                  00470000
+      *        Move  '&&&&'              To    R7919999-Paragraf        00480000
+      *        Perform Z900-Abend                                       00490000
+      *                                                                 00500000
+      *      When R7919999-Retur-Feil                                   00510000
+      *        ...currency not valid / rate not found...                00520000
+      *                                                                 00530000
+      *      When R7919999-Retur-OK                                     00540000
+      *        Move  R116L030-To-Amount  To    &currency amount...      00550000
+      *                                                                 00560000
+      *    End-Evaluate                                                 00570000
+      *                                                                 00580000
+      *################################################################*00590000
+      * Date ! Si! Change description                            ! 3A ! 00600000
+      *------+---+-----------------------------------------------+----+ 00610000
+      *081002!LG ! New 88-level : -In-Use Hist-Rate              !LO18! 00611010
+      *031299!HLR! New field: In-Standard-Rate                   !LG10! 00620006
+      *020699!HLR! New copy area                                 !LG10! 00630006
+      *################################################################*00640000
+      *                                                                 00650000
+         03  R116L030-Currency-Xchange.                                 00660000
+      *                                                                 00670000
+           05  R116L030-Version-No              Pic  X(08).             00680000
+             88  R116L030-Version                    Value '19991203'.  00690006
+      *                                                                 00700000
+      *----------------------------------------------------------------*00710000
+      *                                                                 00720000
+           05  R116L030-Qualification.                                  00730000
+      *                                                                 00740000
+      * If Basic Currency is specified, Bank No must be specified.      00750001
+             10  R116L030-In-From-Currency      Pic  X(03).             00760000
+               88  R116L030-In-From-Basic-Cur        Value '***'.       00770000
+      *                                                                 00780000
+             10  R116L030-In-To-Currency        Pic  X(03).             00790000
+               88  R116L030-In-To-Basic-Cur          Value '***'.       00800000
+      *                                                                 00810000
+             10  R116L030-In-From-Amount        Pic S9(14)V9(03) Comp-3.00820003
+      *                                                                 00830000
+      * One of these must be populated:                                 00840000
+      *     - Bank no.                                                  00850000
+      *     - Currency rate, including denomination                     00860000
+      *                                                                 00870000
+             10  R116L030-In-Fin-Inst-No        Pic  9(04).             00880004
+      *                                                                 00890000
+      *      Input rate shows "how many from-currencies you need to pay 00900005
+      *      to bye <denomination> to-currencies".                      00910005
+      * BUT! If one of the curencies is equal to basic currency, the    00920005
+      *      standard rate between basic currency and the other currency00930005
+      *      is used regardless of which way the calculation goes.      00940005
+      *      Denomination specifies whether the rate is per 1 or per 10000950000
+             10  R116L030-In-Input-Rate.                                00960006
+               15  R116L030-In-Rate             Pic S9(08)V9(06) Comp-3.00970006
+               15  R116L030-In-Denomination     Pic S9(05)       Comp-3.00980006
+      *                                                                 00990000
+      *      One may specify whether parameter rate, buy rate or sell   01000008
+      *      rate is to be used.                                        01010008
+      *      This is relevant even when input rate is given,            01020008
+      *      as this is used to check rate deviation.                   01030008
+      *      The default is parameter rate.                             01040006
+             10  R116L030-In-Standard-Rate.                             01050006
+               15  R116L030-In-Which-Rate       Pic  X(01).             01060006
+                 88  R116L030-In-Use-Parameter-Rate  Value 'P', ' '.    01070006
+                 88  R116L030-In-Use-Buy-Rate        Value 'B'.         01080006
+                 88  R116L030-In-Use-Sell-Rate       Value 'S'.         01090006
+                 88  R116L030-In-Use-Hist-Rate       Value 'H'.         01091010
+      *                                                                 01100006
+      *----------------------------------------------------------------*01110000
+      *                                                                 01120000
+           05  R116L030-Data.                                           01130000
+      *                                                                 01140000
+             10  R116L030-From-Currency         Pic  X(03).             01150000
+             10  R116L030-To-Currency           Pic  X(03).             01160000
+      *                                                                 01170000
+             10  R116L030-To-Amount             Pic S9(14)V9(03) Comp-3.01180000
+      *                                                                 01190000
+             10  R116L030-Used-Rate             Pic S9(08)V9(06) Comp-3.01200000
+             10  R116L030-Used-Denomination     Pic S9(05)       Comp-3.01210002
+      *                                                                 01220000

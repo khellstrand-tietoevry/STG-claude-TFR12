@@ -1,0 +1,73 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD Trade Finance                                                00030000
+      *                                                                 00040000
+      * Copy-area R115IPAS.                                             00050000
+      *                                                                 00060000
+      * This copy-area is in use for module F115IPAR and F115IPAU,      00070000
+      * which are sub-modules to F115IPA0.                              00080000
+      *   - F115IPAR handles read-only SQL's.                           00090000
+      *   - F115IPAU handles updating SQL's.                            00100000
+      *                                                                 00110000
+      *################################################################*00120000
+      * Date ! Si! Change description                            ! 3A ! 00130000
+      *------+---+-----------------------------------------------+----+ 00140000
+      *190600!HLR! Removed cursors CT, CT-CN, CT-CN-PA.          !LO18! 00150005
+      *      !   ! Removed interval on Contract-No.              !    ! 00160004
+      *050599!HLR! New copy area                                 !LG10! 00170000
+      *################################################################*00180000
+      *                                                                 00190000
+         03  R115IPAS-SQL-Submodules.                                   00200000
+      *                                                                 00210000
+           05  R115IPAS-Version-No              Pic  X(08).             00220000
+             88  R115IPAS-Version                    Value '19990520'.  00230001
+      *                                                                 00240000
+      *----------------------------------------------------------------*00250000
+      *                                                                 00260000
+           05  R115IPAS-Qualification.                                  00270000
+      *                                                                 00280000
+             10  R115IPAS-In-Action             Pic  X(16).             00290000
+               88  R115IPAS-In-Count-Cursor          Value 'COUNT'.     00300000
+               88  R115IPAS-In-Open-Cursor           Value 'OPEN'.      00310000
+               88  R115IPAS-In-Fetch-Cursor          Value 'FETCH'.     00320000
+               88  R115IPAS-In-Close-Cursor          Value 'CLOSE'.     00330000
+               88  R115IPAS-In-Select                Value 'SELECT'.    00340000
+               88  R115IPAS-In-Insert                Value 'INSERT'.    00350000
+               88  R115IPAS-In-Update                Value 'UPDATE'.    00360000
+               88  R115IPAS-In-Delete                Value 'DELETE'.    00370000
+      *                                                                 00380000
+             10  R115IPAS-In-Table-Version      Pic  X(16).             00390001
+               88  R115IPAS-In-Actual                Value 'ACTUAL'.    00400001
+               88  R115IPAS-In-Work                  Value 'WORK'.      00410001
+      *                                                                 00420001
+      *----------------------------------------------------------------*00430000
+      * For cursor use, we need some additional information.            00440000
+      *                                                                 00450000
+      * Switches used for selecting the correct cursor:                 00460000
+      *                                                                 00470000
+             10  R115IPAS-Cursor-Code           Pic  X(08).             00480000
+               88  R115IPAS-Use-Fi-Asc               Value 'F     '.    00490000
+               88  R115IPAS-Use-Fi-CT-Asc            Value 'FT    '.    00500000
+               88  R115IPAS-Use-Fi-CT-CN-Asc         Value 'FTN   '.    00510000
+               88  R115IPAS-Use-Fi-CT-CN-PA-Asc      Value 'FTNP  '.    00520000
+               88  R115IPAS-Use-Fi-St-Asc            Value 'F   S '.    00530002
+               88  R115IPAS-Use-Fi-CT-St-Asc         Value 'FT  S '.    00540002
+      *                                                                 00550000
+      * These fields are used for SQL qualification:                    00560000
+      *                                                                 00570000
+             10  R115IPAS-DB-Key.                                       00580000
+               15  R115IPAS-DB-Fin-Inst-ID      Pic S9(18)       Comp-3.00590000
+               15  R115IPAS-DB-Contract-Type    Pic  X(03).             00600000
+               15  R115IPAS-DB-Contract-No      Pic S9(07)       Comp-3.00610004
+               15  R115IPAS-DB-CA-Currency      Pic  X(03).             00620000
+               15  R115IPAS-DB-From-PA-Seq-No   Pic S9(04)       Comp.  00630000
+               15  R115IPAS-DB-To-PA-Seq-No     Pic S9(04)       Comp.  00640000
+               15  R115IPAS-DB-Status           Pic  X(12).             00650002
+      *                                                                 00660000
+      * Here is the result of a Count request:                          00670000
+      *                                                                 00680000
+             10  R115IPAS-Out-Accumulators.                             00690000
+               15  R115IPAS-Out-Total-Rows      Pic S9(11)       Comp-3.00700000
+      *                                                                 00710000
+      *----------------------------------------------------------------*00720000
+      *                                                                 00730000

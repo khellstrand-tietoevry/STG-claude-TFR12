@@ -1,0 +1,243 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * Copy-område R791905P.                                           00030000
+      * Generell submodul for å hente antall dager i periode.           00040002
+      *                                                                 00050000
+      * Logikk til Procedure Division.                                  00060000
+      *                                                                 00070000
+      * Kan benyttes sammen med R791905W dersom man ønsker å unngå kall.00080000
+      *                                                                 00090000
+      * Krever i tilfelle også copy-områdene                            00100000
+      *   - R791906W og R791906P                                        00110000
+      *                                                                 00120000
+      *################################################################*00130000
+      * DATO ! SI! ENDRINGENS ART                                ! 3A ! 00140000
+      *---------------------------------------------------------------- 00150000
+      *130195!HLR! Nytt copy-område                              !JR68! 00160000
+      *################################################################*00170000
+       F7919050-Dager-I-Periode          Section.                       00180000
+      *                                                                 00190000
+           Perform F7919050-B000-Initialize                             00200000
+           Perform F7919050-C000-Beregning                              00210000
+      *                                                                 00220000
+           .                                                            00230000
+       F7919050-Exit.                                                   00240000
+           Exit.                                                        00250000
+      *################################################################*00260000
+       F7919050-B000-Initialize          Section.                       00270000
+      *                                                                 00280000
+           Set   R7919999-Retur-Ok       To    True                     00290000
+           Initialize                          R7919050-Resultat        00300001
+                                         In    R7919050-Dager-I-Periode 00310001
+      *                                                                 00320000
+           .                                                            00330000
+       F7919050-B099-Exit.                                              00340000
+           Exit.                                                        00350000
+      *################################################################*00360000
+       F7919050-C000-Beregning           Section.                       00370000
+      *                                                                 00380000
+           Move  R7919050-In-Dato        In    R7919050-Dager-I-Periode 00390000
+                                         To    W9050-Split-Dato         00400000
+      *                                                                 00410000
+           Perform F7919050-C100-Valider-Dato                           00420000
+           If  R7919999-Retur-Abend                                     00430010
+           or  R7919999-Retur-Feil                                      00440010
+               Go To F7919050-C099-Exit                                 00450010
+           End-If                                                       00460010
+      *                                                                 00470000
+      * Finner første og siste måned i angitt periode                   00480000
+      *                                                                 00490000
+           Evaluate True                                                00500000
+             When R7919050-In-Default-Periode                           00510009
+                                         In    R7919050-Dager-I-Periode 00520009
+               Move  W9050-SD-Mnd        To    W9050-Start-Mnd          00530009
+               Move  W9050-SD-Mnd        To    W9050-Slutt-Mnd          00540009
+      *                                                                 00550000
+             When R7919050-In-Kvt        In    R7919050-Dager-I-Periode 00560003
+               Evaluate W9050-SD-Mnd                                    00570000
+                 When 01 Thru 03                                        00580000
+                   Move  +01             To    W9050-Start-Mnd          00590005
+                   Move  +03             To    W9050-Slutt-Mnd          00600005
+                 When 04 Thru 06                                        00610000
+                   Move  +04             To    W9050-Start-Mnd          00620005
+                   Move  +06             To    W9050-Slutt-Mnd          00630005
+                 When 07 Thru 09                                        00640000
+                   Move  +07             To    W9050-Start-Mnd          00650005
+                   Move  +09             To    W9050-Slutt-Mnd          00660005
+                 When Other                                             00670000
+                   Move  +10             To    W9050-Start-Mnd          00680005
+                   Move  +12             To    W9050-Slutt-Mnd          00690005
+               End-Evaluate                                             00700000
+      *                                                                 00710000
+             When R7919050-In-Tert       In    R7919050-Dager-I-Periode 00720009
+               Evaluate W9050-SD-Mnd                                    00730009
+                 When 01 Thru 04                                        00740009
+                   Move  +01             To    W9050-Start-Mnd          00750009
+                   Move  +04             To    W9050-Slutt-Mnd          00760009
+                 When 05 Thru 08                                        00770009
+                   Move  +05             To    W9050-Start-Mnd          00780009
+                   Move  +08             To    W9050-Slutt-Mnd          00790009
+                 When Other                                             00800009
+                   Move  +09             To    W9050-Start-Mnd          00810009
+                   Move  +12             To    W9050-Slutt-Mnd          00820009
+               End-Evaluate                                             00830009
+      *                                                                 00840009
+             When R7919050-In-Halv       In    R7919050-Dager-I-Periode 00850009
+               Evaluate W9050-SD-Mnd                                    00860009
+                 When 01 Thru 06                                        00870009
+                   Move  +01             To    W9050-Start-Mnd          00880009
+                   Move  +06             To    W9050-Slutt-Mnd          00890009
+                 When Other                                             00900009
+                   Move  +07             To    W9050-Start-Mnd          00910009
+                   Move  +12             To    W9050-Slutt-Mnd          00920009
+               End-Evaluate                                             00930009
+      *                                                                 00940009
+             When R7919050-In-Aar        In    R7919050-Dager-I-Periode 00950009
+               Move  +01                 To    W9050-Start-Mnd          00960009
+               Move  +12                 To    W9050-Slutt-Mnd          00970009
+      *                                                                 00980009
+             When Other                                                 00990000
+               Move  W9050-SD-Mnd        To    W9050-Start-Mnd          01000000
+               Move  W9050-SD-Mnd        To    W9050-Slutt-Mnd          01010000
+      *                                                                 01020000
+           End-Evaluate                                                 01030003
+      *                                                                 01040000
+      * Sjekker skudd-år, men kun dersom vi har behov for februar:      01050009
+      *                                                                 01060009
+           Evaluate True                                                01070009
+             When W9050-Start-Mnd        >     02                       01080009
+             or   W9050-Slutt-Mnd        <     02                       01090009
+               Set   W9050-Ikke-Skudd-Aar                               01100009
+                                         To    True                     01110009
+      *                                                                 01120009
+             When Other                                                 01130009
+               Perform F7919050-C200-Skudd-Aar                          01140009
+               If  R7919999-Retur-Feil                                  01150010
+               or  R7919999-Retur-Abend                                 01160010
+                   Go To F7919050-C099-Exit                             01170009
+               End-If                                                   01180009
+      *                                                                 01190009
+           End-Evaluate                                                 01200009
+      *                                                                 01210009
+      * Legger ut antall dager i alle måneder i perioden.               01220000
+      *                                                                 01230000
+           Perform Varying W9050-Start-Mnd                              01240000
+                   From  W9050-Start-Mnd By    +1                       01250000
+                   Until W9050-Start-Mnd >     W9050-Slutt-Mnd          01260000
+      *                                                                 01270000
+               Evaluate True                                            01280004
+                 When R7919050-In-360-Dgr-Pr-Aar                        01290004
+                                         In    R7919050-Dager-I-Periode 01300004
+                   Add   +30             To    R7919050-Ut-Dgr-I-Per    01310004
+                                         In    R7919050-Dager-I-Periode 01320004
+      *                                                                 01330004
+                 When Other                                             01340004
+                   Add   W9050-Dgr-I-Mnd (W9050-Start-Mnd)              01350004
+                                         To    R7919050-Ut-Dgr-I-Per    01360004
+                                         In    R7919050-Dager-I-Periode 01370004
+      *                                                                 01380004
+               End-Evaluate                                             01390004
+      *                                                                 01400004
+           End-Perform                                                  01410000
+      *                                                                 01420000
+           .                                                            01430000
+       F7919050-C099-Exit.                                              01440000
+           Exit.                                                        01450000
+      *################################################################*01460000
+       F7919050-C100-Valider-Dato        Section.                       01470000
+      *                                                                 01480000
+           If  W9050-SD-Aar              <     1                        01490000
+           or  W9050-SD-Mnd              <     1                        01500000
+           or  W9050-SD-Mnd              >     12                       01510000
+               Move  Space               To    R7919999-Melding         01520000
+               String 'Ugyldig dato - '        Delimited by size        01530000
+                      W9050-Split-Dato         Delimited by size        01540000
+                      '.'                      Delimited by size        01550000
+                                         Into  R7919999-Melding         01560000
+               End-String                                               01570000
+               Move  'C101'              To    R7919999-Paragraf        01580000
+               Perform F7919050-Z800-Feil                               01590010
+           End-If                                                       01600000
+      *                                                                 01610000
+           .                                                            01620000
+       F7919050-C199-Exit.                                              01630000
+           Exit.                                                        01640000
+      *################################################################*01650000
+       F7919050-C200-Skudd-Aar           Section.                       01660000
+      *                                                                 01670000
+           Set   W9050-Ikke-Skudd-Aar    To    True                     01680004
+      *                                                                 01690004
+           Evaluate True                                                01700004
+             When R7919050-In-360-Dgr-Pr-Aar                            01710004
+                                         In    R7919050-Dager-I-Periode 01720004
+             or   R7919050-In-365-Dgr-Pr-Aar                            01730009
+                                         In    R7919050-Dager-I-Periode 01740004
+               Continue                                                 01750004
+      *                                                                 01760004
+             When Other                                                 01770004
+               Initialize                      R7919060-Skudd-Aar       01780008
+               Set   R7919060-Versjon    To    True                     01790008
+               Move  W9050-Split-Dato    To    R7919060-In-Dato         01800008
+               Perform F7919060-Skudd-Aar                               01810004
+               If  R7919999-Retur-Feil                                  01820010
+               or  R7919999-Retur-Abend                                 01830010
+                   Move  'C201'          To    R7919999-Paragraf        01840008
+                   Perform F7919050-Z900-Abend                          01850008
+                   Go To F7919050-C299-Exit                             01860004
+               End-If                                                   01870004
+      *                                                                 01880001
+               If  R7919060-Ut-Skudd-Aar                                01890004
+                   Set   W9050-Skudd-Aar To    True                     01900008
+               End-If                                                   01910004
+      *                                                                 01920001
+           End-Evaluate                                                 01930004
+      *                                                                 01940004
+           .                                                            01950000
+       F7919050-C299-Exit.                                              01960000
+           Exit.                                                        01970000
+      *################################################################*01980000
+       F7919050-Z800-Feil                Section.                       01990010
+      *                                                                 02000000
+           If  Not R7919999-Retur-Abend                                 02010000
+               Move  +0                  To    R7919999-Modul-Ind       02020000
+           End-If                                                       02030000
+      *                                                                 02040000
+           Add   +1                      To    R7919999-Modul-Ind       02050000
+      *                                                                 02060000
+           If  R7919999-Modul-Ind        Not >                          02070000
+                             ( Length    Of    R7919999-Modul-Tab       02080000
+                             / Length    Of    R7919999-Modul-Element ) 02090010
+               Move  'F7919050'          To    R7919999-Modul-Navn      02100000
+                                                    (R7919999-Modul-Ind)02110000
+               Move  R7919999-Paragraf   To    R7919999-Modul-Para      02120000
+                                                    (R7919999-Modul-Ind)02130000
+           End-If                                                       02140000
+      *                                                                 02150000
+           Set   R7919999-Retur-Feil     To    True                     02160010
+      *                                                                 02170000
+           .                                                            02180000
+       F7919050-Z899-Exit.                                              02190010
+           Exit.                                                        02200000
+      *################################################################*02210010
+       F7919050-Z900-Abend               Section.                       02220010
+      *                                                                 02230010
+           If  Not R7919999-Retur-Abend                                 02240010
+               Move  +0                  To    R7919999-Modul-Ind       02250010
+           End-If                                                       02260010
+      *                                                                 02270010
+           Add   +1                      To    R7919999-Modul-Ind       02280010
+      *                                                                 02290010
+           If  R7919999-Modul-Ind        Not >                          02300010
+                             ( Length    Of    R7919999-Modul-Tab       02310010
+                             / Length    Of    R7919999-Modul-Element ) 02320010
+               Move  'F7919050'          To    R7919999-Modul-Navn      02330010
+                                                    (R7919999-Modul-Ind)02340010
+               Move  R7919999-Paragraf   To    R7919999-Modul-Para      02350010
+                                                    (R7919999-Modul-Ind)02360010
+           End-If                                                       02370010
+      *                                                                 02380010
+           Set   R7919999-Retur-Abend    To    True                     02390010
+      *                                                                 02400010
+           .                                                            02410010
+       F7919050-Z999-Exit.                                              02420010
+           Exit.                                                        02430010

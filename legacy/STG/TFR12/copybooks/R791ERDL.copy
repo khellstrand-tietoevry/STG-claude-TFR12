@@ -1,0 +1,54 @@
+      ******************************************************************        
+      *  Lighter version of copybook R791ERDT                          *        
+      *  Contains the error messages                                            
+      *################################################################*        
+      * Dato ! Si! Endringens art                                ! 3A !         
+      *----------------------------------------------------------------         
+      *230124!SM ! New Copybook                             !CMAS-1551!         
+      *################################################################*        
+       01  T-R791ERDC.                                                          
+           05  Filler.                                                          
+               10  Filler   Pic x(152) Value                                    
+               '000000000000000000DB-LEST-SISTE                 NO  Du h        
+      -        'ar allerede lest siste forekomst på tabell: &VAR1#              
+      -        '                                        '.                      
+           05  Filler.                                                          
+               10  Filler   Pic x(152) Value                                    
+               '000000000000000000DB-TABELL-TOM                 NO  &VAR        
+      -        '1# finnes ikke.                                                 
+      -        '                                        '.                      
+           05  Filler.                                                          
+               10  Filler   Pic x(152) Value                                    
+               '000000000000000000DB-FOREKOMST-NF               NO  &VAR        
+      -        '1# Ikke funnet.                                                 
+      -        '                                        '.                      
+           05  Filler.                                                          
+               10  Filler   Pic x(152) Value                                    
+               '000000000000000000DB-FOREKOMST-NF&              NO  Angi        
+      -        'tt &FELT1# finnes ikke.                                         
+      -        '                                        '.                      
+           05  Filler.                                                          
+               10  Filler   Pic x(152) Value                                    
+               '000000000000000000DB-FOREKOMST-NF-Q             NO  &VAR        
+      -        '1# ( &VAR2# ) ikke funnet.                                      
+      -        '                                        '.                      
+           05  Filler.                                                          
+               10  Filler   Pic x(152) Value                                    
+               '000000000000000000GL-LISTE-TOM                  NO  Søke        
+      -        't resulterer i tom liste.                                       
+      -        '                                        '.                      
+           05  Filler.                                                          
+               10  Filler   Pic x(152) Value                                    
+               '000000000000000000DB-KFKU-NF                    NOKFKund        
+      -        'en finnes ikke. Kunde-id: &KU-ID#.                              
+      -        '                                        '.                      
+      *                                                                         
+       01  T-Message-Table   Redefines T-R791ERDC.                              
+           05  T-R791ERDC-Tab Occurs 7 Times.                                   
+               10  T-R791ERDC-Key.                                              
+                 15  T-R791ERDC-FK-OAKO-ID    Pic  9(18).                       
+                 15  T-R791ERDC-Meldingskode  Pic  X(30).                       
+                 15  T-R791ERDC-Spraak        Pic  X(02).                       
+               10  T-R791ERDC-System          Pic  X(02).                       
+               10  T-R791ERDC-Meldingstekst   Pic  X(100).                      
+      *                                                                         

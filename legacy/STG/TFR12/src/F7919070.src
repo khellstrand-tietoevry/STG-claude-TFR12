@@ -1,0 +1,383 @@
+       Identification Division.                                         00010014
+       Program-ID. F7919070.                                            00020014
+       Author.  Henning Langfeldt Rødland.                              00030014
+      *################################################################*00040014
+      *                                                                 00050014
+      * Generell submodul.                                              00060014
+      * Benyttes for å hente timestamp - maskindato/klokke.             00070014
+      *                                                                 00080014
+      * Modulen bør alltid kalles opp dynamisk, fordi dette gir mulighet00090014
+      * til å overstyre maskin-dato og -klokke i f.m. test-kjøringer.   00100014
+      *                                                                 00110014
+      * Ingen input.                                                    00120014
+      * Timestamp leveres tilbake, som:                                 00130014
+      *   - Timestamp      Format : S9(16) Comp.                        00140014
+      *                    Innhold: åååå - Årstall                      00150014
+      *                             mm   - Måned                        00160014
+      *                             dd   - Dag                          00170014
+      *                             tt   - Timer                        00180014
+      *                             mm   - Minutter                     00190014
+      *                             ss   - Sekunder                     00200014
+      *                             hh   - Hundredels sekund            00210014
+      *   - Maskin-dato    Innhold: ååååmmdd                            00220014
+      *   - Maskin-tid     Innhold: ttmmsshh                            00230014
+      *                                                                 00240014
+      * Eksempel på anrop:                                              00250014
+      *   Initialize                           R7919070-Timestamp       00260014
+      *   Set   R7919070-Versjon         To    True                     00270014
+      *   Call  F7919070                 Using R7919070-Timestamp       00280014
+      *                                        R7919999-Error           00290014
+      *   End-Call                                                      00300014
+      *   If  R7919999-Retur-Abend                                      00310014
+      *       abend                                                     00320014
+      *   End-If                                                        00330014
+      *   Move  R7919070-Ut-Timestamp    To    ååååmmddttmmsshh         00340014
+      *                                                                 00350014
+      *################################################################*00360014
+      *210824!SM ! Recompile to Cobol 6.3                   !CMAS-1868!*00361017
+      *------+---+-----------------------------------------------+----+*00362017
+      * Dato ! Si! Endringens art                                ! 3A ! 00370014
+MIPS  *280521!OBJ! Recompiled to version 6.3 (OptiMIPS)          !    ! 00371016
+      *---------------------------------------------------------------- 00380014
+      *220911!HLR! Henter dato på gamlemåten for å muliggjøre           00390014
+      *      !   ! overstyring av dato i testmiljøer                    00400014
+      *---------------------------------------------------------------- 00410014
+      *090911!AMR! lagt til DB2 format og tatt med mikrosekunder        00420014
+      *      !   ! Kaller F7919071 for å hente dato og klokke           00430014
+      *---------------------------------------------------------------- 00440014
+      *130195!HLR! Ny modul                                      !JR68! 00450014
+      *################################################################*00460014
+       Environment Division.                                            00470014
+       Configuration Section.                                           00480014
+       Special-Names.                                                   00490014
+           Decimal-Point is comma.                                      00500014
+      *################################################################*00510014
+       Data Division.                                                   00520014
+       Working-Storage Section.                                         00530014
+      *                                                                 00540014
+      *                                                                 00550014
+       01 Work-fields.                                                  00560014
+      *                                                                 00570014
+         05 Filler.                                                     00580014
+           10 W-ASM-Date                 Pic 9(08).                     00590014
+           10 W-COB-Date                 Pic 9(08).                     00600014
+      *                                                                 00610014
+         05 W-Split-Date                 Pic 9(08).                     00620014
+         05 Filler                       Redefines W-Split-Date.        00630014
+           10 W-SD-Year                  PIC 9(04).                     00640014
+           10 W-SD-Month                 PIC 9(02).                     00650014
+           10 W-SD-Day                   PIC 9(02).                     00660014
+      *                                                                 00670014
+         05 W-DB2-TMS                    Pic X(26).                     00680014
+         05 W-DB2-TMS-RD                 Redefines W-DB2-TMS.           00690014
+           10 W-DB2-Year                 PIC 9(04).                     00700014
+           10 W-1                        PIC X(01).                     00710014
+           10 W-DB2-Month                PIC 9(02).                     00720014
+           10 W-2                        PIC X(01).                     00730014
+           10 W-DB2-Day                  PIC 9(02).                     00740014
+           10 W-3                        PIC X(01).                     00750014
+           10 W-DB2-Hour                 PIC 9(02).                     00760014
+           10 W-4                        PIC X(01).                     00770014
+           10 W-DB2-Min                  PIC 9(02).                     00780014
+           10 W-5                        PIC X(01).                     00790014
+           10 W-DB2-Seconds              PIC 9(02).                     00800014
+           10 W-6                        PIC X(01).                     00810014
+           10 W-DB2-Microsec             PIC 9(06).                     00820014
+      *                                                                 00830014
+         05 W-TMS-20                     Pic X(20).                     00840014
+         05 W-TMS-20-RD                  Redefines W-TMS-20.            00850014
+           10 W-TMS-Year                 PIC 9(04).                     00860014
+           10 W-TMS-Mnd                  PIC 9(02).                     00870014
+           10 W-TMS-Day                  PIC 9(02).                     00880014
+           10 W-TMS-Hour                 PIC 9(02).                     00890014
+           10 W-TMS-Min                  PIC 9(02).                     00900014
+           10 W-TMS-Seconds              PIC 9(02).                     00910014
+           10 W-TMS-Microsec             PIC 9(06).                     00920014
+         05 W-filler                     Pic X(140).                    00930014
+      *                                                                 00940014
+       Copy R7919070.                                                   00950014
+      *                                                                 00960014
+      *################################################################*00970014
+       Linkage Section.                                                 00980014
+      *                                                                 00990014
+       Copy R7919070                     Replacing                      01000014
+                                               R7919070-Timestamp       01010014
+                                         By    F7919070-Ext-IO-Area.    01020014
+       Copy R7919999.                                                   01030014
+      *                                                                 01040014
+      *----------------------------------------------------------------*01050014
+      * Her ligger gamle versjoner av copy-området, på grunn av         01060014
+      * versjonshåndtering.                                             01070014
+      * Vi skal konvertere til og fra ny layout.                        01080014
+      *                                                                 01090014
+       Copy R791907G.                                                   01100014
+      *                                                                 01110014
+      *################################################################*01120014
+       Procedure Division                Using F7919070-Ext-IO-Area     01130014
+                                               R7919999-Error.          01140014
+                                                                        01150014
+       A000-Main                         Section.                       01160014
+      *                                                                 01170014
+           Set   R7919999-Retur-Ok       To    True                     01180014
+      *                                                                 01190014
+           Perform ZI00-Konv-Input-Versjon                              01200014
+           Perform F7919070-Timestamp                                   01210014
+           Perform ZO00-Konv-Output-Versjon                             01220014
+      *                                                                 01230014
+           .                                                            01240014
+       A099-Goback.                                                     01250014
+           Goback.                                                      01260014
+      *################################################################*01270014
+       F7919070-Timestamp                Section.                       01280014
+      *                                                                 01290014
+           Perform B000-Initialize                                      01300014
+           Perform C000-Beregning                                       01310014
+      *                                                                 01320014
+           .                                                            01330014
+       F7919070-Exit.                                                   01340014
+           Exit.                                                        01350014
+      *################################################################*01360014
+       B000-Initialize                   Section.                       01370014
+      *                                                                 01380014
+           Set   R7919999-Retur-Ok       To    True                     01390014
+           Initialize                          R7919070-Resultat        01400014
+                                         In    R7919070-Timestamp       01410014
+           Initialize                          Work-fields              01420014
+      *                                                                 01430014
+           .                                                            01440014
+       B099-Exit.                                                       01450014
+           Exit.                                                        01460014
+      *################################################################*01470014
+       C000-Beregning                    Section.                       01480014
+      *                                                                 01490014
+           Perform  C100-Hent-TMS-ASM-Style                             01500014
+           Perform  C200-Hent-Dato-COB-Style                            01510014
+      *                                                                 01520014
+      * Dersom datoene er ulike kan det skyldes to ting:                01530014
+      * - overstyring av dato i testmiljøer (da er COB-date korrekt)    01540014
+      * - datoskifte mellom de to kallene                               01550014
+      * For å eliminere datoskifte kaller vi én gang til ved ulikhet    01560014
+      *                                                                 01570014
+           If  W-COB-Date                Not = W-ASM-Date               01580014
+               Perform  C100-Hent-TMS-ASM-Style                         01590014
+               Perform  C200-Hent-Dato-COB-Style                        01600014
+               Move  W-COB-Date          To    W-Split-Date             01610014
+               Move  W-SD-Year           To    W-DB2-Year               01620014
+               Move  W-SD-Month          To    W-DB2-Month              01630014
+               Move  W-SD-Day            To    W-DB2-Day                01640014
+           End-If                                                       01650014
+      *                                                                 01660014
+           Perform  C300-Formater-TMS                                   01670014
+      *                                                                 01680014
+           .                                                            01690014
+       C000-Exit.                                                       01700014
+           Exit.                                                        01710014
+      *################################################################*01720014
+       C100-Hent-TMS-ASM-Style           Section.                       01730014
+      *                                                                 01740014
+      * Selve innhentingen av maskindato har vi lagt i en Assembler-    01750014
+      * modul.                                                          01760014
+      *                                                                 01770014
+           Call  'F7919071'              Using W-DB2-TMS                01780014
+                                               W-filler                 01790014
+           End-Call                                                     01800014
+      *                                                                 01810014
+           Move  W-DB2-Year              To    W-SD-Year                01820014
+           Move  W-DB2-Month             To    W-SD-Month               01830014
+           Move  W-DB2-Day               To    W-SD-Day                 01840014
+           Move  W-Split-Date            To    W-ASM-Date               01850014
+      *                                                                 01860014
+           .                                                            01870014
+       C100-Exit.                                                       01880014
+           Exit.                                                        01890014
+      *################################################################*01900014
+       C200-Hent-Dato-COB-Style          Section.                       01910014
+      *                                                                 01920014
+      * Dette er for å kunne overstyre dato i testmiljøer.              01930014
+      * Slik overstyring fungerer ikke ved bruk av F7919071.            01940014
+      *                                                                 01950014
+      * I batch benyttes modul F791907B, og i CICS F791907C.            01960014
+      *                                                                 01970014
+           Call  'F7919072'              Using W-COB-Date               01980014
+           End-Call                                                     01990014
+      *                                                                 02000014
+           .                                                            02010014
+       C200-Exit.                                                       02020014
+           Exit.                                                        02030014
+      *################################################################*02040014
+       C300-Formater-TMS                 Section.                       02050014
+      *                                                                 02060014
+           Move '-'                      To    W-1                      02070014
+                                               W-2                      02080014
+                                               W-3                      02090014
+           Move '.'                      To    W-4                      02100014
+                                               W-5                      02110014
+                                               W-6                      02120014
+           Move W-DB2-Year               To    W-TMS-Year               02130014
+           Move W-DB2-Month              To    W-TMS-Mnd                02140014
+           Move W-DB2-Day                To    W-TMS-Day                02150014
+           Move W-DB2-Hour               To    W-TMS-Hour               02160014
+           Move W-DB2-Min                To    W-TMS-Min                02170014
+           Move W-DB2-Seconds            To    W-TMS-Seconds            02180014
+           Move W-DB2-Microsec           To    W-TMS-Microsec           02190014
+      *                                                                 02200014
+           Move W-DB2-TMS                To    R7919070-UT-TMS-DB2      02210014
+                                         In    R7919070-Timestamp       02220014
+           Move W-TMS-20                 To    R7919070-UT-TMS-20       02230014
+                                         In    R7919070-Timestamp       02240014
+           Move W-TMS-20(1:16)           To    R7919070-UT-TMS-16       02250014
+                                         In    R7919070-Timestamp       02260014
+           Move W-TMS-20(1:8)            To    R7919070-UT-DATO         02270014
+                                         In    R7919070-Timestamp       02280014
+           Move W-TMS-20(9:8)            To    R7919070-UT-TID          02290014
+                                         In    R7919070-Timestamp       02300014
+      *                                                                 02310014
+      *    Display '==========================================='        02320014
+      *    Display 'R7919070-UT-TMS-DB2'        R7919070-UT-TMS-DB2     02330014
+      *                                  in    R7919070-Timestamp       02340014
+      *    Display 'R7919070-UT-TMS-20 '       R7919070-UT-TMS-20       02350014
+      *                                  in    R7919070-Timestamp       02360014
+      *    Display 'R7919070-UT-TMS-16 '       R7919070-UT-TMS-16       02370014
+      *                                  in    R7919070-Timestamp       02380014
+      *    Display 'R7919070-UT-DATO   '       R7919070-UT-DATO         02390014
+      *                                  in    R7919070-Timestamp       02400014
+      *    Display 'R7919070-UT-TID    '       R7919070-UT-TID          02410014
+      *                                  in    R7919070-Timestamp       02420014
+      *    Display '                   '                                02430014
+           .                                                            02440014
+       C399-Exit.                                                       02450014
+           Exit.                                                        02460014
+      *################################################################*02470014
+       Z900-Abend                        Section.                       02480014
+      *                                                                 02490014
+           If  Not R7919999-Retur-Abend                                 02500014
+               Move  +0                  To    R7919999-Modul-Ind       02510014
+           End-If                                                       02520014
+      *                                                                 02530014
+           Add   +1                      To    R7919999-Modul-Ind       02540014
+      *                                                                 02550014
+           If  R7919999-Modul-Ind        Not >                          02560014
+                             ( Length    Of    R7919999-Modul-Tab       02570014
+                             / Length    Of    R7919999-Modul-Element  )02580014
+               Move  'F7919070'          To    R7919999-Modul-Navn      02590014
+                                                    (R7919999-Modul-Ind)02600014
+               Move  R7919999-Paragraf   To    R7919999-Modul-Para      02610014
+                                                    (R7919999-Modul-Ind)02620014
+           End-If                                                       02630014
+      *                                                                 02640014
+           Set   R7919999-Retur-Abend    To    True                     02650014
+      *                                                                 02660014
+           .                                                            02670014
+       Z999-Goback.                                                     02680014
+           Goback.                                                      02690014
+      *################################################################*02700014
+       ZI00-Konv-Input-Versjon           Section.                       02710014
+      *                                                                 02720014
+           Evaluate True                                                02730014
+             When R7919070-Versjon       In    F7919070-Ext-IO-Area     02740014
+               Move  F7919070-Ext-IO-Area                               02750014
+                                         To    R7919070-Timestamp       02760014
+      *                                                                 02770014
+             When R7919070-Versjons-Nr   In    F7919070-Ext-IO-Area     02780014
+                                         =     '19950113'               02790014
+      *                                                                 02800014
+               Set   Address             Of    F7919070-Versjon-1995011302810014
+                 To  Address             Of    F7919070-Ext-IO-Area     02820014
+      *                                                                 02830014
+               Initialize                      R7919070-Timestamp       02840014
+               Set   R7919070-Versjon    In    R7919070-Timestamp       02850014
+                                         To    True                     02860014
+      *                                                                 02870014
+      *                                                                 02880014
+             When R7919070-Versjons-Nr   In    F7919070-Ext-IO-Area     02890014
+                                         =     '19941231'               02900014
+      *                                                                 02910014
+               Set   Address             Of    F7919070-Versjon-1994123102920014
+                 To  Address             Of    F7919070-Ext-IO-Area     02930014
+      *                                                                 02940014
+               Initialize                      R7919070-Timestamp       02950014
+               Set   R7919070-Versjon    In    R7919070-Timestamp       02960014
+                                         To    True                     02970014
+      *                                                                 02980014
+             When Other                                                 02990014
+               Move  Space               To    R7919999-Melding         03000014
+               String 'Beklager, vi håndterer ikke versjon "'           03010014
+                                               Delimited by size        03020014
+                      R7919070-Versjons-Nr                              03030014
+                                         In    F7919070-Ext-IO-Area     03040014
+                                               Delimited by size        03050014
+                      '". Ta i bruk ny versjon.'                        03060014
+                                               Delimited by size        03070014
+                                         Into  R7919999-Melding         03080014
+               End-String                                               03090014
+               Move  'ZI01'              To    R7919999-Paragraf        03100014
+               Perform Z900-Abend                                       03110014
+      *                                                                 03120014
+           End-Evaluate                                                 03130014
+      *                                                                 03140014
+           .                                                            03150014
+       ZI99-Ex.                                                         03160014
+           Exit.                                                        03170014
+      *################################################################*03180014
+       ZO00-Konv-Output-Versjon          Section.                       03190014
+      *                                                                 03200014
+           Evaluate True                                                03210014
+             When R7919070-Versjon       In    F7919070-Ext-IO-Area     03220014
+               Move  R7919070-Timestamp                                 03230014
+                                         To    F7919070-Ext-IO-Area     03240014
+      *                                                                 03250014
+             When R7919070-Versjons-Nr   In    F7919070-Ext-IO-Area     03260014
+                                         =     '19950113'               03270014
+      *                                                                 03280014
+               Set   Address             Of    F7919070-Versjon-1995011303290014
+                 To  Address             Of    F7919070-Ext-IO-Area     03300014
+      *                                                                 03310014
+               Initialize                                               03320014
+                     R7919070-Resultat   In    F7919070-Versjon-1995011303330014
+               Move  R7919070-Ut-Timestamp                              03340014
+                                         In    R7919070-Timestamp       03350014
+                 To  R7919070-Ut-Timestamp                              03360014
+                                         In    F7919070-Versjon-1995011303370014
+               Move  R7919070-Ut-Dato    In    R7919070-Timestamp       03380014
+                 To  R7919070-Ut-Dato    In    F7919070-Versjon-1995011303390014
+               Move  R7919070-Ut-Tid     In    R7919070-Timestamp       03400014
+                 To  R7919070-Ut-Tid     In    F7919070-Versjon-1995011303410014
+      *                                                                 03420014
+      *                                                                 03430014
+             When R7919070-Versjons-Nr   In    F7919070-Ext-IO-Area     03440014
+                                         =     '19941231'               03450014
+      *                                                                 03460014
+               Set   Address             Of    F7919070-Versjon-1994123103470014
+                 To  Address             Of    F7919070-Ext-IO-Area     03480014
+      *                                                                 03490014
+               Initialize                                               03500014
+                     R7919070-Resultat   In    F7919070-Versjon-1994123103510014
+               Move  R7919070-Ut-Timestamp                              03520014
+                                         In    R7919070-Timestamp       03530014
+                 To  R7919070-Ut-Timestamp                              03540014
+                                         In    F7919070-Versjon-1994123103550014
+               Move  R7919070-Ut-Dato    In    R7919070-Timestamp       03560014
+                 To  R7919070-Ut-Dato    In    F7919070-Versjon-1994123103570014
+               Move  R7919070-Ut-Tid     In    R7919070-Timestamp       03580014
+                 To  R7919070-Ut-Tid     In    F7919070-Versjon-1994123103590014
+      *                                                                 03600014
+             When Other                                                 03610014
+               Move  Space               To    R7919999-Melding         03620014
+               String 'Systemfeil, vi håndterte versjon "'              03630014
+                                               Delimited by size        03640014
+                      R7919070-Versjons-Nr                              03650014
+                                         In    F7919070-Ext-IO-Area     03660014
+                                               Delimited by size        03670014
+                      '" inn, skulle også gjort det ut.'                03680014
+                                               Delimited by size        03690014
+                                         Into  R7919999-Melding         03700014
+               End-String                                               03710014
+               Move  'ZO01'              To    R7919999-Paragraf        03720014
+               Perform Z900-Abend                                       03730014
+      *                                                                 03740014
+           End-Evaluate                                                 03750014
+      *                                                                 03760014
+           .                                                            03770014
+       ZO99-Ex.                                                         03780014
+           Exit.                                                        03790014
+      ********************** Bottom of Data ****************************03800014

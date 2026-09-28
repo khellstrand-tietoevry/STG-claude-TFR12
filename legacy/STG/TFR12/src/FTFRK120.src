@@ -1,0 +1,976 @@
+      *<META FTFRK120>                                                          
+       Identification Division.                                                 
+       Program-Id. FTFRK120.                                                    
+       Author. Z1132HB                                                          
+      *################################################################*        
+      * Servo - logic-level / K-module - Control module.               *        
+      * uses STG, in accordance with new Servo Standards.              *        
+      *                                                                *        
+      * TFR12 / 01 - Les omkostninger                                  *        
+      *                                                                *        
+      * Kode between <META> and </META> tags must not be modified. Do  *        
+      * your modifications in the specified user sections !            *        
+      *                                                                *        
+      *################################################################*        
+      * Date ! Si! Type of change                                ! 3A !*        
+      *------+---+-----------------------------------------------+----+*        
+      *990315!&&&!New Module                                     !&&&&!*        
+      *################################################################*        
+       Environment Division.                                                    
+       Configuration Section.                                                   
+       Special-Names.                                                           
+           Decimal-Point Is Comma.                                              
+      *################################################################*        
+       Data Division.                                                           
+       Working-Storage Section.                                                 
+      *                                                                         
+       01  W-Work-Fields.                                                       
+      *                                                                         
+      *<META WA-START>                                                          
+           05  Filler                     Pic   X(08) Value 'WA-START'.         
+      *</META>                                                                  
+      *                                                                         
+      *    User work variables can be placed between here                       
+      *                                                                         
+      *                                                                         
+      *<META WA-STOP>                                                           
+           05  Filler                     Pic   X(08) Value 'WA-STOP '.         
+      *</META>                                                                  
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+      * Misc. copy books :                                                      
+      *                                                                         
+      *<META MISC-COPY1>                                                        
+           Copy R7919040.                                                       
+      *</META>                                                                  
+      *01  Filler.                                                              
+      *                                                                         
+      *                                                                         
+      *<META MISC-COPY2>                                                        
+      *</META>                                                                  
+      *                                                                         
+      *01  Filler.                                                              
+      *    Place your copybooks below here                                      
+      *                                                                         
+      *                                                                         
+      *################################################################*        
+       Linkage Section.                                                         
+      *                                                                         
+      * Fixed header from STG                                                   
+      *                                                                         
+       01  L-STG-Header.                                                        
+           Copy R400CH02.                                                       
+      *                                                                         
+      * Function data                                                           
+      *                                                                         
+       01  L-Data.                                                              
+           Copy RTFRE120.                                                       
+      *                                                                         
+      * Standard error area                                                     
+      *                                                                         
+       Copy  R7919999.                                                          
+      *                                                                         
+      *################################################################*        
+       Procedure Division                Using L-Stg-Header                     
+                                               L-Data                           
+                                               R7919999-Error.                  
+      *                                                                         
+      *<META A000-MAIN>                                                         
+       A000-Main                         Section.                               
+      *                                                                         
+           Perform B000-Initialize                                              
+      *                                                                         
+           Perform C000-Input-Control                                           
+           Perform D000-Prepare-DB-Read                                         
+           Perform E000-Control-Base                                            
+           .                                                                    
+      *                                                                         
+       A000-Main-Ex.                                                            
+           Goback.                                                              
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * Initialize necessary work fields                               *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+       B000-Initialize                   Section.                               
+      *                                                                         
+      *<META B000-INITIAIZE>                                                    
+           Set  R7919999-Retur-Ok        To    True                             
+           Initialize                          W-Work-Fields                    
+      *</META>                                                                  
+      *                                                                         
+      *    User initialisaztion should be placed here                           
+      *                                                                         
+           .                                                                    
+      *                                                                         
+      *<META B000-INITIALIZE-EX>                                                
+       B000-Initialize-Ex.                                                      
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * Perform the required input controls                            *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+      *<META C000-INPUT-CONTROL>                                                
+       C000-Input-Control                Section.                               
+      *                                                                         
+           Perform C110-Mandatory-Fields-UB                                     
+           Perform C100-Mandatory-Fields                                        
+           Perform C120-Mandatory-Fields-UA                                     
+           Perform C210-Out-Fields-UB                                           
+           Perform C200-Out-Fields                                              
+           Perform C220-Out-Fields-UA                                           
+           Perform C310-Permitted-Values-UB                                     
+           Perform C300-Permitted-Values                                        
+           Perform C320-Permitted-Values-UA                                     
+           Perform C410-Default-Values-UB                                       
+           Perform C400-Default-Values                                          
+           Perform C420-Default-Values-UA                                       
+           Perform C510-Dependencies-UB                                         
+           Perform C500-Dependencies                                            
+           Perform C520-Dependencies-UA                                         
+           .                                                                    
+      *                                                                         
+       C000-Input-Control-Ex.                                                   
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * We have to make shure we have all required input fields        *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+       C100-Mandatory-Fields             Section.                               
+      *                                                                         
+      *  This code is maintained by the codegenerator. Any user changes         
+      *  between the META tags will be lost. Any user code should be            
+      *  placed in the C110.... or C120..... sections                           
+      *                                                                         
+      *<META C100-MANDATORY-FIELDS>                                             
+      *                                                                         
+      *     Fin-Inst-No must be present                                         
+      *                                                                         
+           If  RTFRE120-I-Fin-Inst-No-I  Not = 'U'                              
+               Move  'F'                 To    RTFRE120-I-Fin-Inst-No-O         
+               Move  'FELT1'             To    R400CH01-Message-Key(1)          
+               Move  'Fin-Inst-No'       To    R400CH01-Message-Data(1)         
+               Move  'GL-ANGI-FELT&'     To    R400CH01-Message-Code            
+               Perform  Z700-Error-AE                                           
+           End-If                                                               
+      *                                                                         
+      *     Kontrakt-Type must be present                                       
+      *                                                                         
+           If  RTFRE120-I-Contract-Type-I                                       
+                                         Not = 'U'                              
+               Move  'F'                 To                                     
+                                         RTFRE120-I-Contract-Type-O             
+               Move  'FELT1'             To    R400CH01-Message-Key(1)          
+               Move  'Kontrakt-Type'     To    R400CH01-Message-Data(1)         
+               Move  'GL-MISSING-FIELD&' To    R400CH01-Message-Code            
+               Perform  Z700-Error-AE                                           
+           End-If                                                               
+      *                                                                         
+      *     Kontrakt-Nr must be present                                         
+      *                                                                         
+           If  RTFRE120-I-Contract-No-I  Not = 'U'                              
+               Move  'F'                 To    RTFRE120-I-Contract-No-O         
+               Move  'FELT1'             To    R400CH01-Message-Key(1)          
+               Move  'Kontrakt-Nr'       To    R400CH01-Message-Data(1)         
+               Move  'GL-MISSING-FIELD&' To    R400CH01-Message-Code            
+               Perform  Z700-Error-AE                                           
+           End-If                                                               
+      *                                                                         
+      *     Operasjons-Type must be present                                     
+      *                                                                         
+           If  RTFRE120-I-Operation-Type-I                                      
+                                         Not = 'U'                              
+               Move  'F'                 To                                     
+                                         RTFRE120-I-Operation-Type-O            
+               Move  'FELT1'             To    R400CH01-Message-Key(1)          
+               Move  'Operasjons-Type'   To    R400CH01-Message-Data(1)         
+               Move  'GL-ANGI-FELT&'     To    R400CH01-Message-Code            
+               Perform  Z700-Error-AE                                           
+           End-If                                                               
+      *</META>                                                                  
+           .                                                                    
+      *                                                                         
+      *<META C100-MANDATORY-FIELDS-EX>                                          
+       C100-Mandatory-Fields-Ex.                                                
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * We have to make shure we have all required input fields        *        
+      * (User Code to execute before generated code)                   *        
+      *----------------------------------------------------------------*        
+      *<META C110-MANDATORY-FIELDS-UB>                                          
+       C110-Mandatory-Fields-UB          Section.                               
+      *                                                                         
+      *</META>                                                                  
+      *                                                                         
+           Continue                                                             
+      *                                                                         
+           .                                                                    
+      *                                                                         
+      *<META C110-MANDATORY-FIELDS-UB-EX>                                       
+       C110-Mandatory-Fields-UB-Ex.                                             
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * We have to make shure we have all required input fields        *        
+      * (User Code to execute after generated code)                    *        
+      *----------------------------------------------------------------*        
+      *<META C120-MANDATORY-FIELDS-UA>                                          
+       C120-Mandatory-Fields-UA          Section.                               
+      *                                                                         
+      *</META>                                                                  
+      *                                                                         
+           Continue                                                             
+      *                                                                         
+           .                                                                    
+      *                                                                        0
+      *<META C120-MANDATORY-FIELDS-UA-EX>                                       
+       C120-Mandatory-Fields-UA-Ex.                                             
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * Output fields can not be part of the input data                *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+       C200-Out-Fields                   Section.                               
+      *                                                                         
+      *  This code is maintained by the codegenerator. Any user changes         
+      *  between the META tags will be lost. Any user code should be            
+      *  placed in the C210... or C220.... sections.                            
+      *                                                                         
+      *<META C200-OUT-FIELDS>                                                   
+      *                                                                         
+      *    Sist-Lagret-Dato is an output field                                  
+      *                                                                         
+           If  RTFRE120-O-Last-Saved-Date-I                                     
+                                         =     'U'                              
+               Move  'F'                 To                                     
+                                         RTFRE120-O-Last-Saved-Date-O           
+               Move  'FELT1'             To    R400CH01-Message-Key(1)          
+               Move  'Sist-Lagret-Dato'  To    R400CH01-Message-Data(1)         
+               Move  'GL-UTFELT-UTFYLT&' To    R400CH01-Message-Code            
+               Perform  Z700-Error-AE                                           
+           End-If                                                               
+      *                                                                         
+      *    Agent Provisjon is an output field                                   
+      *                                                                         
+           If  RTFRE120-O-Agent-Commission-I                                    
+                                         =     'U'                              
+               Move  'F'                 To                                     
+                                         RTFRE120-O-Agent-Commission-O          
+               Move  'FELT1'             To    R400CH01-Message-Key(1)          
+               Move  'Agent Provisjon'   To    R400CH01-Message-Data(1)         
+               Move  'GL-UTFELT-UTFYLT&' To    R400CH01-Message-Code            
+               Perform  Z700-Error-AE                                           
+           End-If                                                               
+      *                                                                         
+      *    Tot omk kjøper - gskr a. bank is an output field                     
+      *                                                                         
+           If  RTFRE120-O-Tot-Ch-Buy-CrThB-I                                    
+                                         =     'U'                              
+               Move  'F'                 To                                     
+                                         RTFRE120-O-Tot-Ch-Buy-CrThB-O          
+               Move  'FELT1'             To    R400CH01-Message-Key(1)          
+               Move  'Tot omk kjøper - gskr a. bank'                            
+                                         To    R400CH01-Message-Data(1)         
+               Move  'GL-UTFELT-UTFYLT&' To    R400CH01-Message-Code            
+               Perform  Z700-Error-AE                                           
+           End-If                                                               
+      *                                                                         
+      *    Tot omk kjøper - gskr. vår bank is an output field                   
+      *                                                                         
+           If  RTFRE120-O-Tot-Ch-Buy-CrOuB-I                                    
+                                         =     'U'                              
+               Move  'F'                 To                                     
+                                         RTFRE120-O-Tot-Ch-Buy-CrOuB-O          
+               Move  'FELT1'             To    R400CH01-Message-Key(1)          
+               Move  'Tot omk kjøper - gskr. vår bank'                          
+                                         To    R400CH01-Message-Data(1)         
+               Move  'GL-UTFELT-UTFYLT&' To    R400CH01-Message-Code            
+               Perform  Z700-Error-AE                                           
+           End-If                                                               
+      *                                                                         
+      *    Sum Omkostninger Kjoper is an output field                           
+      *                                                                         
+           If  RTFRE120-O-Total-Ch-Buyer-I                                      
+                                         =     'U'                              
+               Move  'F'                 To                                     
+                                         RTFRE120-O-Total-Ch-Buyer-O            
+               Move  'FELT1'             To    R400CH01-Message-Key(1)          
+               Move  'Sum Omkostninger Kjoper'                                  
+                                         To    R400CH01-Message-Data(1)         
+               Move  'GL-UTFELT-UTFYLT&' To    R400CH01-Message-Code            
+               Perform  Z700-Error-AE                                           
+           End-If                                                               
+      *                                                                         
+      *    Sum Omkostninger Selger is an output field                           
+      *                                                                         
+           If  RTFRE120-O-Total-Ch-Seller-I                                     
+                                         =     'U'                              
+               Move  'F'                 To                                     
+                                         RTFRE120-O-Total-Ch-Seller-O           
+               Move  'FELT1'             To    R400CH01-Message-Key(1)          
+               Move  'Sum Omkostninger Selger'                                  
+                                         To    R400CH01-Message-Data(1)         
+               Move  'GL-UTFELT-UTFYLT&' To    R400CH01-Message-Code            
+               Perform  Z700-Error-AE                                           
+           End-If                                                               
+      *                                                                         
+      *    Tot omk selger - gskr annen bank is an output field                  
+      *                                                                         
+           If  RTFRE120-O-Tot-Ch-Sell-CrThB-I                                   
+                                         =     'U'                              
+               Move  'F'                 To                                     
+                                         RTFRE120-O-Tot-Ch-Sell-CrThB-O         
+               Move  'FELT1'             To    R400CH01-Message-Key(1)          
+               Move  'Tot omk selger - gskr annen bank'                         
+                                         To    R400CH01-Message-Data(1)         
+               Move  'GL-UTFELT-UTFYLT&' To    R400CH01-Message-Code            
+               Perform  Z700-Error-AE                                           
+           End-If                                                               
+      *                                                                         
+      *    Tot omk selger - gskr vår bank is an output field                    
+      *                                                                         
+           If  RTFRE120-O-Tot-Ch-Sell-CrOuB-I                                   
+                                         =     'U'                              
+               Move  'F'                 To                                     
+                                         RTFRE120-O-Tot-Ch-Sell-CrOuB-O         
+               Move  'FELT1'             To    R400CH01-Message-Key(1)          
+               Move  'Tot omk selger - gskr vår bank'                           
+                                         To    R400CH01-Message-Data(1)         
+               Move  'GL-UTFELT-UTFYLT&' To    R400CH01-Message-Code            
+               Perform  Z700-Error-AE                                           
+           End-If                                                               
+      *                                                                         
+      *    Omkostnings-Type is an output field                                  
+      *                                                                         
+           Perform                                                              
+              Varying  Tally             From 1 By 1                            
+              Until    Tally             >     RTFRE120-O-Charge-Type-A         
+              If  RTFRE120-O-Charge-Type-I(Tally)                               
+                                         =     'U'                              
+                  Move  'F'              To    RTFRE120-O-Charge-Type-O         
+                                               (Tally)                          
+                  Move  'FELT1'          To    R400CH01-Message-Key(1)          
+                  Move  'Omkostnings-Type'                                      
+                                         To    R400CH01-Message-Data(1)         
+                  Move  'GL-UTFELT-UTFYLT&'                                     
+                                         To    R400CH01-Message-Code            
+                  Perform  Z700-Error-AE                                        
+              End-If                                                            
+           End-Perform                                                          
+      *                                                                         
+      *    Beskrivelse is an output field                                       
+      *                                                                         
+           Perform                                                              
+              Varying  Tally             From 1 By 1                            
+              Until    Tally             >     RTFRE120-O-Description-A         
+              If  RTFRE120-O-Description-I(Tally)                               
+                                         =     'U'                              
+                  Move  'F'              To    RTFRE120-O-Description-O         
+                                               (Tally)                          
+                  Move  'FELT1'          To    R400CH01-Message-Key(1)          
+                  Move  'Beskrivelse'    To    R400CH01-Message-Data(1)         
+                  Move  'GL-UTFELT-UTFYLT&'                                     
+                                         To    R400CH01-Message-Code            
+                  Perform  Z700-Error-AE                                        
+              End-If                                                            
+           End-Perform                                                          
+      *                                                                         
+      *    Fritekst-Omk is an output field                                      
+      *                                                                         
+           Perform                                                              
+              Varying  Tally             From 1 By 1                            
+              Until    Tally             >     RTFRE120-O-Charge-Text-A         
+              If  RTFRE120-O-Charge-Text-I(Tally)                               
+                                         =     'U'                              
+                  Move  'F'              To    RTFRE120-O-Charge-Text-O         
+                                               (Tally)                          
+                  Move  'FELT1'          To    R400CH01-Message-Key(1)          
+                  Move  'Fritekst-Omk'   To    R400CH01-Message-Data(1)         
+                  Move  'GL-UTFELT-UTFYLT&'                                     
+                                         To    R400CH01-Message-Code            
+                  Perform  Z700-Error-AE                                        
+              End-If                                                            
+           End-Perform                                                          
+      *                                                                         
+      *    Valgt is an output field                                             
+      *                                                                         
+           Perform                                                              
+              Varying  Tally             From 1 By 1                            
+              Until    Tally             >     RTFRE120-O-Selected-A            
+              If  RTFRE120-O-Selected-I(Tally)                                  
+                                         =     'U'                              
+                  Move  'F'              To    RTFRE120-O-Selected-O            
+                                               (Tally)                          
+                  Move  'FELT1'          To    R400CH01-Message-Key(1)          
+                  Move  'Valgt'          To    R400CH01-Message-Data(1)         
+                  Move  'GL-UTFELT-UTFYLT&'                                     
+                                         To    R400CH01-Message-Code            
+                  Perform  Z700-Error-AE                                        
+              End-If                                                            
+           End-Perform                                                          
+      *                                                                         
+      *    Prosent-Kan-Registreres is an output field                           
+      *                                                                         
+           Perform                                                              
+              Varying  Tally             From 1 By 1                            
+              Until    Tally             >     RTFRE120-O-Percent-A             
+              If  RTFRE120-O-Percent-I(Tally)                                   
+                                         =     'U'                              
+                  Move  'F'              To    RTFRE120-O-Percent-O             
+                                               (Tally)                          
+                  Move  'FELT1'          To    R400CH01-Message-Key(1)          
+                  Move  'Prosent-Kan-Registreres'                               
+                                         To    R400CH01-Message-Data(1)         
+                  Move  'GL-UTFELT-UTFYLT&'                                     
+                                         To    R400CH01-Message-Code            
+                  Perform  Z700-Error-AE                                        
+              End-If                                                            
+           End-Perform                                                          
+      *                                                                         
+      *    Beløp is an output field                                             
+      *                                                                         
+           Perform                                                              
+              Varying  Tally             From 1 By 1                            
+              Until    Tally             >                                      
+                                         RTFRE120-O-Charge-Amount-A             
+              If  RTFRE120-O-Charge-Amount-I(Tally)                             
+                                         =     'U'                              
+                  Move  'F'              To                                     
+                                         RTFRE120-O-Charge-Amount-O             
+                                               (Tally)                          
+                  Move  'FELT1'          To    R400CH01-Message-Key(1)          
+                  Move  'Beløp'          To    R400CH01-Message-Data(1)         
+                  Move  'GL-UTFELT-UTFYLT&'                                     
+                                         To    R400CH01-Message-Code            
+                  Perform  Z700-Error-AE                                        
+              End-If                                                            
+           End-Perform                                                          
+      *                                                                         
+      *    Valutasort is an output field                                        
+      *                                                                         
+           Perform                                                              
+              Varying  Tally             From 1 By 1                            
+              Until    Tally             >     RTFRE120-O-Currency-A            
+              If  RTFRE120-O-Currency-I(Tally)                                  
+                                         =     'U'                              
+                  Move  'F'              To    RTFRE120-O-Currency-O            
+                                               (Tally)                          
+                  Move  'FELT1'          To    R400CH01-Message-Key(1)          
+                  Move  'Valutasort'     To    R400CH01-Message-Data(1)         
+                  Move  'GL-UTFELT-UTFYLT&'                                     
+                                         To    R400CH01-Message-Code            
+                  Perform  Z700-Error-AE                                        
+              End-If                                                            
+           End-Perform                                                          
+      *                                                                         
+      *    Betalende-Part is an output field                                    
+      *                                                                         
+           Perform                                                              
+              Varying  Tally             From 1 By 1                            
+              Until    Tally             >     RTFRE120-O-Paying-Party-A        
+              If  RTFRE120-O-Paying-Party-I(Tally)                              
+                                         =     'U'                              
+                  Move  'F'              To    RTFRE120-O-Paying-Party-O        
+                                               (Tally)                          
+                  Move  'FELT1'          To    R400CH01-Message-Key(1)          
+                  Move  'Betalende-Part' To    R400CH01-Message-Data(1)         
+                  Move  'GL-UTFELT-UTFYLT&'                                     
+                                         To    R400CH01-Message-Code            
+                  Perform  Z700-Error-AE                                        
+              End-If                                                            
+           End-Perform                                                          
+      *                                                                         
+      *    Prosent-Provisjon is an output field                                 
+      *                                                                         
+           Perform                                                              
+              Varying  Tally             From 1 By 1                            
+              Until    Tally             >     RTFRE120-O-Percent-Comm-A        
+              If  RTFRE120-O-Percent-Comm-I(Tally)                              
+                                         =     'U'                              
+                  Move  'F'              To    RTFRE120-O-Percent-Comm-O        
+                                               (Tally)                          
+                  Move  'FELT1'          To    R400CH01-Message-Key(1)          
+                  Move  'Prosent-Provisjon'                                     
+                                         To    R400CH01-Message-Data(1)         
+                  Move  'GL-UTFELT-UTFYLT&'                                     
+                                         To    R400CH01-Message-Code            
+                  Perform  Z700-Error-AE                                        
+              End-If                                                            
+           End-Perform                                                          
+      *                                                                         
+      *    Tilgang fritekst is an output field                                  
+      *                                                                         
+           If  RTFRE120-O-Access-Text-I  =     'U'                              
+               Move  'F'                 To    RTFRE120-O-Access-Text-O         
+               Move  'FELT1'             To    R400CH01-Message-Key(1)          
+               Move  'Tilgang fritekst'  To    R400CH01-Message-Data(1)         
+               Move  'GL-UTFELT-UTFYLT&' To    R400CH01-Message-Code            
+               Perform  Z700-Error-AE                                           
+           End-If                                                               
+      *                                                                         
+      *    tilgang valgfri valuta is an output field                            
+      *                                                                         
+           If  RTFRE120-O-Access-CC-Am-I =     'U'                              
+               Move  'F'                 To    RTFRE120-O-Access-CC-Am-O        
+               Move  'FELT1'             To    R400CH01-Message-Key(1)          
+               Move  'tilgang valgfri valuta'                                   
+                                         To    R400CH01-Message-Data(1)         
+               Move  'GL-UTFELT-UTFYLT&' To    R400CH01-Message-Code            
+               Perform  Z700-Error-AE                                           
+           End-If                                                               
+      *                                                                         
+      *    Antall-Lest is an output field                                       
+      *                                                                         
+           If  RTFRE120-O-No-Read-I      =     'U'                              
+               Move  'F'                 To    RTFRE120-O-No-Read-O             
+               Move  'FELT1'             To    R400CH01-Message-Key(1)          
+               Move  'Antall-Lest'       To    R400CH01-Message-Data(1)         
+               Move  'GL-UTFELT-UTFYLT&' To    R400CH01-Message-Code            
+               Perform  Z700-Error-AE                                           
+           End-If                                                               
+      *</META>                                                                  
+           Continue                                                             
+           .                                                                    
+      *                                                                         
+      *<META C200-OUT-FIELDS-EX>                                                
+       C200-Out-Fields-Ex.                                                      
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * Output fields can not be part of the input data                *        
+      * (User Code to execute before generated code)                   *        
+      *----------------------------------------------------------------*        
+      *<META C210-OUT-FIELDS-UB>                                                
+       C210-Out-Fields-UB                Section.                               
+      *                                                                         
+      *</META>                                                                  
+           Continue                                                             
+           .                                                                    
+      *                                                                         
+      *<META C210-OUT-FIELDS-UB-EX>                                             
+       C210-Out-Fields-UB-Ex.                                                   
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * Output fields can not be part of the input data                *        
+      * (User Code to execute after  generated code)                   *        
+      *----------------------------------------------------------------*        
+      *<META C220-OUT-FIELDS-UA>                                                
+       C220-Out-Fields-UA                Section.                               
+      *                                                                         
+      *</META>                                                                  
+      *                                                                         
+           Continue                                                             
+      *                                                                         
+           .                                                                    
+      *                                                                         
+      *<META C220-OUT-FIELDS-UA-EX>                                             
+       C220-Out-Fields-UA-Ex.                                                   
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * Test permitted values                                          *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+       C300-Permitted-Values             Section.                               
+      *                                                                         
+      *  This code is maintained by the codegenerator. Any user changes         
+      *  between the META tags will be lost. Any user code should be            
+      *  placed in the C310-... or C320... sections                             
+      *                                                                         
+      *<META C300-PERMITTED-VALUES>                                             
+      *                                                                         
+      *    Kontrakt-Nr must be numeric if present.                              
+      *                                                                         
+           Evaluate True                                                        
+             When  RTFRE120-I-Contract-No-I                                     
+                                         Not = 'U'                              
+               Continue                                                         
+             When  RTFRE120-I-Contract-No-D                                     
+                                         Not Numeric                            
+               Move  'F'                 To    RTFRE120-I-Contract-No-O         
+               Move  'FELT1'             To    R400CH01-Message-Key(1)          
+               Move  'Kontrakt-Nr'       To    R400CH01-Message-Data(1)         
+               Move  'GL-UGYLDIG-VERDI&' To    R400CH01-Message-Code            
+               Perform  Z700-Error-AE                                           
+           End-Evaluate                                                         
+      *                                                                         
+      *    Rate-Nr must be numeric if present.                                  
+      *                                                                         
+           Evaluate True                                                        
+             When  RTFRE120-I-Part-Amount-No-I                                  
+                                         Not = 'U'                              
+               Continue                                                         
+             When  RTFRE120-I-Part-Amount-No-D                                  
+                                         Not Numeric                            
+               Move  'F'                 To                                     
+                                         RTFRE120-I-Part-Amount-No-O            
+               Move  'FELT1'             To    R400CH01-Message-Key(1)          
+               Move  'Rate-Nr'           To    R400CH01-Message-Data(1)         
+               Move  'GL-UGYLDIG-VERDI&' To    R400CH01-Message-Code            
+               Perform  Z700-Error-AE                                           
+           End-Evaluate                                                         
+      *                                                                         
+      *    Perioder must be numeric if present.                                 
+      *                                                                         
+           Evaluate True                                                        
+             When  RTFRE120-O-Period-I   Not = 'U'                              
+               Continue                                                         
+             When  RTFRE120-O-Period-D   Not Numeric                            
+               Move  'F'                 To    RTFRE120-O-Period-O              
+               Move  'FELT1'             To    R400CH01-Message-Key(1)          
+               Move  'Perioder'          To    R400CH01-Message-Data(1)         
+               Move  'GL-UGYLDIG-VERDI&' To    R400CH01-Message-Code            
+               Perform  Z700-Error-AE                                           
+           End-Evaluate                                                         
+      *                                                                         
+      *    Les-Fra must be numeric if present.                                  
+      *                                                                         
+           Evaluate True                                                        
+             When  RTFRE120-B-Read-From-I                                       
+                                         Not = 'U'                              
+               Continue                                                         
+             When  RTFRE120-B-Read-From-D                                       
+                                         Not Numeric                            
+               Move  'F'                 To    RTFRE120-B-Read-From-O           
+               Move  'FELT1'             To    R400CH01-Message-Key(1)          
+               Move  'Les-Fra'           To    R400CH01-Message-Data(1)         
+               Move  'GL-UGYLDIG-VERDI&' To    R400CH01-Message-Code            
+               Perform  Z700-Error-AE                                           
+           End-Evaluate                                                         
+      *                                                                         
+      *    Les-Til must be numeric if present.                                  
+      *                                                                         
+           Evaluate True                                                        
+             When  RTFRE120-B-Read-To-I  Not = 'U'                              
+               Continue                                                         
+             When  RTFRE120-B-Read-To-D  Not Numeric                            
+               Move  'F'                 To    RTFRE120-B-Read-To-O             
+               Move  'FELT1'             To    R400CH01-Message-Key(1)          
+               Move  'Les-Til'           To    R400CH01-Message-Data(1)         
+               Move  'GL-UGYLDIG-VERDI&' To    R400CH01-Message-Code            
+               Perform  Z700-Error-AE                                           
+           End-Evaluate                                                         
+      *</META>                                                                  
+           Continue                                                             
+           .                                                                    
+      *                                                                         
+      *<META C300-PERMITTED-VALUES-EX>                                          
+       C300-Permitted-Values-Ex.                                                
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * Test permitted values                                          *        
+      * (User Code to execute before generated code)                   *        
+      *----------------------------------------------------------------*        
+      *<META C310-PERMITTED-VALUES-UB>                                          
+       C310-Permitted-Values-UB          Section.                               
+      *                                                                         
+      *</META>                                                                  
+      *                                                                         
+           Continue                                                             
+      *                                                                         
+           .                                                                    
+      *                                                                         
+      *<META C310-PERMITTED-VALUES-UB-EX>                                       
+       C310-Permitted-Values-UB-Ex.                                             
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * Test permitted values                                          *        
+      * (User Code to execute after  generated code)                   *        
+      *----------------------------------------------------------------*        
+      *<META C320-PERMITTED-VALUES-UA>                                          
+       C320-Permitted-Values-UA          Section.                               
+      *                                                                         
+      *</META>                                                                  
+      *                                                                         
+           Continue                                                             
+      *                                                                         
+           .                                                                    
+      *                                                                         
+      *<META C320-PERMITTED-VALUES-UA-EX>                                       
+       C320-Permitted-Values-UA-Ex.                                             
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * We make shure that input fields that are not mandatory, gets   *        
+      * valid default values if not received.                          *        
+      *----------------------------------------------------------------*        
+       C400-Default-Values               Section.                               
+      *                                                                         
+      *  This code is maintained by the codegenerator. Any user changes         
+      *  between the META tags will be lost. Any user code should be            
+      *  placed in the C410... or C420.. sections.                              
+      *                                                                         
+      *<META C400-DEFAULT-VALUES>                                               
+      *</META>                                                                  
+           Continue                                                             
+           .                                                                    
+      *                                                                         
+      *<META C400-DEFAULT-VALUES-EX>                                            
+       C400-Default-Values-Ex.                                                  
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * We make shure that input fields that are not mandatory, gets   *        
+      * valid default values if not received.                          *        
+      * (User Code to execute before generated code)                   *        
+      *----------------------------------------------------------------*        
+      *<META C410-DEFAULT-VALUES-UB>                                            
+       C410-Default-Values-UB            Section.                               
+      *                                                                         
+      *</META>                                                                  
+      *                                                                         
+           Continue                                                             
+      *                                                                         
+           .                                                                    
+      *                                                                         
+      *<META C410-DEFAULT-VALUES-UB-EX>                                         
+       C410-Default-Values-UB-Ex.                                               
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * We make shure that input fields that are not mandatory, gets   *        
+      * valid default values if not received.                          *        
+      * (User Code to execute after  generated code)                   *        
+      *----------------------------------------------------------------*        
+      *<META C420-DEFAULT-VALUES-UA>                                            
+       C420-Default-Values-UA            Section.                               
+      *                                                                         
+      *</META>                                                                  
+      *                                                                         
+           Continue                                                             
+      *                                                                         
+      *                                                                         
+           .                                                                    
+      *                                                                         
+      *<META C420-DEFAULT-VALUES-UA-EX>                                         
+       C420-Default-Values-UA-Ex.                                               
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * Check dependencies between input fields                        *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+       C500-Dependencies                 Section.                               
+      *                                                                         
+      *  This code is maintained by the codegenerator. Any user changes         
+      *  between the META tags will be lost. Any user code should be            
+      *  placed in the C510... or C520.. sections.                              
+      *                                                                         
+      *<META C500-DEPENDENCIES>                                                 
+      *</META>                                                                  
+           Continue                                                             
+           .                                                                    
+      *                                                                         
+      *<META C500-DEPENDENCIES-EX>                                              
+       C500-Dependencies-Ex.                                                    
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * Check dependencies between input fields                        *        
+      * (User Code to execute before generated code)                   *        
+      *----------------------------------------------------------------*        
+      *<META C510-DEPENDENCIES-UB>                                              
+       C510-Dependencies-UB              Section.                               
+      *                                                                         
+      *</META>                                                                  
+      *                                                                         
+           Continue                                                             
+      *                                                                         
+           .                                                                    
+      *                                                                         
+      *<META C510-DEPENDENCIES-UB-EX>                                           
+       C510-Dependencies-UB-Ex.                                                 
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * Check dependencies between input fields                        *        
+      * (User Code to execute after  generated code)                   *        
+      *----------------------------------------------------------------*        
+      *<META C520-DEPENDENCIES-UA>                                              
+       C520-Dependencies-UA              Section.                               
+      *                                                                         
+      *</META>                                                                  
+      *                                                                         
+           Continue                                                             
+      *                                                                         
+           .                                                                    
+      *                                                                         
+      *<META C520-DEPENDENCIES-UA-EX>                                           
+       C520-Dependencies-UA-Ex.                                                 
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * Place code necessary to prepare control of input data against  *        
+      * database fields later here. add Perform statements of other    *        
+      * sections for your own logic here. Preferably seperate sections *        
+      * for each database element to be read.                          *        
+      *                                                                *        
+      * REMEMBER !!! Use database interfaces. No direct read from this *        
+      * module.                                                        *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+      *<META D000-PREPARE-DB-READ>                                              
+       D000-Prepare-DB-Read              Section.                               
+      *                                                                         
+      *</META>                                                                  
+      *                                                                         
+           Continue                                                             
+      *                                                                         
+           .                                                                    
+      *                                                                         
+      *<META D000-PREPARE-DB-READ-EX>                                           
+       D000-Prepare-DB-Read-Ex.                                                 
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * Check dependencies against databas fields.                     *        
+      *                                                                *        
+      * Here we perform all nesecarry control , befor return to the    *        
+      * H-module.                                                      *        
+      *                                                                *        
+      * Add Perform statements to other sections that contain the      *        
+      * actual controls.                                               *        
+      *----------------------------------------------------------------*        
+      *<META E000-CONTROL-BASE>                                                 
+       E000-Control-Base                 Section.                               
+      *                                                                         
+      *</META>                                                                  
+      *                                                                         
+           Continue                                                             
+      *                                                                         
+           .                                                                    
+      *                                                                         
+      *<META E000-CONTROL-BASE-EX>                                              
+       E000-Control-Base-Ex.                                                    
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * Set Warning status                                             *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+      *<META Z600-ERROR-AW>                                                     
+       Z600-Error-AW                     Section.                               
+      *                                                                         
+           Set   R7919999-Return-Warning To    True                             
+           Move  'FTFRK120'              To    R400CH01-Message-Text            
+           .                                                                    
+      *                                                                         
+       Z600-Error-AW-Ex.                                                        
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * Syntax Error status                                            *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+      *<META Z700-ERROR-AE>                                                     
+       Z700-Error-AE                     Section.                               
+      *                                                                         
+           Set   R7919999-Return-Error   To    True                             
+           If    R400CH01-Message-Code   =     'FM'                             
+                 String   'FTFRK120'           Delimited By Size                
+                          ': '                 Delimited By Size                
+                       R7919999-Message        Delimited By Size                
+                                         Into  R400CH01-Message-Text            
+                 End-String                                                     
+           Else                                                                 
+                 Move  'FTFRK120'        To    R400CH01-Message-Text            
+           End-If                                                               
+           .                                                                    
+      *                                                                         
+       Z700-Error-AE-Ex.                                                        
+           Goback.                                                              
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * Severe error. Will genereate USER-ABEND in STG when the        *        
+      * function is executed in batch.                                 *        
+      *----------------------------------------------------------------*        
+      *<META Z800-ERROR-AS>                                                     
+       Z800-Error-AS                     Section.                               
+      *                                                                         
+           Set   R7919999-Return-Abend   To    True                             
+           If    R400CH01-Message-Code   =     'FM'                             
+                 String   'FTFRK120'           Delimited By Size                
+                          ': '                 Delimited By Size                
+                       R7919999-Message        Delimited By Size                
+                                         Into  R400CH01-Message-Text            
+                 End-String                                                     
+           Else                                                                 
+                 Move  'FTFRK120'        To    R400CH01-Message-Text            
+           End-If                                                               
+           .                                                                    
+      *                                                                         
+       Z800-Error-AS-Ex.                                                        
+           Goback.                                                              
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * Severe error. Will genereate USER-ABEND in STG when the        *        
+      * function is executed in batch.                                 *        
+      *----------------------------------------------------------------*        
+      *<META Z900-ABEND>                                                        
+       Z900-Abend                        Section.                               
+      *                                                                         
+           Set   R7919999-Return-Abend   To    True                             
+           If    R400CH01-Message-Code   =     'FM'                             
+                 String   'FTFRK120'           Delimited By Size                
+                          ': '                 Delimited By Size                
+                       R7919999-Message        Delimited By Size                
+                                         Into  R400CH01-Message-Text            
+                 End-String                                                     
+           Else                                                                 
+                 Move  'FTFRK120'        To    R400CH01-Message-Text            
+           End-If                                                               
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+           If  R7919999-Return-Code      Not   Numeric                          
+           or  Not R7919999-Return-Abend                                        
+               Move  +0                  To    R7919999-Module-Ind              
+           End-If                                                               
+           Add   +1                      To    R7919999-Module-Ind              
+           If  R7919999-Module-Ind       Not >                                  
+                             ( Length    Of    R7919999-Module-Tab              
+                             / Length    Of    R7919999-Module-Element )        
+               Move  'FTFRK120'          To    R7919999-Module-Name             
+                                               (R7919999-Module-Ind)            
+               Move  R7919999-Paragraph  To    R7919999-Module-Para             
+                                               (R7919999-Module-Ind)            
+           End-If                                                               
+           Set   R7919999-Return-Abend   To    True                             
+           .                                                                    
+      *                                                                         
+       Z900-Abend-Ex.                                                           
+           Goback.                                                              
+      *</META>                                                                  
+      *                                                                         
+       End Program FTFRK120.                                                    

@@ -1,0 +1,110 @@
+      *################################################################*        
+      *                                                                *        
+      * R400CH02 - New Servo COBOL Header Data                         *        
+      *                                                                *        
+      *################################################################*        
+      * Date ! Si! Type of change                                ! 3A !*        
+      *------+---+-----------------------------------------------+----+*        
+      *230119!JM ! change R400CH01-Language to R400CH01-Fininst-Country*        
+      *      !   ! added R400CH01-Org-Main-Language                             
+      *      !   ! and   R400CH01-Requestor-Language                            
+      *      !   ! and   R400CH01-TXI-Trans-Id                                  
+      *      !   ! and   R400CH01-Source-Appl                                   
+      *      !   ! redused Filler at end from 100 to 28                         
+      *------+---+-----------------------------------------------+----+*        
+      *290617!amr! lagt til R400CH01-Ext-TX-ID og redusert filler      *        
+      *      !   ! tilsvarende                                         *        
+      *------+---+-----------------------------------------------+----+*        
+      *021399!jpk! Changed to english version                    !    !*        
+      *081297!jpk! Nytt Copyområde                               !    !*        
+      *################################################################*        
+      *                                                                         
+      *                                                                         
+         03  R400CH01-STG-Header.                                               
+      *                                                                         
+      *    Information about the header structure                               
+      *                                                                         
+           05  R400CH01-HD-Eyecatcher    Pic  x(08).                            
+               88  R400CH01-HD-Eye-Const            Value  'R400CH01'.          
+           05  R400CH01-HD-Ver           Pic  X(08).                            
+               88  R400CH01-HD-Version              Value  '19971208'.          
+           05  R400CH01-HD-Length        Pic  9(04).                            
+      *                                                                         
+      *    Information about the Service function                               
+      *                                                                         
+           05  R400CH01-Function         Pic  X(08).                            
+           05  R400CH01-Version          Pic  9(02).                            
+           05  R400CH01-Orig-Function    Pic  X(08).                            
+           05  R400CH01-Orig-Version     Pic  9(02).                            
+      *                                                                         
+      *    Information about origin                                             
+      *                                                                         
+           05  R400CH01-Medium           Pic  X(02).                            
+           05  R400CH01-Terminalid       Pic  X(08).                            
+           05  R400CH01-Userid           Pic  X(08).                            
+           05  R400CH01-Fininst-Id       Pic  9(18).                            
+           05  R400CH01-Fininst-Id-Data  Pic  9(18).                            
+           05  R400CH01-Fininst-Country  Pic  X(02).                            
+      *                                                                         
+      *    Bank related information                                             
+      *                                                                         
+           05  R400CH01-Bank             Pic  9(04).                            
+           05  R400CH01-Finance-Inst     Pic  9(04).                            
+           05  R400CH01-Finance-Inst-Data                                       
+                                         Pic  9(04).                            
+           05  R400CH01-Fininst-Branch   Pic  9(04).                            
+           05  R400CH01-Exec-Branch      Pic  9(05).                            
+           05  R400CH01-Run-Group        Pic  9(02).                            
+      *                                                                         
+      *    Date fields                                                          
+      *                                                                         
+           05  R400CH01-Reg-Date         Pic  9(08).                            
+           05  R400CH01-Exec-Date        Pic  9(08).                            
+           05  R400CH01-Next-Date        Pic  9(08).                            
+           05  R400CH01-System-Date      Pic  9(08).                            
+           05  R400CH01-System-Time      Pic  9(08).                            
+           05  R400CH01-STG-Date         Pic  9(08).                            
+           05  R400CH01-STG-Time         Pic  9(08).                            
+      *                                                                         
+      *    Flags                                                                
+      *                                                                         
+           05  R400CH01-Trace            Pic  X(01).                            
+               88  R400CH01-Trace-Off               Value  'N'.                 
+               88  R400CH01-Trace-On                Value  'J'.                 
+           05  R400CH01-Trans-Info       Pic  X(01).                            
+               88  R400CH01-Light-Trans             Value  'L'.                 
+               88  R400CH01-Heavy-Trans             Value  'T'.                 
+               88  R400CH01-Normal-Trans            Value  'V'.                 
+      *                                                                         
+      *    Status / Feil informasjon                                            
+      *                                                                         
+           05  R400CH01-Status-Code      Pic  X(02).                            
+               88 R400CH01-OK                       Value  '  '.                
+               88 R400CH01-Warning                  Value  'AW'.                
+               88 R400CH01-Error                    Value  'AE'.                
+               88 R400CH01-Severe-Error             Value  'AS'.                
+           05  R400CH01-Message-Code     Pic  X(30).                            
+           05  R400CH01-Message-Text     Pic  X(80).                            
+           05  R400CH01-Message-Var-Tab.                                        
+               10  R400CH01-Message-Element Occurs 15.                          
+                   15  R400CH01-Message-Key                                     
+                                         Pic  x(10).                            
+                   15  R400CH01-Message-Data                                    
+                                         Pic  x(60).                            
+      *                                                                         
+      *    Orgid's main language and consumers/requestor prefered               
+      *    language                                                             
+      *                                                                         
+           05  R400CH01-Org-Main-Language  Pic  X(03).                          
+           05  R400CH01-Requestor-Language Pic  X(03).                          
+                                                                                
+      *                                                                         
+      *    Some TXI-fields are also populated here.                             
+      *                                                                         
+           05  R400CH01-Trans-Id           Pic  X(36).                          
+           05  R400CH01-Source-Appl        Pic  X(30).                          
+                                                                                
+      *                                                                         
+      *    Filler for evt. adhoc utvidelser                                     
+      *                                                                         
+           05  Filler                    Pic  X(028).                           

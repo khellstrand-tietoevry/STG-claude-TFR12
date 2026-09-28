@@ -1,0 +1,139 @@
+      *################################################################*00010001
+      *                                                                 00020001
+      * Copy-område R7918030.                                           00030001
+      * Interface for henting av korrekt feilmelding                    00040001
+      *                                                                 00050001
+      *                                                                 00060001
+      * Et typisk kall vil se slik ut :                                 00070001
+      *                                                                 00080001
+      *    Initialize                          R7918030-Feilmelding     00090001
+      *    Set   R7918030-Versjon        To    True                     00100001
+      *    Move  &Logonid#               To    R7918030-In-Logonid      00110001
+      *    Move  &Terminal#              To    R7918030-In-Terminal     00120001
+      *    Move  &Sysident#              To    R7918030-In-System       00130001
+      *                                                                 00140001
+      * eventuelt:                                                      00150001
+      *    Move  &konsern-nr#            To    R7918030-In-Konsern-Nr   00160001
+      *                                                                 00170001
+      * eventuelt: (NO er default)                                      00180001
+      *    Move  &språk - ISO-kode#      To    R7918030-In-Spraak       00190001
+      *                                                                 00200001
+      * eventuelt:                                                      00210001
+      *    Set   R7918030-In-Logging-Ja  To    True                     00220001
+      *                                                                 00230001
+      *    Move  &Meldingskode#          To    R7918030-In-Meldingskode 00240001
+      *    Move  &Meldingstekst#         To    R7918030-In-Meldingstekst00250001
+      *                                                                 00260001
+      *    Call  'F7918030'              Using R7918030-Feilmelding     00270001
+      *    End-Call                                                     00280001
+      *                                                                 00290001
+      *################################################################*00300001
+      * Dato ! Si! Endringens art                                ! 3A ! 00310001
+      *---------------------------------------------------------------- 00320001
+      *130298!HLR! Utvidet med tabell for symbolske variabler,   !JM93! 00330002
+      *      !   ! samt språk og konsern-nr.                     !    ! 00340001
+      *120695!RM ! Ny modul                                      !    ! 00350001
+      *################################################################*00360001
+      *                                                                 00370005
+         03  R7918030-ErrorMessage.                                     00380005
+      *                                                                 00390005
+           05  R7918030-Version-No             Pic  X(08).              00400005
+             88  R7918030-Version                   Value '19980213'.   00410005
+      *                                                                 00420005
+      *----------------------------------------------------------------*00430005
+      *                                                                 00440005
+           05  R7918030-Qualification.                                  00450005
+      *                                                                 00460005
+             10  R7918030-In-Logon-Id          Pic  X(08).              00470005
+             10  R7918030-In-Terminal-Id       Pic  X(08).              00480005
+             10  R7918030-In-System-Id         Pic  X(02).              00490005
+      *                                                                 00500005
+      *      When using Fin-Inst-No the finacial institution may have   00510005
+      *      its own set of messages                                    00520005
+      *                                                                 00530005
+             10  R7918030-In-Fin-Inst-No       Pic  9(04).              00540005
+      *                                                                 00550005
+      *      Default language is norwegian (NO). The language code      00560005
+      *      is ISO standard two character.                             00570005
+      *                                                                 00580005
+             10  R7918030-In-Language          Pic  X(02).              00590005
+      *                                                                 00600005
+      *      If one choose YES for logging information , information    00610005
+      *      might be written to the CICS-Log or sysout.                00620005
+      *                                                                 00630005
+             10  R7918030-In-Error-Log         Pic  X(01).              00640005
+               88  R7918030-In-Log-No               Value 'N', ' '.     00650005
+               88  R7918030-In-Log-Yes              Value 'J'.          00660005
+      *                                                                 00670005
+      *      If one already have a message text, the messagecode must   00680005
+      *      be set to FM, if not the message code will be used to get  00690005
+      *      text from the message table                                00700005
+      *                                                                 00710005
+             10  R7918030-In-MessageCode       Pic  X(30).              00720005
+               88  R7918030-In-Complete-Message     Value 'FM'.         00730005
+             10  R7918030-In-MessageText       Pic  X(100).             00740005
+      *                                                                 00750005
+      *      If you want to use symbolic variables in the message text, 00760005
+      *      this table is used to specify the data to merge into the   00770005
+      *      message text.                                              00780005
+      *                                                                 00790005
+             10  R7918030-In-Variable-Table.                            00800005
+               15  R7918030-In-Variable-Element                         00810005
+                                               Occurs 15 times.         00820005
+                 20  R7918030-In-Variable-Key  Pic  X(10).              00830005
+                 20  R7918030-In-Variable-Data Pic  X(60).              00840005
+      *                                                                 00850005
+      *----------------------------------------------------------------*00860005
+      *                                                                 00870005
+           05  R7918030-Result.                                         00880005
+      *                                                                 00890005
+             10  R7918030-Out-MessageCode      Pic  X(30).              00900005
+             10  R7918030-Out-MessageText      Pic  X(100).             00910005
+      *                                                                 00920005
+      *                                                                 00930001
+         03  R7918030-Feilmelding  Redefines R7918030-ErrorMessage.     00940005
+      *                                                                 00950001
+           05  R7918030-Versjons-Nr            Pic  X(08).              00960001
+             88  R7918030-Versjon                   Value '19980213'.   00970002
+      *                                                                 00980001
+      *----------------------------------------------------------------*00990001
+      *                                                                 01000001
+           05  R7918030-Kvalifisering.                                  01010001
+      *                                                                 01020001
+             10  R7918030-In-LogonID           Pic  X(08).              01030001
+             10  R7918030-In-Terminal          Pic  X(08).              01040001
+             10  R7918030-In-System            Pic  X(02).              01050001
+      *                                                                 01060001
+      * Ved bruk av konsern-nr kan enkelt-konsern ha egne tekster.      01070001
+             10  R7918030-In-Konsern-Nr        Pic  9(04).              01080001
+      *                                                                 01090001
+      * Default språk er norsk (NO). Språk-koden følger ISO-standard.   01100001
+             10  R7918030-In-Spraak            Pic  X(02).              01110001
+      *                                                                 01120001
+      * Dersom man velger JA til logging, skrives informasjon på        01130001
+      * CICS-loggen eller Sysout.                                       01140001
+             10  R7918030-In-Logge-Feil        Pic  X(01).              01150001
+               88  R7918030-In-Logging-Nei          Value 'N', ' '.     01160001
+               88  R7918030-In-Logging-Ja           Value 'J'.          01170001
+      *                                                                 01180001
+      * Dersom man har en meldings-tekst fra før settes meldings-kode   01190001
+      * til "FM", ellers benyttes meldings-koden til å hente tekst      01200001
+      * fra feilmeldings-tabellen.                                      01210001
+             10  R7918030-In-Meldingskode      Pic  X(30).              01220001
+               88  R7918030-In-Ferdig-Melding       Value 'FM'.         01230001
+             10  R7918030-In-Meldingstekst     Pic  X(100).             01240001
+      *                                                                 01250001
+      * Tabellen benyttes til å legge inn "symbolske variabler",        01260001
+      * som vil kunne flettes inn i feilmeldings-teksten.               01270001
+             10  R7918030-In-Variabel-Tabell.                           01280001
+               15  R7918030-In-Variabel-Element                         01290001
+                                               Occurs 15 times.         01300001
+                 20  R7918030-In-Variabel-Key  Pic  X(10).              01310001
+                 20  R7918030-In-Variabel-Data Pic  X(60).              01320001
+      *                                                                 01330001
+      *----------------------------------------------------------------*01340001
+      *                                                                 01350001
+           05  R7918030-Resultat.                                       01360001
+      *                                                                 01370001
+             10  R7918030-Ut-Meldingskode      Pic  X(30).              01380001
+             10  R7918030-Ut-Meldingstekst     Pic  X(100).             01390001

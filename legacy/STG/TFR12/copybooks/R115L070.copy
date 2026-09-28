@@ -1,0 +1,131 @@
+      *################################################################*00010015
+      *                                                                 00020003
+      * FD/Trade Finance                                                00030003
+      *                                                                 00040003
+      * Lists charges. The amounts/percentages presented have been      00040003
+      * computed from occurences on TF_Main_Charge and TF_Part_Charge   00040003
+      * in accordance with the "Method_Of_Calculation" pertaining to    00040003
+      * each particular charge type.                                    00040003
+      *                                                                 00060003
+      * As "-In-Action", use "-In-Add" if you need figures for          00060003
+      * presentation to the end user or for settlement.                 00060003
+      *                                                                 00060003
+      * Use "-In-Subtract" if you need to modify input figures from the 00060003
+      * end user in connection with updates of TF_Main_Charge and/or    00060003
+      * TF_Part_Charge.                                                 00060003
+      *                                                                         
+      * NB! This module does not present the figures as they appear from        
+      * any of the two database tables. If you need figures that have           
+      * NOT been modified, use module F115L060!                                 
+      *                                                                 00060003
+      *################################################################*00070015
+      *                                                                 00080003
+           03  R115L070-Comp-Charge.                                    00090003
+      *                                                                 00100003
+             05  R115L070-Version-No                Pic  X(08).         00110003
+               88  R115L070-Version                    Value '19990628'.00120053
+      *                                                                 00130003
+             05  R115L070-Qualification.                                00140003
+      *                                                                 00140118
+               10  R115L070-In-Action               Pic  X(16).                 
+                 88  R115L070-In-Add                   Value 'ADD'.             
+                 88  R115L070-In-Subtract              Value 'SUBTRACT'.        
+      *                                                                         
+               10  R115L070-In-Key.                                     00140218
+      *                                                                 00140318
+                 15  R115L070-In-Table-Version      Pic  X(16).         00140418
+                   88  R115L070-In-Actual                Value 'ACTUAL'.00140518
+                   88  R115L070-In-Work                  Value 'WORK'.  00140618
+      *                                                                         
+      * Optional.                                                               
+                 15  R115L070-In-Read.                                          
+                   19  R115L070-In-Read-From        Pic S9(04)   Comp.          
+                   19  R115L070-In-Read-To          Pic S9(04)   Comp.          
+      *                                                                 00140733
+      * Fin-Inst-No is mandatory.                                       00141333
+                 15  R115L070-In-Fin-Inst.                              00141433
+                   20  R115L070-In-Fin-Inst-No      Pic  X(18).         00141533
+                   20  R115L070-In-Fin-Inst-ID      Pic S9(18).         00141633
+                 15  R115L070-In-Reg-No             Pic  9(04).                 
+      *                                                                 00142103
+      * Use both.                                                       00142203
+                 15  R115L070-In-Contract.                              00142318
+                   20  R115L070-In-Contract-Type    Pic  X(03).         00142418
+                   20  R115L070-In-Contract-No      Pic S9(07)   Comp-3.00143018
+      *                                                                 00143103
+      * May be zero.                                                    00143203
+                 15  R115L070-In-PA-Seq-No          Pic S9(04)   Comp.  00144018
+      *                                                                 00145006
+                 15  R115L070-In-Operation-Type     Pic  X(20).         00146018
+      *                                                                 00150003
+      *----------------------------------------------------------------*        
+      *                                                                         
+             05  R115L070-Data.                                                 
+      *                                                                         
+               07  R115L070-Charge-Tab.                                         
+      *                                                                         
+      * Number of rows in the array.                                            
+                 10  R115L070-Max-Tab-Occ           Pic S9(02)   Comp.          
+      *                                                                         
+      * Number of rows containing non-initial values.                           
+                 10  R115L070-No-Tab-Occ            Pic S9(02)   Comp.          
+      *                                                                         
+                 10  R115L070-Charge-Element        Occurs 50.                  
+                   15  R115L070-Charge-Type         Pic  X(20).                 
+                   15  R115L070-Charge-Method-Calc  Pic  X(01).                 
+                     88  R115L070-MethCalc-Part-Amount   Value 'A'.             
+                     88  R115L070-MethCalc-Canceling     Value 'C'.             
+                     88  R115L070-MethCalc-Settlement    Value 'S', 'C'.        
+                     88  R115L070-MethCalc-Pct-Of-CA     Value 'P'.             
+                     88  R115L070-MethCalc-Pct-Of-PA     Value 'Q'.             
+                   15  R115L070-Charge-Role-Type    Pic  X(05).                 
+                   15  R115L070-Charge-Amount       Pic S9(14)V9(3)             
+                                                         Comp-3.                
+                   15  R115L070-Charge-Currency     Pic  X(03).                 
+                   15  R115L070-Charge-Percentage   Pic  9(03)V9(03)            
+                                                                 Comp-3.        
+                   15  R115L070-Maximum-Charge      Pic S9(14)V9(03)            
+                                                                 Comp-3.        
+                   15  R115L070-Minimum-Charge      Pic S9(14)V9(03)            
+                                                                 Comp-3.        
+                   15  R115L070-Charge-Description  Pic  X(80).                 
+                   15  R115L070-Charge-Credit       Pic  X(01).                 
+                     88  R115L070-Credit-Agent-Bank      Value 'A'.             
+                     88  R115L070-Credit-Other-Bank      Value 'T'.             
+                     88  R115L070-Credit-Own-Bank        Value 'W'.             
+                   15  R115L070-PPFT-Code           Pic  X(06).                 
+                   15  R115L070-GL-Account          Pic S9(11)   Comp-3.        
+                   15  R115L070-Branch-Code         Pic S9(05)   Comp-3.        
+                   15  R115L070-Charge-Text         Pic  X(30).                 
+      *                                                                         
+               07  R115L070-Totals-Seller.                                      
+                 10  R115L070-Ch-Seller-Cred-Agent  Pic S9(14)V9(3)             
+                                                         Comp-3.                
+                 10  R115L070-Ch-Seller-Cred-T-Bank Pic S9(14)V9(3)             
+                                                         Comp-3.                
+                 10  R115L070-Ch-Seller-Cred-W-Bank Pic S9(14)V9(3)             
+                                                         Comp-3.                
+                 10  R115L070-Total-Charge-Seller   Pic S9(14)V9(3)             
+                                                         Comp-3.                
+      *                                                                         
+               07  R115L070-Totals-Buyer.                                       
+                 10  R115L070-Ch-Buyer-Cred-Agent   Pic S9(14)V9(3)             
+                                                         Comp-3.                
+                 10  R115L070-Ch-Buyer-Cred-T-Bank  Pic S9(14)V9(3)             
+                                                         Comp-3.                
+                 10  R115L070-Ch-Buyer-Cred-W-Bank  Pic S9(14)V9(3)             
+                                                         Comp-3.                
+                 10  R115L070-Total-Charge-Buyer    Pic S9(14)V9(3)             
+                                                         Comp-3.                
+      *                                                                         
+               07  R115L070-Totals-Agent.                                       
+                 10  R115L070-Tot-Agent-Commission  Pic S9(14)V9(3)             
+                                                         Comp-3.                
+      *                                                                         
+               07  R115L070-CA-Currency             Pic  X(03).                 
+      *                                                                         
+               07  R115L070-Read.                                               
+                 10  R115L070-No-Read               Pic S9(04)   Comp.          
+                 10  R115L070-Read-From             Pic S9(04)   Comp.          
+                 10  R115L070-Read-To               Pic S9(04)   Comp.          
+      *                                                                         

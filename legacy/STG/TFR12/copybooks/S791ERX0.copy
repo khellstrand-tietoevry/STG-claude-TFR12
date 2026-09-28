@@ -1,0 +1,187 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      *                                                                 00030012
+      * >>> NB! This copy book is also used outside EDB Core,  <<<      00040012
+      * >>> it is also defined in MKS/SubVersion.              <<<      00050012
+      * >>> If changes are required, these versions must be    <<<      00060012
+      * >>> harmonized. This must be done in co-operation with <<<      00070012
+      * >>> those responsible for PO and for iHub!!!           <<<      00080012
+      * >>>                       Jan.2009, Henning L. Rødland <<<      00090012
+      *                                                                 00100012
+      *                                                                 00110012
+      * Src-fragment addon to F791ERR0-Error-Handling routines,         00120001
+      * needed when R7919999 is used.                                   00130001
+      *                                                                 00140000
+      *################################################################*00150000
+       Z200-Error-Handling-R7919999      Section.                       00160005
+      *                                                                 00170000
+      * This section is used when you want to use the message and       00180000
+      * call trace info from R7919999.                                  00190000
+      * This is relevant after a call to a GSM module that still uses   00200000
+      * the old error copy area.                                        00210000
+      *                                                                 00220000
+           Set   R791ERR0-Version        To    True                     00230000
+           Set   R791ERR0-In-Error-Handling-Ext                         00240005
+                                         To    True                     00250000
+           Move  WC-Program-ID           To    R791ERR0-In-Module-ID    00260000
+      *                                                                 00270000
+      * The external program is the user exit needed to convert to and  00280000
+      * from the external error area - in this case R7919999.           00290000
+           Move  'F791ERX0'              To    R791ERR0-In-Ext-Area-Prog00300002
+      *                                                                 00310000
+           Perform ZSYS-Error-System-Exit                               00320004
+      *                                                                 00330000
+           Call  'F791ERR0'              Using R791ERR0-Error-Handling  00340000
+                                               R7919999-Error-Area      00350000
+           End-Call                                                     00360000
+      *                                                                 00370000
+           Goback                                                       00380000
+           .                                                            00390000
+      *################################################################*00400005
+       Z300-Call-Trace-R7919999          Section.                       00410005
+      *                                                                 00420005
+      * NB! PLEASE DO NOT USE THIS SECTION ANY MORE.                    00430011
+      *     INSTEAD, USE Z300-Call-Trace-R7919999-2-OLD / -NEW !!!      00440011
+      *                                                                 00450011
+      * This section is used when you want to use the message and       00460005
+      * call trace info from R7919999.                                  00470005
+      * This is relevant after a call to a GSM module that still uses   00480005
+      * the old error copy area.                                        00490005
+      *                                                                 00500005
+           Set   R791ERR0-Version        To    True                     00510005
+           Set   R791ERR0-In-Call-Trace-Ext                             00520005
+                                         To    True                     00530005
+           Move  WC-Program-ID           To    R791ERR0-In-Module-ID    00540005
+      *                                                                 00550005
+      * The external program is the user exit needed to convert to and  00560005
+      * from the external error area - in this case R7919999.           00570005
+           Move  'F791ERX0'              To    R791ERR0-In-Ext-Area-Prog00580005
+      *                                                                 00590005
+           Perform ZSYS-Error-System-Exit                               00600005
+      *                                                                 00610005
+           Call  'F791ERR0'              Using R791ERR0-Error-Handling  00620005
+                                               R7919999-Error-Area      00630005
+           End-Call                                                     00640005
+      *                                                                 00650005
+           Goback                                                       00660005
+           .                                                            00670005
+      *################################################################*00680011
+       Z300-Call-Trace-R7919999-2-Old    Section.                       00690011
+      *                                                                 00700011
+      * NB! THE ERROR STATE WILL ONLY BE CONTAINED                      00710011
+      *     IN R7919999 AFTER THIS SECTION.                             00720011
+      *                                                                 00730011
+      * This section will fetch error info from either R7919999,        00740011
+      * or R791ERR0.                                                    00750011
+      * Upon return, R7919999 will contain error information,           00760011
+      * while R791ERR* will have been initialized.                      00770011
+      *                                                                 00780011
+           Set   R791ERR0-Version        To    True                     00790011
+           Set   R791ERR0-In-Call-Trace-Ext                             00800011
+                                         To    True                     00810011
+           Set   R791ERR0-In-Ext-Target-Ext                             00820011
+                                         To    True                     00830011
+           Move  WC-Program-ID           To    R791ERR0-In-Module-ID    00840011
+      *                                                                 00850011
+      * The external program is the user exit needed to convert to and  00860011
+      * from the external error area - in this case R7919999.           00870011
+           Move  'F791ERX0'              To    R791ERR0-In-Ext-Area-Prog00880011
+      *                                                                 00890011
+           Perform ZSYS-Error-System-Exit                               00900011
+      *                                                                 00910011
+           Call  'F791ERR0'              Using R791ERR0-Error-Handling  00920011
+                                               R7919999-Error-Area      00930011
+           End-Call                                                     00940011
+      *                                                                 00950011
+           Goback                                                       00960011
+           .                                                            00970011
+      *################################################################*00980011
+       Z300-Call-Trace-R7919999-2-New    Section.                       00990011
+      *                                                                 01000011
+      * NB! THE ERROR STATE WILL ONLY BE CONTAINED                      01010011
+      *     IN R791ERR* AFTER THIS SECTION.                             01020011
+      *                                                                 01030011
+      * This section will fetch error info from either R7919999,        01040011
+      * or R791ERR0.                                                    01050011
+      * Upon return, R791ERR* will contain error information,           01060011
+      * while R7919999 will have been initialized.                      01070011
+      *                                                                 01080011
+           Set   R791ERR0-Version        To    True                     01090011
+           Set   R791ERR0-In-Call-Trace-Ext                             01100011
+                                         To    True                     01110011
+           Set   R791ERR0-In-Ext-Target-Int                             01120011
+                                         To    True                     01130011
+           Move  WC-Program-ID           To    R791ERR0-In-Module-ID    01140011
+      *                                                                 01150011
+      * The external program is the user exit needed to convert to and  01160011
+      * from the external error area - in this case R7919999.           01170011
+           Move  'F791ERX0'              To    R791ERR0-In-Ext-Area-Prog01180011
+      *                                                                 01190011
+           Perform ZSYS-Error-System-Exit                               01200011
+      *                                                                 01210011
+           Call  'F791ERR0'              Using R791ERR0-Error-Handling  01220011
+                                               R7919999-Error-Area      01230011
+           End-Call                                                     01240011
+      *                                                                 01250011
+           Goback                                                       01260011
+           .                                                            01270011
+      *################################################################*01280011
+       Z400-Populate-R7919999            Section.                       01290005
+      *                                                                 01300005
+      * NB! WHEN STATE-ERROR, R791ERRX WILL BE NITIALIZED.              01310010
+      *     THE ERROR STATE WILL ONLY BE CONTAINED                      01320010
+      *     IN R7919999 AFTER THIS SECTION.                             01330010
+      *                                                                 01340009
+      * This section is used when you want to populate the old          01350005
+      * error copy area R7919999 with message and call trace.           01360005
+      * This is relevant when you return to an external caller that     01370005
+      * still uses the old error copy area.                             01380005
+      *                                                                 01390005
+           Set   R791ERR0-Version        To    True                     01400005
+           Set   R791ERR0-In-Populate-External                          01410005
+                                         To    True                     01420005
+           Move  WC-Program-ID           To    R791ERR0-In-Module-ID    01430005
+      *                                                                 01440005
+      * The external program is the user exit needed to convert to and  01450005
+      * from the external error area - in this case R7919999.           01460005
+           Move  'F791ERX0'              To    R791ERR0-In-Ext-Area-Prog01470005
+      *                                                                 01480005
+           Perform ZSYS-Error-System-Exit                               01490005
+      *                                                                 01500005
+           Call  'F791ERR0'              Using R791ERR0-Error-Handling  01510005
+                                               R7919999-Error-Area      01520005
+           End-Call                                                     01530005
+      *                                                                 01540005
+           Goback                                                       01550005
+           .                                                            01560005
+      *################################################################*01570008
+       Z500-Populate-R7919999-Stay       Section.                       01580008
+      *                                                                 01590008
+      * NB! WHEN STATE-ERROR, R791ERRX WILL BE NITIALIZED.              01600010
+      *     THE ERROR STATE WILL ONLY BE CONTAINED                      01610010
+      *     IN R7919999 AFTER THIS SECTION.                             01620010
+      *                                                                 01630009
+      * This section is used when you want to populate the old          01640008
+      * error copy area R7919999 with message and call trace.           01650008
+      * This is relevant when you return to an external caller that     01660008
+      * still uses the old error copy area.                             01670008
+      *                                                                 01680008
+           Set   R791ERR0-Version        To    True                     01690008
+           Set   R791ERR0-In-Populate-External                          01700008
+                                         To    True                     01710008
+           Move  WC-Program-ID           To    R791ERR0-In-Module-ID    01720008
+      *                                                                 01730008
+      * The external program is the user exit needed to convert to and  01740008
+      * from the external error area - in this case R7919999.           01750008
+           Move  'F791ERX0'              To    R791ERR0-In-Ext-Area-Prog01760008
+      *                                                                 01770008
+           Perform ZSYS-Error-System-Exit                               01780008
+      *                                                                 01790008
+           Call  'F791ERR0'              Using R791ERR0-Error-Handling  01800008
+                                               R7919999-Error-Area      01810008
+           End-Call                                                     01820008
+      *                                                                 01830008
+      * No goback in this section, we "stay".                           01840008
+      *                                                                 01850008
+           .                                                            01860008
+      *################################################################*01870008

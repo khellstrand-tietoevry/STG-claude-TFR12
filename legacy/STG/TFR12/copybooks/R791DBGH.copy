@@ -1,0 +1,12 @@
+       01  R791DBGH-Trace-Info-Hdr.                                     00010000
+           05  R791DBGH-Eyecatcher       Pic  x(08).                    00020003
+               88  R791DBGH-Eyecatcher-Val          Value 'R791DBGH'.   00030003
+           05  R791DBGH-Versjon          Pic  9(02) Value Zeroes.       00040001
+           05  R791DBGH-Miljo            Pic  x(08) Value Spaces.       00050001
+           05  R791DBGH-Program          Pic  x(08) Value Spaces.       00060001
+           05  R791DBGH-Sysid            Pic  x(02) Value Spaces.       00070004
+           05  R791DBGH-Trace-Point      Pic  x(32) Value Spaces.       00080002
+           05  R791DBGH-Trace-Area       Pic  x(32) Value Spaces.       00090002
+           05  R791DBGH-Jobbnavn         Pic  x(08) Value Spaces.       00100001
+           05  R791DBGH-Transid          Pic  x(04) Value Spaces.       00110001
+           05  R791DBGH-Taskno           Pic  9(08) Value Zeroes.       00120001

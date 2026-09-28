@@ -1,0 +1,80 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD Trade Finance                                                00030000
+      *                                                                 00040000
+      * Copy-area R115ICHS.                                             00050000
+      *                                                                 00060000
+      * This copy-area is in use for module F115ICHR and F115ICHU,      00070000
+      * which are sub-modules to F115ICH0.                              00080000
+      *   - F115ICHR handles read-only SQL's.                           00090000
+      *   - F115ICHU handles updating SQL's.                            00100000
+      *                                                                 00110000
+      *################################################################*00120000
+      * Date ! Si! Change description                            ! 3A ! 00130000
+      *------+---+-----------------------------------------------+----+ 00140000
+      *070201!HLR! Tuning - From- and To-Contr-No removed,       !LG10! 00150006
+      *      !   !          replaced by Contract-No.             !    ! 00160006
+      *190600!HLR! Removed cursors CT, CN, CH, CT-CN, CT-CH,     !LO18! 00170005
+      *      !   ! CN-CH, CT-CN-CH.                              !    ! 00180005
+      *180399!HLR! New copy area                                 !LG10! 00190000
+      *################################################################*00200000
+      *                                                                 00210000
+         03  R115ICHS-SQL-Submodules.                                   00220000
+      *                                                                 00230000
+           05  R115ICHS-Version-No              Pic  X(08).             00240000
+             88  R115ICHS-Version                    Value '20010207'.  00250006
+      *                                                                 00260000
+      *----------------------------------------------------------------*00270000
+      *                                                                 00280000
+           05  R115ICHS-Qualification.                                  00290000
+      *                                                                 00300000
+             10  R115ICHS-In-Action             Pic  X(16).             00310000
+               88  R115ICHS-In-Count-Cursor          Value 'COUNT'.     00320000
+               88  R115ICHS-In-Open-Cursor           Value 'OPEN'.      00330000
+               88  R115ICHS-In-Fetch-Cursor          Value 'FETCH'.     00340000
+               88  R115ICHS-In-Close-Cursor          Value 'CLOSE'.     00350000
+               88  R115ICHS-In-Select                Value 'SELECT'.    00360000
+               88  R115ICHS-In-Insert                Value 'INSERT'.    00370000
+               88  R115ICHS-In-Update                Value 'UPDATE'.    00380000
+               88  R115ICHS-In-Delete                Value 'DELETE'.    00390000
+      *                                                                 00400000
+             10  R115ICHS-In-Table-Version      Pic  X(16).             00410004
+               88  R115ICHS-In-Actual                Value 'ACTUAL'.    00420004
+               88  R115ICHS-In-Work                  Value 'WORK'.      00430004
+      *                                                                 00440004
+      *----------------------------------------------------------------*00450000
+      * For cursor use, we need some additional information.            00460000
+      *                                                                 00470000
+      * Switches used for selecting the correct cursor:                 00480000
+      *                                                                 00490000
+             10  R115ICHS-Cursor-Code           Pic  X(08).             00500000
+               88  R115ICHS-Use-Fi-Asc               Value 'F     '.    00510000
+               88  R115ICHS-Use-Fi-CT-Asc            Value 'FT    '.    00520000
+               88  R115ICHS-Use-Fi-CN-Asc            Value 'F N   '.    00530000
+               88  R115ICHS-Use-Fi-CH-Asc            Value 'F   C '.    00540001
+               88  R115ICHS-Use-Fi-CT-CN-Asc         Value 'FTN   '.    00550000
+               88  R115ICHS-Use-Fi-CT-CN-RP-Asc      Value 'FTNR  '.    00560002
+               88  R115ICHS-Use-Fi-CT-CH-Asc         Value 'FT  C '.    00570001
+               88  R115ICHS-Use-Fi-CN-CH-Asc         Value 'F N C '.    00580001
+               88  R115ICHS-Use-Fi-CT-CN-CH-Asc      Value 'FTN C '.    00590001
+               88  R115ICHS-Use-Everything-Asc       Value 'FTNRC '.    00600003
+      *                                                                 00610000
+      * These fields are used for SQL qualification:                    00620000
+      *                                                                 00630000
+             10  R115ICHS-DB-Key.                                       00640000
+               15  R115ICHS-DB-Fin-Inst-ID      Pic S9(18)       Comp-3.00650000
+               15  R115ICHS-DB-Contract-Type    Pic  X(03).             00660000
+               15  R115ICHS-DB-Contract-No      Pic S9(07)       Comp-3.00670006
+               15  R115ICHS-DB-CA-Currency      Pic  X(03).             00680001
+               15  R115ICHS-DB-PA-Seq-No        Pic S9(04)       Comp.  00690001
+               15  R115ICHS-DB-RP-Role-Type     Pic  X(05).             00700001
+               15  R115ICHS-DB-Charge-Type      Pic  X(20).             00710001
+               15  R115ICHS-DB-CH-Seq-No        Pic S9(04)       Comp.  00720000
+      *                                                                 00730000
+      * Here is the result of a Count request:                          00740000
+      *                                                                 00750000
+             10  R115ICHS-Out-Accumulators.                             00760000
+               15  R115ICHS-Out-Total-Rows      Pic S9(11)       Comp-3.00770000
+      *                                                                 00780000
+      *----------------------------------------------------------------*00790000
+      *                                                                 00800000

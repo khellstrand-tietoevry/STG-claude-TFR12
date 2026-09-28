@@ -1,0 +1,86 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD Trade Finance                                                00030000
+      *                                                                 00040000
+      * Copy-area R115ISRS.                                             00050000
+      *                                                                 00060000
+      * This copy-area is in use for module F115ISRR and F115ISRU,      00070000
+      * which are sub-modules to F115ISR0.                              00080000
+      *   - F115ISRR handles read-only SQL's.                           00090000
+      *   - F115ISRU handles updating SQL's.                            00100000
+      *                                                                 00110000
+      *################################################################*00120000
+      * Date ! Si! Change description                            ! 3A ! 00130000
+      *------+---+-----------------------------------------------+----+ 00140000
+      *140201!HLR! Tuning - Replaced all the cursors.            !    ! 00150002
+      *      !   !        - Key-fields "shuffled".               !    ! 00160003
+      *      !   !        - From- / To-F-I-ID removed, and       !    ! 00170002
+      *      !   !          replaced by Fin-Inst-ID.             !    ! 00180002
+      *170399!HLR! New copy area                                 !LG10! 00190002
+      *060599!RM ! Modified to match new DB layout               !LG10! 00200001
+      *################################################################*00210000
+      *                                                                 00220000
+         03  R115ISRS-SQL-Submodules.                                   00230000
+      *                                                                 00240000
+           05  R115ISRS-Version-No              Pic  X(08).             00250000
+             88  R115ISRS-Version                    Value '20010214'.  00260002
+      *                                                                 00270000
+      *----------------------------------------------------------------*00280000
+      *                                                                 00290000
+           05  R115ISRS-Qualification.                                  00300000
+      *                                                                 00310000
+             10  R115ISRS-In-Action             Pic  X(16).             00320000
+               88  R115ISRS-In-Count-Cursor          Value 'COUNT'.     00330000
+               88  R115ISRS-In-Open-Cursor           Value 'OPEN'.      00340000
+               88  R115ISRS-In-Fetch-Cursor          Value 'FETCH'.     00350000
+               88  R115ISRS-In-Close-Cursor          Value 'CLOSE'.     00360000
+               88  R115ISRS-In-Select                Value 'SELECT'.    00370000
+               88  R115ISRS-In-Insert                Value 'INSERT'.    00380000
+               88  R115ISRS-In-Update                Value 'UPDATE'.    00390000
+               88  R115ISRS-In-Delete                Value 'DELETE'.    00400000
+      *                                                                 00410000
+      *----------------------------------------------------------------*00420000
+      * For cursor use, we need some additional information.            00430000
+      *                                                                 00440000
+      * Switches used for selecting the correct cursor:                 00450000
+      *                                                                 00460000
+             10  R115ISRS-Cursor-Code           Pic  X(08).             00470000
+KUTT  *        88  R115ISRS-Use-Asc                  Value '      '.    00480002
+KUTT  *        88  R115ISRS-Use-Fr-Asc               Value 'F     '.    00490002
+KUTT  *        88  R115ISRS-Use-To-Asc               Value ' T    '.    00500002
+KUTT  *        88  R115ISRS-Use-Re-Asc               Value '  R   '.    00510002
+KUTT  *        88  R115ISRS-Use-Fr-To-Asc            Value 'FT    '.    00520002
+KUTT  *        88  R115ISRS-Use-Fr-Re-Asc            Value 'F R   '.    00530002
+KUTT  *        88  R115ISRS-Use-To-Re-Asc            Value ' TR   '.    00540002
+KUTT  *        88  R115ISRS-Use-Fr-To-Re-Asc         Value 'FTR   '.    00550002
+               88  R115ISRS-Use-Fi-ST-Asc            Value 'FS    '.    00560003
+               88  R115ISRS-Use-Fi-ST-Re-Asc         Value 'FSR   '.    00570003
+               88  R115ISRS-Use-Fi-ST-SC-Asc         Value 'FS S  '.    00580003
+               88  R115ISRS-Use-Fi-ST-Re-SC-Asc      Value 'FSRS  '.    00590003
+      *                                                                 00600000
+      * These fields are used for SQL qualification:                    00610000
+      *                                                                 00620000
+             10  R115ISRS-DB-Key.                                       00630000
+KUTT  *        15  R115ISRS-DB-From-Type        Pic  X(20).             00640002
+KUTT  *        15  R115ISRS-DB-From-F-I-Id      Pic S9(18)       Comp-3.00650002
+KUTT  *        15  R115ISRS-DB-From-Contr-Type  Pic  X(03).             00660002
+KUTT  *        15  R115ISRS-DB-From-Code        Pic  X(20).             00670002
+KUTT  *        15  R115ISRS-DB-To-Type          Pic  X(20).             00680002
+KUTT  *        15  R115ISRS-DB-To-F-I-Id        Pic S9(18)       Comp-3.00690002
+KUTT  *        15  R115ISRS-DB-To-Contr-Type    Pic  X(03).             00700002
+KUTT  *        15  R115ISRS-DB-To-Code          Pic  X(20).             00710002
+KUTT  *        15  R115ISRS-DB-Rel-Type         Pic  X(20).             00720002
+               15  R115ISRS-DB-Fin-Inst-Id      Pic S9(18)       Comp-3.00730002
+               15  R115ISRS-DB-From-Type        Pic  X(20).             00740002
+               15  R115ISRS-DB-To-Type          Pic  X(20).             00750002
+               15  R115ISRS-DB-Rel-Type         Pic  X(20).             00760002
+               15  R115ISRS-DB-From-Code        Pic  X(20).             00770002
+               15  R115ISRS-DB-To-Code          Pic  X(20).             00780002
+      *                                                                 00790000
+      * Here is the result of a Count request:                          00800000
+      *                                                                 00810000
+             10  R115ISRS-Out-Accumulators.                             00820000
+               15  R115ISRS-Out-Total-Rows      Pic S9(11)       Comp-3.00830000
+      *                                                                 00840000
+      *----------------------------------------------------------------*00850000
+      *                                                                 00860000

@@ -1,0 +1,125 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      *                                                                         
+      * >>> NB! This copy book is also used outside EDB Core,  <<<              
+      * >>> it is also defined in MKS/SubVersion.              <<<              
+      * >>> If changes are required, these versions must be    <<<              
+      * >>> harmonized. This must be done in co-operation with <<<              
+      * >>> those responsible for PO and for iHub!!!           <<<              
+      * >>>                       Jan.2009, Henning L. Rødland <<<              
+      *                                                                         
+      *                                                                 00020000
+      * FD Grensesnitt                                                  00030000
+      *                                                                 00040000
+      * Copy-area R791ERRX.                                             00050000
+      *                                                                 00060000
+      * This copy area contains several data items defined as external. 00070000
+      * These items can be accessed by any program in the logical unit  00080000
+      * of work, by specifying "Copy R791ERRX." in Working-Storage.     00090000
+      *                                                                 00100000
+      * If implementing new fields, do so by adding the fields at the   00110000
+      * bottom, just in front of the filler.                            00120000
+      * Also, reduce the filler, according to the length of the new     00130000
+      * fields.                                                         00140000
+      *                                                                 00150000
+      *################################################################*00160000
+      * Date ! Si! Change description                            ! 3A ! 00170000
+      *------+---+-----------------------------------------------+----+ 00180000
+      *070215!SAS! Copied new version from SEB project.          !    !         
+      *      !   ! containing chainges by HLR 061030.            !    !         
+      *------+---+-----------------------------------------------+----+ 00180000
+      *061030!HLR! Implemented R791ERRX-Dflt-Language-Code as    !    !         
+      *      !   ! default language. The priority will now be:   !    !         
+      *      !   ! 1: R791ERR0-In-Language-Code                  !    !         
+      *      !   ! 2: R791ERRX-Dflt-Language-Code                !    !         
+      *      !   ! 3: Language code from database                !    !         
+      *      !   ! 4: Hardcoded value 'NOB'                      !    !         
+      *100200!HLR! New copy area                                 !LL80! 00190000
+      *################################################################*00200000
+      *                                                                 00210000
+       01  R791ERRX-Error-External              External.               00220000
+      *                                                                 00230000
+           05  R791ERRX-Version-No              Pic  X(08).             00240000
+             88  R791ERRX-Version                    Value '20000210'.  00250000
+      *                                                                 00260000
+      *----------------------------------------------------------------*00270000
+      *                                                                 00280000
+           05  R791ERRX-External-Data.                                  00290000
+      *                                                                 00300000
+      *................................................................*00310000
+      * This must be set when action-code is Error-Handling:            00320000
+      *                                                                 00330000
+             10  R791ERRX-Error-State           Pic S9(03)              00340000
+                                                     sign is            00350000
+                                                     leading separate.  00360000
+               88  R791ERRX-State-Ok                 Value +0, +4, +5.  00370000
+               88  R791ERRX-State-Warning            Value +4, +5.      00380000
+               88  R791ERRX-State-Warning-Goback     Value +5.          00390000
+               88  R791ERRX-State-Error              Value +1, +2.      00400000
+               88  R791ERRX-State-Error-Comm         Value +2.          00410000
+               88  R791ERRX-State-Abend              Value +9.          00420000
+      *                                                                 00430000
+      *................................................................*00440000
+      * Status code for SQL operations:                                 00450000
+      *                                                                 00460000
+             10  R791ERRX-SQL-Code              Pic S9(03)              00470000
+                                                     sign is            00480000
+                                                     leading separate.  00490000
+               88  R791ERRX-SQL-OK                   Value +0.          00500000
+               88  R791ERRX-SQL-Not-Found            Value +100.        00510000
+               88  R791ERRX-SQL-Cursor-Open          Value -502.        00520000
+               88  R791ERRX-SQL-Duplicate            Value -803.        00530000
+               88  R791ERRX-SQL-Bind-Error           Value -805.        00540000
+      *                                                                 00550000
+      *................................................................*00560000
+      * Status code for DL/1 operations:                                00570000
+      *                                                                 00580000
+             10  R791ERRX-DLI-Status            Pic  X(02).             00590000
+               88  R791ERRX-DLI-OK                   Value '  ',        00600000
+                                                           'GA', 'GK'.  00610000
+               88  R791ERRX-DLI-Not-Found            Value 'GE', 'GB'.  00620000
+               88  R791ERRX-DLI-SSA-Error            Value 'AC', 'AK'.  00630000
+               88  R791ERRX-DLI-Open-Error           Value 'AI'.        00640000
+               88  R791ERRX-DLI-Duplicate            Value 'II', 'NI'.  00650000
+      *                                                                 00660000
+      *................................................................*00670000
+      * Status code for file operations:                                00680000
+      *                                                                 00690000
+             10  R791ERRX-File-Status           Pic  9(02).             00700000
+               88  R791ERRX-File-OK                  Value 00.          00710000
+               88  R791ERRX-File-At-End              Value 10.          00720000
+               88  R791ERRX-File-Duplicate           Value 22.          00730000
+               88  R791ERRX-File-Rec-Not-Found       Value 23.          00740000
+               88  R791ERRX-File-Open-Error          Value 35, 37, 38,  00750001
+                                                           39, 41.      00760000
+               88  R791ERRX-File-Close-Error         Value 42.          00770000
+      *                                                                 00780000
+      *................................................................*00790000
+      *                                                                 00800000
+      * New fields should be added here, remember to reduce filler.     00810000
+      *                                                                 00820000
+      *----------------------------------------------------------------*00830000
+      *                                                                 00840000
+           05  R791ERRX-External-Filler         Pic  X(488).            00850000
+      *                                                                 00840000
+      *----------------------------------------------------------------*00270000
+      *                                                                 00280000
+           05  R791ERRX-External-Defaults.                              00290000
+      *                                                                 00300000
+      *................................................................*00310000
+      * If this language code is set, it will be used instead of        00320000
+      * the default language code in DB2-table PO_ApplTab.                      
+      * Please use ISO 639-2 code, i.e. 3 characters.                   00320000
+      *                                                                 00330000
+             10  R791ERRX-Dflt-Language-Code    Pic  X(03).             00340000
+      *                                                                 00430000
+      *................................................................*00790000
+      *                                                                 00800000
+      * New fields should be added here, remember to reduce filler.     00810000
+      *                                                                 00820000
+      *----------------------------------------------------------------*00270000
+      *                                                                 00280000
+           05  R791ERRX-External-Filler-2       Pic  X(497).            00850000
+      *                                                                 00860000
+      *----------------------------------------------------------------*00870000
+      *                                                                 00880000

@@ -1,0 +1,50 @@
+      *################################################################*        
+      *                                                                         
+      *                       EDB Solutions                                     
+      *                                                                         
+      * System: (OA)                                                            
+      * Table: OR_Organization                                                  
+      *                                                                         
+      * Interface for reading OR_Organization                                   
+      * Special version used for copy-version of the DB2 table.                 
+      * The copy version is only an extract of the original table,              
+      * used by the clutched interface.                                         
+      *                                                                         
+      *################################################################*        
+      * Date   !Sig! Change description                         ! Act !         
+      *--------+---+--------------------------------------------+-----+         
+      *20090609!HLR! New module                                 !iHUB !         
+      *################################################################*        
+      *                                                                         
+         03  R587901T-OROR-Copy.                                                
+      *                                                                         
+           05  R587901T-Prefix.                                                 
+      *                                                                         
+             10  R587901T-Eyecatcher-Id         Pic  X(08).                     
+               88  R587901T-Eyecatcher               Value 'R587901T'.          
+      *                                                                         
+             10  R587901T-Version-No            Pic  X(08).                     
+               88  R587901T-Version                  Value '20090610'.          
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+           05  R587901T-Input.                                                  
+      *                                                                         
+             10  R587901T-In-Qual-Type          Pic  X(01).                     
+               88  R587901T-In-Use-ID                Value 'I'.                 
+               88  R587901T-In-Use-No                Value 'N'.                 
+      *                                                                         
+             10  R587901T-In-Key.                                               
+               15  R587901T-In-Org-ID           Pic  9(18).                     
+               15  R587901T-In-Org-No           Pic  9(04).                     
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+           05  R587901T-Output.                                                 
+      *                                                                         
+             10  R587901T-Out-Org-ID            Pic  9(18).                     
+             10  R587901T-Out-Org-No            Pic  9(04).                     
+             10  R587901T-Out-ISO-639-2         Pic  X(03).                     
+             10  R587901T-Out-Chg-Dt            Pic  9(08).                     
+             10  R587901T-Out-Chg-LogID         Pic  X(12).                     
+      *                                                                         

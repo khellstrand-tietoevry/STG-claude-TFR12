@@ -1,0 +1,288 @@
+      *<META START-OF-COPYBOOK>                                                 
+      ******************************************************************        
+      *                                                                *        
+      * Generated  : 110919                              *                      
+      *                                                                *        
+      * Copy-area BZXOJOR0                                             *        
+      *                                                                *        
+      * Interface to read and update table OR_ORGANIZATION                      
+      *                                                                *        
+      ******************************************************************        
+      *                                                                         
+          03  BZXOJOR0-OR-ORGANIZATION.                                         
+            05  BZXOJOR0-Prefix.                                                
+              10  BZXOJOR0-Eyecatcher-ID         Pic  X(08).                    
+                  88  BZXOJOR0-Eyecatcher             Value 'BZXOJOR0'.         
+              10  BZXOJOR0-Version-No            Pic  X(08).                    
+                  88  BZXOJOR0-Version                Value '2'.                
+      *                                                                         
+              10  BZXOJOR0-Cursor-Id             Pic  X(20).                    
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+      *                                                                         
+          05  BZXOJOR0-Misc-Input.                                              
+             10  BZXOJOR0-In-UID           Pic X(12).                           
+             10  BZXOJOR0-In-HOOR-TX-ID    PIC X(12).                           
+      *                                                                         
+             10  BZXOJOR0-In-HOOR-HIST-REASON                                   
+                                           PIC X(2).                            
+                   88  BZXOJOR0-In-Del-Hist    Value 'D'.                       
+                   88  BZXOJOR0-In-Update-No-End-Time                           
+                                               Value 'U'.                       
+                   88  BZXOJOR0-In-Update-End-Time                              
+                                               Value 'T'.                       
+                   88  BZXOJOR0-In-Batch-Hist  Value 'BM'.                      
+      *                                                                         
+            05  BZXOJOR0-Qualification.                                         
+      *                                                                         
+              10  BZXOJOR0-In-Action            Pic  X(16).                     
+                  88  BZXOJOR0-In-Get-1st           Value 'GET-1ST'.            
+                  88  BZXOJOR0-In-Get-Next          Value 'GET-NEXT'.           
+                  88  BZXOJOR0-In-Close             Value 'CLOSE'.              
+                  88  BZXOJOR0-In-Count-Only        Value 'COUNT'.              
+      *                                                                         
+      *           Check if there is any occurrences of a cursor                 
+                  88  BZXOJOR0-In-Check-Exist       Value 'EXIST'.              
+      *                                                                         
+                  88  BZXOJOR0-In-Select            Value 'SELECT'.             
+                  88  BZXOJOR0-In-Insert            Value 'INSERT'.             
+                  88  BZXOJOR0-In-Update            Value 'UPDATE'.             
+                  88  BZXOJOR0-In-Delete            Value 'DELETE'.             
+      *                                                                         
+      *           Initialize entries the internal storage. Under normal         
+      *           conditions, this should not be necessary.                     
+                  88  BZXOJOR0-In-Initialize        Value 'INITIALIZE'.         
+      *</META>                                                                  
+      *                                                                         
+      *      User defined action codes can be inserted here.                    
+      *                                                                         
+      *<META VARIOUS-ITEMS>                                                     
+      * For Reads                                                               
+      *    - All fields will be populated                                       
+      *    - When BZXOJOR0-In-DB-All, and eof reached on Live db, a             
+      *      Get-1st/Get-Next will be done on the History table.  The           
+      *      interface will then return BZXOJOR0-In-DB-Hist.  Continue          
+      *      with function Get-Next and BZXOJOR0-In-DB-Hist.                    
+      *    - When BZXOJOR0-In-DB-Flag is blank, default.  Default               
+      *      action is read on only Live                                        
+      *                                                                         
+              10  BZXOJOR0-In-DB-Flag       Pic X(1).                           
+                  88  BZXOJOR0-In-DB-Live         Value 'L', ' '.               
+                  88  BZXOJOR0-In-DB-Hist         Value 'H'.                    
+                  88  BZXOJOR0-In-DB-All          Value 'A'.                    
+                                                                                
+      *                                                                         
+      *       If you need to access information on another production           
+      *       group, (collection) you must set the desired group here.          
+              10  BZXOJOR0-In-PackageSet         Pic  X(08).                    
+      *                                                                         
+      *       Logging is performed at two places in the interface.              
+      *       -After input convert, the input qualification is                  
+      *        displayed. For Insert and Update also the data items             
+      *        are displayed.                                                   
+      *       -Before output convert, the retrieved data is displayed.          
+      *        The output data is only displayed when data is found             
+      *        (i.e. -Return-OK) and input qualification is a read              
+      *        (Get first/next, select or count) For count, only the            
+      *        count is displayed.                                              
+      *                                                                         
+      *       Options for logging:                                              
+      *       -Logging-No No logging is performed. This is the default.         
+      *       -Logging-Dump Unformatted dump.                                   
+      *       -Logging-Format All items are prefixed by their name,             
+      *        but no new line between the items.                               
+      *       -Logging-Format-Line All items are prefixed by their name,        
+      *        each item on a separate line.                                    
+      *                                                                         
+              10  BZXOJOR0-Logging           Pic  X(10).                        
+                88  BZXOJOR0-Logging-No             Value Space.                
+                88  BZXOJOR0-Logging-Dump           Value 'DUMP'.               
+                88  BZXOJOR0-Logging-Format         Value 'FORMAT'.             
+                88  BZXOJOR0-Logging-Format-Line    Value 'FORMATL'.            
+      *</META>                                                                  
+      *<META CURSORS>                                                           
+              10  BZXOJOR0-In-Cursor            Pic  X(18).                     
+                  88  BZXOJOR0-Cursor1                                          
+                                         Value 'Cursor1'.                       
+                  88  BZXOJOR0-Cursor2                                          
+                                         Value 'Cursor2'.                       
+                  88  BZXOJOR0-Cursor3                                          
+                                         Value 'Cursor3'.                       
+                  88  BZXOJOR0-Cursor4                                          
+                                         Value 'Cursor4'.                       
+                  88  BZXOJOR0-Cursor5                                          
+                                         Value 'Cursor5'.                       
+                  88  BZXOJOR0-Cursor6                                          
+                                         Value 'Cursor6'.                       
+                  88  BZXOJOR0-Cursor7                                          
+                                         Value 'Cursor7'.                       
+      *                                                                         
+      *  Description and qualifications for the different cursors.              
+      *  It is required to populate all %-In-% items.                           
+      *                                                                         
+      *  Cursor1                                                                
+      *    WHERE   OROR_EXT_ORG_REF                                             
+      *    =       BZXOJOR0-In-OROR-EXT-ORG-REF                                 
+      *    Order  By                                                            
+      *            OROR_EXT_ORG_REF  ASC                                        
+      *                                                                         
+      *  Cursor2                                                                
+      *    WHERE   OROR_LEGAL_ORG_NO                                            
+      *    =       BZXOJOR0-In-OROR-LEGAL-ORG-NO                                
+      *    AND     OROR_ISO_3166_NUM                                            
+      *    =       BZXOJOR0-In-OROR-ISO-3166-NUM                                
+      *    Order  By                                                            
+      *            OROR_LEGAL_ORG_NO  ASC                                       
+      *                                                                         
+      *  Cursor3                                                                
+      *    WHERE   OROR_LEGAL_ORG_NO                                            
+      *    =       BZXOJOR0-In-OROR-LEGAL-ORG-NO                                
+      *    AND     OROR_ISO_3166_A2                                             
+      *    =       BZXOJOR0-In-OROR-ISO-3166-A2                                 
+      *    Order  By                                                            
+      *            OROR_LEGAL_ORG_NO  ASC                                       
+      *                                                                         
+      *  Cursor4                                                                
+      *    WHERE   FK_TY_INT_CODE                                               
+      *    =       BZXOJOR0-In-FK-TY-INT-CODE                                   
+      *    Order  By                                                            
+      *            FK_TY_INT_CODE  ASC                                          
+      *          , OROR_EXT_ORG_REF  ASC                                        
+      *                                                                         
+      *  Cursor5                                                                
+      *    WHERE   OROR_ORG_ID                                                  
+      *    >=      BZXOJOR0-In-From-Org-Id                                      
+      *    AND     OROR_ORG_ID                                                  
+      *    <=      BZXOJOR0-In-To-Org-Id                                        
+      *    Order  By                                                            
+      *            OROR_EXT_ORG_REF  ASC                                        
+      *                                                                         
+      *  Cursor6                                                                
+      *    WHERE   FK_TY_INT_CODE                                               
+      *    =       BZXOJOR0-In-FK-TY-INT-CODE                                   
+      *    AND     UPPER(OROR_ORG_NAME)                                         
+      *    LIKE    BZXOJOR0-In-OROR-ORG-NAME                                    
+      *    Order  By                                                            
+      *            OROR_ORG_NAME  ASC                                           
+      *                                                                         
+      *  Cursor7                                                                
+      *    WHERE   UPPER(OROR_ORG_NAME)                                         
+      *    LIKE    BZXOJOR0-In-OROR-ORG-NAME                                    
+      *    Order  By                                                            
+      *            OROR_ORG_NAME  ASC                                           
+      *                                                                         
+      *</META>                                                                  
+      *                                                                         
+      *#UserCode#                                                               
+      *User defines 88 levels for cursors                                       
+      *                                                                         
+      *<META QUALIFICATION-VARIABLES>                                           
+              10  BZXOJOR0-In-Keys.                                             
+      *                                                                         
+      *      Primary key, use these items for                                   
+      *      Select and Delete.                                                 
+      *      NB! For Insert and Update, use the BZXOJOR0-Keys                   
+      *      in BZXOJOR0-Data below.                                            
+                15  BZXOJOR0-In-OROR-ORG-ID                                     
+                                                 Pic S9(18) COMP-3.             
+      *                                                                         
+      *      Other qualification items                                          
+                15  BZXOJOR0-In-OROR-EXT-ORG-REF                                
+                                                 Pic X(15).                     
+                15  BZXOJOR0-In-OROR-LEGAL-ORG-NO                               
+                                                 Pic X(15).                     
+                15  BZXOJOR0-In-OROR-ISO-3166-NUM                               
+                                                 Pic S9(04) COMP.               
+                15  BZXOJOR0-In-OROR-ISO-3166-A2                                
+                                                 Pic X(2).                      
+                15  BZXOJOR0-In-FK-TY-INT-CODE                                  
+                                                 Pic X(5).                      
+                15  BZXOJOR0-In-OROR-ORG-NAME                                   
+                                                 Pic X(35).                     
+      *                                                                         
+      *      User defined items                                                 
+                15  BZXOJOR0-In-From-Org-Id                                     
+                                                 Pic S9(18) COMP-3.             
+                15  BZXOJOR0-In-To-Org-Id                                       
+                                                 Pic S9(18) COMP-3.             
+      *</META>                                                                  
+      *                                                                         
+      * #UserCode#                                                              
+      * User defined input variables                                            
+      *                                                                         
+      *<META OUTPUT-VARIABLES>                                                  
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+            05  BZXOJOR0-Data.                                                  
+              10  BZXOJOR0-Keys.                                                
+                15  BZXOJOR0-OROR-ORG-ID                                        
+                                                Pic S9(18) COMP-3.              
+      *                                                                         
+              10  BZXOJOR0-Info.                                                
+                15  BZXOJOR0-OROR-EXT-ORG-REF                                   
+                                                Pic X(15).                      
+                15  BZXOJOR0-OROR-LEGAL-ORG-NO                                  
+                                                Pic X(15).                      
+                15  BZXOJOR0-OROR-ORG-NAME                                      
+                                                Pic X(35).                      
+                15  BZXOJOR0-FK-TY-INT-CODE                                     
+                                                Pic X(5).                       
+                15  BZXOJOR0-OROR-ISO-3166-NUM                                  
+                                                Pic S9(04) COMP.                
+                15  BZXOJOR0-OROR-ISO-3166-A2                                   
+                                                Pic X(2).                       
+                15  BZXOJOR0-OROR-ISO-639-2                                     
+                                                Pic X(3).                       
+                15  BZXOJOR0-OROR-PROFIT-CT-YN                                  
+                                                Pic X(1).                       
+                15  BZXOJOR0-OROR-CRE-TS.                                       
+                  20  BZXOJOR0-OROR-CRE-TS-D                                    
+                                                Pic  9(08).                     
+                  20  BZXOJOR0-OROR-CRE-TS-T                                    
+                                                Pic  9(08).                     
+                15  BZXOJOR0-FK-US-CRE-LOGID                                    
+                                                Pic X(12).                      
+                15  BZXOJOR0-OROR-CHG-TS.                                       
+                  20  BZXOJOR0-OROR-CHG-TS-D                                    
+                                                Pic  9(08).                     
+                  20  BZXOJOR0-OROR-CHG-TS-T                                    
+                                                Pic  9(08).                     
+                15  BZXOJOR0-FK-US-CHG-LOGID                                    
+                                                Pic X(12).                      
+                15  BZXOJOR0-OROR-TX-ID                                         
+                                                Pic X(12).                      
+      *                                                                         
+      * The following items is from history tables only                         
+      *                                                                         
+              10  BZXOJOR0-HOOR-History-Items.                                  
+                15  BZXOJOR0-HOOR-Hist-Tx-Id                                    
+                                                Pic  X(12).                     
+      *                                                                         
+                15  BZXOJOR0-HOOR-Hist-Cre-Ts.                                  
+                  20  BZXOJOR0-HOOR-Hist-Cre-Ts-D                               
+                                                Pic  9(08).                     
+                  20  BZXOJOR0-HOOR-Hist-Cre-Ts-T                               
+                                                Pic  9(08).                     
+      *                                                                         
+                15  BZXOJOR0-HOOR-Hist-Cre-Uid                                  
+                                                Pic  X(12).                     
+                15  BZXOJOR0-HOOR-Hist-Reason                                   
+                                                Pic  X(02).                     
+      *                                                                         
+      * The following accumulators are only relevant when performing            
+      * Count-Only, Get-1st or Get-Next.                                        
+      * Row-No starts on 1 when doing Get-1st, and increases by 1 for           
+      * each Get-Next.                                                          
+      * Total-Rows is set only when doing Count-Only. The field will            
+      * tell you how many rows that complies with your qualification.           
+      *                                                                         
+              10  BZXOJOR0-Out-Accumulators.                                    
+                15  BZXOJOR0-Out-Row-No          Pic  9(15).                    
+                15  BZXOJOR0-Out-Total-Rows      Pic  9(15).                    
+      *                                                                         
+              10  BZXOJOR0-Table-Returned      Pic X(1).                        
+                88  BZXOJOR0-Live-Returned         Value 'L'.                   
+                88  BZXOJOR0-Hist-Returned         Value 'H'.                   
+      *</META>                                                                  

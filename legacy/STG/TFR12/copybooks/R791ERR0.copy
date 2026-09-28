@@ -1,0 +1,515 @@
+      *################################################################*00010099
+      *                                                                 00020099
+      *                                                                 00030099
+      * >>> NB! This copy book is also used outside EDB Core,  <<<      00040099
+      * >>> it is also defined in MKS/SubVersion.              <<<      00050099
+      * >>> If changes are required, these versions must be    <<<      00060099
+      * >>> harmonized. This must be done in co-operation with <<<      00070099
+      * >>> those responsible for PO and for iHub!!!           <<<      00080099
+      * >>>                       Jan.2009, Henning L. Rødland <<<      00090099
+      *                                                                 00100099
+      *                                                                 00110099
+      *                      EDB Solutions                              00120099
+      *                                                                 00130099
+      * GSM Error Handling                                              00140099
+      *                                                                 00150099
+      * Copy-book R791ERR0.                                             00160099
+      *                                                                 00170099
+      *################################################################*00180099
+      *                                                                 00190099
+      * What to implement in your program:                              00200099
+      *                                                                 00210099
+      *----------------------------------------------------------------*00220099
+      * Working-Storage:                                                00230099
+      *                                                                 00240099
+      *    05  WC-Program-ID             Pic  X(08) Value '&program-Id'.00250099
+      *                                                                 00260099
+      *01  Filler.                                                      00270099
+      *    Copy R791ERR0.                                               00280099
+      *Copy R791ERRX.                                                   00290099
+      *                                                                 00300099
+      *----------------------------------------------------------------*00310099
+      * Procedure Division - B000-Initialize section:                   00320099
+      *                                                                 00330099
+      *    Initialize                          R791ERR0-Error-Handling  00340099
+      *    Initialize                          R791ERRX-External-Data   00350099
+      *                                                                 00360099
+      *----------------------------------------------------------------*00370099
+      * Procedure Division - at the end of the program:                 00380099
+      *                                                                 00390099
+      *Copy S791ERR0.                                                   00400099
+      *Copy SnnnERRS.  (System specific,                                00410099
+      *                 make your own version, based on S791ERRS)       00420099
+      *                                                                 00430099
+      *Copy S791ERRQ.  (For SQLCA calls, use only in DB2 programs)      00440099
+      *Copy S791ERX0.  (Use this only if your program also use R7919999)00450099
+      *                                                                 00460099
+      *----------------------------------------------------------------*00470099
+      * Alt 1a: Abend situation occurs in your program:                 00480099
+      *                                                                 00490099
+      *      When "something bad happens..."                            00500099
+      *        Move  &message-id         To    R791ERR0-In-Message-ID   00510099
+      * if message contains variables:                                  00520099
+      *        Move  &name               To    R791ERR0-In-Var-Key  (1) 00530099
+      *        Move  &value              To    R791ERR0-In-Var-Data (1) 00540099
+      * if you've got any keys to share with others:                    00550099
+      *        Perform ZKEY-Move-Keys   (see documentation)             00560099
+      * if you've got any status-codes to share with others:            00570099
+      *        Move  SQLcode             To    R791ERRX-SQL-Code        00580099
+      *        Move  DIBstat             To    R791ERRX-DLI-Status      00590099
+      *        Move  &file-status        To    R791ERRX-File-Status     00600099
+      * mandatory:                                                      00610099
+      *        Move  &paragraph-ID       To    R791ERR0-In-Paragraph-Id 00620099
+      *        Set   R791ERRX-State-Abend                               00630099
+      *        Perform Z600-Error-Handling                              00640099
+      *                                                                 00650099
+      *----------------------------------------------------------------*00660099
+      * Alt 1b: SQL Abend situation occurs in your program:             00670099
+      *                                                                 00680099
+      *   When you encounter an SQL abend situation, you should send    00690099
+      *   the SQLCA to the Error Handling Module.                       00700099
+      *   To do this, you need to have the copy area S791ERRQ at the    00710099
+      *   bottom of your program.                                       00720099
+      *                                                                 00730099
+      *   The error handling logic is exactly the same as without SQLCA 00740099
+      *   (see alternative 1a), except that instead of performing Z600, 00750099
+      *   you should perform:                                           00760099
+      *                                                                 00770099
+      *        Perform Z700-Error-Handling-SQLCA                        00780099
+      *                                                                 00790099
+      *----------------------------------------------------------------*00800099
+      * Alt 1c: State-Abend upon return from a sub-program:             00810099
+      *                                                                 00820099
+      *      When R791ERRX-State-Abend                                  00830099
+      * if you've got any keys to share with others:                    00840099
+      *        Perform ZKEY-Move-Keys   (see documentation)             00850099
+      * mandatory:                                                      00860099
+      *        Move  &paragraph-ID       To    R791ERR0-In-Paragraph-Id 00870099
+      *        Perform Z800-Call-Trace                                  00880099
+      *                                                                 00890099
+      *----------------------------------------------------------------*00900099
+      * Alt 1d: State-Abend upon return from a sub-program,             00910099
+      *         where R7919999 is used:                                 00920099
+      *                                                                 00930099
+      *      When R7919999-Return-Abend                                 00940099
+      * if you've got any keys to share with others:                    00950099
+      *        Perform ZKEY-Move-Keys   (see documentation)             00960099
+      * mandatory:                                                      00970099
+      *        Move  &paragraph-ID       To    R791ERR0-In-Paragraph-Id 00980099
+      *        Perform Z300-Call-Trace-R7919999                         00990099
+      *                                                                 01000099
+      *----------------------------------------------------------------*01010099
+      * Alt 2a: Error situation occurs in your program:                 01020099
+      *                                                                 01030099
+      *   Error situations is handled exactly the same way as abend     01040099
+      *   situations, except that instead of setting -State-Abend,      01050099
+      *   you should:                                                   01060099
+      *                                                                 01070099
+      *        Set   R791ERRX-State-Error                               01080099
+      *                                                                 01090099
+      *   See alternative 1a...                                         01100099
+      *                                                                 01110099
+      *----------------------------------------------------------------*01120099
+      * Alt 2b: State-Error upon return from a sub-program:             01130099
+      *                                                                 01140099
+      *   Error situations is handled exactly the same way as abend     01150099
+      *   situations, except that instead of testing on -State-Abend,   01160099
+      *   you test on -State-Error.                                     01170099
+      *                                                                 01180099
+      *      When R791ERRX-State-Error                                  01190099
+      *        ...                                                      01200099
+      *                                                                 01210099
+      *   See alternative 1c...                                         01220099
+      *                                                                 01230099
+      *----------------------------------------------------------------*01240099
+      * Alt 2c: State-Error upon return from a sub-program,             01250099
+      *         where R7919999 is used:                                 01260099
+      *                                                                 01270099
+      *   Error situations is handled exactly the same way as abend     01280099
+      *   situations, except that instead of testing on -State-Abend,   01290099
+      *   you test on -State-Error.                                     01300099
+      *                                                                 01310099
+      *      When R7919999-Return-Error                                 01320099
+      *        ...                                                      01330099
+      *                                                                 01340099
+      *   See alternative 1d...                                         01350099
+      *                                                                 01360099
+      *----------------------------------------------------------------*01370099
+      * The Error Handling may display error information and produce    01380099
+      * a user abend in batch.                                          01390099
+      * In CICS, the error information will be written to the CICS log, 01400099
+      * but it will not produce an abend in CICS.                       01410099
+      * To trigger this, you need to set this code:                     01420099
+      *                                                                 01430099
+      *    Set   R791ERR0-In-User-Abend  To    True                     01440099
+      *                                                                 01450099
+      *################################################################*01460099
+      * Date   ! Si! Change description                          ! 3A ! 01470099
+      *---------------------------------------------------------------- 01480099
+      *20090206!HLR! Added Reason-Code & External-Ref            !V09 ! 01490099
+      *        !   ! Message-Text changed from 80 to 100 char.   !    ! 01500099
+      *---------------------------------------------------------------- 01510099
+      *20060830!HLR! Added -In-Request-Refresh (88-level)        !    ! 01520099
+      *---------------------------------------------------------------- 01530099
+      *20041227!HLR! In-Language changed from 2 to 3 characters. !3065! 01540099
+      *        !   ! Added In-Log-Code.                          !3065! 01550099
+      *        !   ! Added In-Add-User-Message.                  !3065! 01560099
+      *        !   ! Added In-/Out-Message-No.                   !3065! 01570099
+      *        !   ! Added Out-Keys.                             !3065! 01580099
+      *---------------------------------------------------------------- 01590099
+      *20041208!HLR! Added 88-value for Key-Type - Request-ID    !3065! 01600099
+      *---------------------------------------------------------------- 01610099
+      *20040415!VB ! Added 88-values for Key-Type.               !MZ74! 01620099
+      *---------------------------------------------------------------- 01630099
+      *20030825!HLR! Added -In-Request-Info (88-level)           !    ! 01640099
+      *        !   ! Added -Output                               !    ! 01650099
+      *---------------------------------------------------------------- 01660099
+      *20030821!VB ! Added 88-values for Key-Type.               !LX18! 01670099
+      *---------------------------------------------------------------- 01680099
+      *20030605!HLR! Added -Ext-Target-Code                      !    ! 01690099
+      *---------------------------------------------------------------- 01700099
+      *20030102!VB ! Added 88-values for Key-Type.               !LI06! 01710099
+      *---------------------------------------------------------------- 01720099
+      *20010312!VB ! Added 88-values for Key-Type.               !LI06! 01730099
+      *---------------------------------------------------------------- 01740099
+      *20000615!HLR! Added In-Language-Code                      !LL80! 01750099
+      *---------------------------------------------------------------- 01760099
+      *20000321!HLR! Key-Table is expanded to 25 occurrences.    !LL80! 01770099
+      *---------------------------------------------------------------- 01780099
+      *20000317!HLR! In-SQLCA-Code is added.                     !LL80! 01790099
+      *---------------------------------------------------------------- 01800099
+      *20000208!HLR! New copy-book                               !LL39! 01810099
+      *################################################################*01820099
+      *                                                                 01830099
+         03  R791ERR0-Error-Handling.                                   01840099
+      *                                                                 01850099
+           05  R791ERR0-Version-No              Pic  X(08).             01860099
+             88  R791ERR0-Version                    Value '20090206'.  01870099
+      *                                                                 01880099
+      *----------------------------------------------------------------*01890099
+      *                                                                 01900099
+           05  R791ERR0-Qualification.                                  01910099
+      *                                                                 01920099
+             10  R791ERR0-In-Action-Code        Pic  X(08).             01930099
+               88  R791ERR0-In-Error-Handling        Value 'ERROR', ' '.01940099
+               88  R791ERR0-In-Call-Trace            Value 'TRACE'.     01950099
+               88  R791ERR0-In-Initialize            Value 'INIT'.      01960099
+      *                                                                 01970099
+      *        If one of these are set, an external error copy area     01980099
+      *        should be present on the call parameter list.            01990099
+               88  R791ERR0-In-Error-Handling-Ext    Value 'ERROREXT'.  02000099
+               88  R791ERR0-In-Call-Trace-Ext        Value 'TRACEEXT'.  02010099
+               88  R791ERR0-In-Populate-External     Value 'POPULEXT'.  02020099
+      *                                                                 02030099
+      *        This action code will add an extra error message         02040099
+      *        intended for the user. The message will be placed in     02050099
+      *        the first slot in the message table.                     02060099
+               88  R791ERR0-In-Add-User-Message      Value 'USERMSG '.  02070099
+      *                                                                 02080099
+      *        This action code will only return stored info regarding  02090099
+      *        error messages and call trace.                           02100099
+               88  R791ERR0-In-Request-Info          Value 'REQINFO '.  02110099
+      *                                                                 02120099
+      *        This action code will also return stored info regarding  02130099
+      *        error messages and call trace, but first all message     02140099
+      *        texts will be refreshed where possible.                  02150099
+               88  R791ERR0-In-Request-Refresh       Value 'REQIREFR'.  02160099
+      *                                                                 02170099
+      *      This option is for program on top of the call-chain.       02180099
+      *      R791ERR0-In-User-Abend = True causes, in a batch           02190099
+      *      environment, a call to ILBOABN0.  In CICS it writes the    02200099
+      *      iformation to the mast-log.                                02210099
+             10  R791ERR0-In-User-Abend-Code    Pic  X(01).             02220099
+               88  R791ERR0-In-No-User-Abend         Value 'N', ' '.    02230099
+               88  R791ERR0-In-User-Abend            Value 'Y'.         02240099
+      *                                                                 02250099
+      *      This option is for program on top of the call-chain.       02260099
+      *      R791ERR0-In-User-Abend = True causes, in a batch           02270099
+      *      environment, a call to ILBOABN0.  In CICS it writes the    02280099
+      *      iformation to the mast-log.                                02290099
+             10  R791ERR0-In-Log-Code           Pic  X(01).             02300099
+               88  R791ERR0-In-Log-Default           Value ' '.         02310099
+               88  R791ERR0-In-Log-No                Value 'N'.         02320099
+               88  R791ERR0-In-Log-Yes               Value 'Y'.         02330099
+      *                                                                 02340099
+      *      These are mandatory:                                       02350099
+             10  R791ERR0-In-Location.                                  02360099
+               15  R791ERR0-In-System-ID        Pic  X(02).             02370099
+               15  R791ERR0-In-Module-ID        Pic  X(08).             02380099
+               15  R791ERR0-In-Paragraph-ID     Pic  X(04).             02390099
+      *                                                                 02400099
+      *      This is the key on the message-table, mandatory for        02410099
+      *      action-code Error-Handling.                                02420099
+      *      The message-no is an alternative to the traditional        02430099
+      *      message-id.                                                02440099
+             10  R791ERR0-In-Message-Key.                               02450099
+               15  R791ERR0-In-Message-ID       Pic  X(30).             02460099
+      * NB! MESSAGE-NO WON'T WORK UNTIL DB2 TABLE IS CHANGED.           02470099
+               15  R791ERR0-In-Message-No       Pic  9(08).             02480099
+      *                                                                 02490099
+      *      Default message language is fetched from the database,     02500099
+      *      per fin.inst, system id or installation.                   02510099
+      *      If you want to override the language, use the following    02520099
+      *      field (ISO-code).                                          02530099
+             10  R791ERR0-In-Language-Code      Pic  X(03).             02540099
+      *                                                                 02550099
+      *      SQLCA-Present is to be set if you send the SQLCA to        02560099
+      *      the error handler.                                         02570099
+      *      If you do so, the SQLCA must be the second parameter in    02580099
+      *      the call parameter list.                                   02590099
+             10  R791ERR0-In-SQLCA-Code         Pic  X(01).             02600099
+               88  R791ERR0-In-SQLCA-Not-Present     Value 'N', ' '.    02610099
+               88  R791ERR0-In-SQLCA-Present         Value 'Y'.         02620099
+      *                                                                 02630099
+      *      If an external copy area is used, and the action code      02640099
+      *      is set to -Call-Trace-External or -Populate-External,      02650099
+      *      the name of the relevant user exit module for that         02660099
+      *      external copy area must be present in this field.          02670099
+             10  R791ERR0-In-External-Area-Info.                        02680099
+               15  R791ERR0-In-Ext-Area-Prog    Pic  X(08).             02690099
+               15  R791ERR0-In-Ext-Target-Code  Pic  X(03).             02700099
+                 88  R791ERR0-In-Ext-Target-Not-Set  Value '   '.       02710099
+                 88  R791ERR0-In-Ext-Target-Int      Value 'INT'.       02720099
+                 88  R791ERR0-In-Ext-Target-Ext      Value 'EXT'.       02730099
+      *                                                                 02740099
+      *      System specific internal identifiers may be put in         02750099
+      *      this table, as may external identifiers.                   02760099
+      *      Please identify the key with a 88-level.                   02770099
+      *      If no matching 88-level exist, we will make one...         02780099
+      *      The system's "user exit", that will be called by the       02790099
+      *      error handling module, should convert internal keys        02800099
+      *      to external keys.                                          02810099
+             10  R791ERR0-In-Key-Table.                                 02820099
+               15  R791ERR0-In-Key-Element      Occurs 25 Times.        02830099
+      *                                                                 02840099
+      * PLEASE: Do NOT add 88-levels for system-specific values!        02850099
+      *         Only global key types should be represented here.       02860099
+      *         System-specific values should be moved directly to      02870099
+      *         the field R791ERR0-In-Key-Type.                         02880099
+      *                                                                 02890099
+                 20  R791ERR0-In-Key-Type       Pic  X(10).             02900099
+                   88  R791ERR0-In-Key-Fin-Inst      Value 'FIN-INST'.  02910099
+                   88  R791ERR0-In-Key-Organization  Value 'ORGANIZAT'. 02920099
+                   88  R791ERR0-In-Key-Product       Value 'PRODUCT'.   02930099
+                   88  R791ERR0-In-Key-Customer      Value 'CUSTOMER'.  02940099
+                   88  R791ERR0-In-Key-Agreement     Value 'AGREEMENT'. 02950099
+                   88  R791ERR0-In-Key-Contract      Value 'CONTRACT'.  02960099
+                   88  R791ERR0-In-Key-Sequence-No   Value 'SEQUENCENO'.02970099
+                   88  R791ERR0-In-Key-Request-ID    Value 'REQUESTID '.02980099
+                   88  R791ERR0-In-Key-Date          Value 'DATE      '.02990099
+                   88  R791ERR0-In-Key-FK-Date       Value 'FK-DATE   '.03000099
+                   88  R791ERR0-In-Key-Date1         Value 'DATE1     '.03010099
+                   88  R791ERR0-In-Key-Date2         Value 'DATE2     '.03020099
+                   88  R791ERR0-In-Key-Time          Value 'TIME      '.03030099
+                   88  R791ERR0-In-Key-FK-Time       Value 'FK-TIME   '.03040099
+      *      Values concerning KE                                       03050099
+                   88  R791ERR0-In-Key-Avtale        Value 'AVTALE    '.03060099
+                   88  R791ERR0-In-Key-Kort          Value 'KORT      '.03070099
+                   88  R791ERR0-In-Key-Logonid-Tall  Value 'LOGONTALL '.03080099
+                   88  R791ERR0-In-Key-Logonid-Kar   Value 'LOGONKAR  '.03090099
+                   88  R791ERR0-In-Key-Betalernummer Value 'BETALERNUM'.03100099
+                   88  R791ERR0-In-Key-Navn          Value 'NAVN      '.03110099
+                   88  R791ERR0-In-Key-Bet-navn      Value 'BET-NAVN  '.03120099
+      *      Values concerning KF                                       03130099
+                   88  R791ERR0-In-Key-AV-Hoved      Value 'AV-HOVED  '.03140099
+                   88  R791ERR0-In-Key-AV-Under      Value 'AV-UNDER  '.03150099
+                   88  R791ERR0-In-Key-Dir-Parm-Val  Value 'DIRECTPARM'.03160099
+                   88  R791ERR0-In-Key-Contr-Price   Value 'CONTRPRICE'.03170099
+                   88  R791ERR0-In-Key-FD-Product-Nr Value 'FD-PRODUCT'.03180099
+                   88  R791ERR0-In-key-Price-System  Value 'PRICE-SYST'.03190099
+                   88  R791ERR0-In-key-Price-Id      Value 'PRICE-ID  '.03200099
+      *      Values concerning Price & Product                          03210099
+                   88  R791ERR0-In-Key-Avtale-2      Value 'AVTALE-2  '.03220099
+                   88  R791ERR0-In-Key-Konto         Value 'KONTO     '.03230099
+                   88  R791ERR0-In-Key-Notification  Value 'NOTIFICATI'.03240099
+                   88  R791ERR0-In-Key-Ext-Id        Value 'EXT-ID    '.03250099
+                   88  R791ERR0-In-Key-Ext-Id-Descr  Value 'EXT-DESCR '.03260099
+                   88  R791ERR0-In-Key-Product-Pas   Value 'PRODUCT-PA'.03270099
+                   88  R791ERR0-In-Key-FK-Foreign-1  Value 'FK-FOREGN1'.03280099
+                   88  R791ERR0-In-Key-FK-Foreign-2  Value 'FK-FOREGN2'.03290099
+                   88  R791ERR0-In-Key-FD-Element    Value 'FD-ELM    '.03300099
+                   88  R791ERR0-In-Key-FD-Element-Pa Value 'FD-ELM-PA '.03310099
+                   88  R791ERR0-In-Key-FD-Elm-Ac-Pa  Value 'FD-ELM-AP '.03320099
+                   88  R791ERR0-In-Key-FD-ElmPric    Value 'FD-ELMPRIC'.03330099
+                   88  R791ERR0-In-Key-FD-Parameter  Value 'FD-PARAMET'.03340099
+                   88  R791ERR0-In-Key-Prod-Group    Value 'PROD-GROUP'.03350099
+                   88  R791ERR0-In-Key-Pric-Prof     Value 'PRIC-PROF '.03360099
+                   88  R791ERR0-In-Key-PricText-Grp  Value 'PRIC-TEXTG'.03370099
+                   88  R791ERR0-In-Key-CalcBasis     Value 'CALCBASIS '.03380099
+                   88  R791ERR0-In-Key-Type-SaleSit  Value 'TYP-SALSIT'.03390099
+                   88  R791ERR0-In-Key-Type-Variable Value 'TYP-VARIAB'.03400099
+                   88  R791ERR0-In-Key-Type-ValidVal Value 'TYP-VALVAL'.03410099
+                   88  R791ERR0-In-Key-Type-AdjuParm Value 'TYP-ADJPAR'.03420099
+                   88  R791ERR0-In-Key-Adjust-Price  Value 'TYP-ADJPRI'.03430099
+                   88  R791ERR0-In-Key-Gen-LedgerVal Value 'TYP-GENLED'.03440099
+                   88  R791ERR0-In-Key-POGV-Value-Id Value 'TYP-POGVVA'.03450099
+                   88  R791ERR0-In-Key-Type-PricParm Value 'TYP-PRIPAR'.03460099
+                   88  R791ERR0-In-Key-Type-ElemRel  Value 'TYP-ELMREL'.03470099
+                   88  R791ERR0-In-Key-Hier-Parmvalu Value 'TYP-PARVAL'.03480099
+                   88  R791ERR0-In-Key-Hier-Term-Id  Value 'TYP-HIERTI'.03490099
+                   88  R791ERR0-In-Key-PRXE-Seq-No   Value 'PRXE-SEQNO'.03500099
+                   88  R791ERR0-In-Key-PRPX-Seq-No   Value 'PRPX-SEQNO'.03510099
+                   88  R791ERR0-In-Key-PROP-Seq-No   Value 'PROP-SEQNO'.03520099
+                   88  R791ERR0-In-Key-PRAP-Seq-No   Value 'PRAP-SEQNO'.03530099
+                   88  R791ERR0-In-Key-PRPA-Seq-No   Value 'PRPA-SEQNO'.03540099
+                   88  R791ERR0-In-Key-PRXA-Seq-No   Value 'PRXA-SEQNO'.03550099
+                   88  R791ERR0-In-Key-PRCP-Seq-No   Value 'PRCP-SEQNO'.03560099
+                   88  R791ERR0-In-Key-Xe-Name       Value 'PRXE-NAME '.03570099
+                   88  R791ERR0-In-Key-Xe-Abr-Name   Value 'PRXE-ANAME'.03580099
+                   88  R791ERR0-In-Key-Ox-Name       Value 'PROX-NAME '.03590099
+                   88  R791ERR0-In-Key-Ox-Abr-Name   Value 'PROX-ANAME'.03600099
+                   88  R791ERR0-In-Key-Oe-Name       Value 'PROE-NAME '.03610099
+                   88  R791ERR0-In-Key-Oe-Abr-Name   Value 'PROE-ANAME'.03620099
+                   88  R791ERR0-In-Key-Pr-Name       Value 'PRPR-NAME '.03630099
+                   88  R791ERR0-In-key-Pr-Abr-Name   Value 'PRPR-ANAME'.03640099
+                   88  R791ERR0-In-key-Price-Regime  Value 'PRICE-REGI'.03650099
+                   88  R791ERR0-In-key-Market-Id     Value 'MARKET-ID '.03660099
+040415             88  R791ERR0-In-key-PRCR-Id       Value 'PRCR-ID   '.03670099
+041115             88  R791ERR0-In-key-PRUR-Id       Value 'PRUR-ID   '.03680099
+                   88  R791ERR0-In-key-PRPA-Value    Value 'PRPA-VALUE'.03690099
+                   88  R791ERR0-In-key-PRXA-Value    Value 'PRXA-VALUE'.03700099
+      *      Values concerning FD Loan                                  03710099
+                   88  R791ERR0-In-Key-VLIP-Date     Value 'VLIP-DATE '.03720099
+                   88  R791ERR0-In-Key-VLPP-Date     Value 'VLPP-DATE '.03730099
+                   88  R791ERR0-In-Key-VLSP-Seq-No   Value 'VLSP-SEQNO'.03740099
+                   88  R791ERR0-In-Key-VLST-ID       Value 'VLST-ID   '.03750099
+                   88  R791ERR0-In-Key-VLTA-Date     Value 'VLTA-DATE '.03760099
+                   88  R791ERR0-In-Key-VLNO-Reason   Value 'VLNO-REASO'.03770099
+                   88  R791ERR0-In-Key-VLNP-Reason   Value 'VLNP-REASO'.03780099
+                   88  R791ERR0-In-Key-RKTR-ID       Value 'RKTR-ID   '.03790099
+      *      Values concerning FD Loan                                  03800099
+                   88  R791ERR0-In-Key-Contr-Type    Value 'VA-CONTTYP'.03810099
+                   88  R791ERR0-In-Key-Currency      Value 'VA-CURR   '.03820099
+      *      Values concerning BMS                                      03830099
+                   88  R791ERR0-In-Key-BCST-Name     Value 'BCST-NAME '.03840099
+                   88  R791ERR0-In-Key-BCST-Type     Value 'BCST-TYPE '.03850099
+                   88  R791ERR0-In-Key-BCST-Name-Prt Value 'BCST-NAMEP'.03860099
+                   88  R791ERR0-In-Key-BCOT-Name     Value 'BCOT-NAME '.03870099
+                   88  R791ERR0-In-Key-BCOT-Name-Prt Value 'BCOT-NAMEP'.03880099
+                   88  R791ERR0-In-Key-BCOT-Name-Chd Value 'BCOT-NAMEC'.03890099
+                   88  R791ERR0-In-Key-BCOB-Name     Value 'BCOB-NAME '.03900099
+                   88  R791ERR0-In-Key-BCOB-Name-Prt Value 'BCOB-NAMEP'.03910099
+                   88  R791ERR0-In-Key-BCOB-Name-Chd Value 'BCOB-NAMEC'.03920099
+                   88  R791ERR0-In-Key-BCOB-Level    Value 'BCOB-LEVEL'.03930099
+                   88  R791ERR0-In-Key-BCGT-Name     Value 'BCGT-NAME '.03940099
+                   88  R791ERR0-In-Key-BCGR-Seq-No   Value 'BCGR-SEQNO'.03950099
+                   88  R791ERR0-In-Key-BCGR-Seq-No-P Value 'BCGR-SEQNP'.03960099
+                   88  R791ERR0-In-Key-BCGR-Seq-No-C Value 'BCGR-SEQNC'.03970099
+                   88  R791ERR0-In-Key-BCSG-Gl-Acc   Value 'BCSG-GLACC'.03980099
+                   88  R791ERR0-In-Key-BCSK-Gl-Acc   Value 'BCSK-GLACC'.03990099
+                   88  R791ERR0-In-Key-BCSA-Gl-Acc   Value 'BCSA-GLACC'.04000099
+                   88  R791ERR0-In-Key-BCSG-Prof-Cte Value 'BCSG-PROFC'.04010099
+                   88  R791ERR0-In-Key-BCSK-Prof-Cte Value 'BCSK-PROFC'.04020099
+                   88  R791ERR0-In-Key-BCSA-Prof-Cte Value 'BCSA-PROFC'.04030099
+                   88  R791ERR0-In-Key-BCST-Prof-Cte Value 'BCST-PROFC'.04040099
+                   88  R791ERR0-In-Key-BCSG-Sebu-Cod Value 'BCSG-SEBU '.04050099
+                   88  R791ERR0-In-Key-BCSK-Sebu-Cod Value 'BCSK-SEBU '.04060099
+                   88  R791ERR0-In-Key-BCSA-Sebu-Cod Value 'BCSA-SEBU '.04070099
+                   88  R791ERR0-In-Key-BCSG-Amt-Type Value 'BCSG-AMTTY'.04080099
+                   88  R791ERR0-In-Key-BCSG-Data-Typ Value 'BCSG-DATAT'.04090099
+                   88  R791ERR0-In-Key-BCSG-Year     Value 'BCSG-YEAR '.04100099
+                   88  R791ERR0-In-Key-BCSD-Prof-Cte Value 'BCSD-PROFC'.04110099
+                   88  R791ERR0-In-Key-BCSD-Sebu-Cod Value 'BCSD-SEBU '.04120099
+                   88  R791ERR0-In-Key-BCSD-Amt-Type Value 'BCSD-AMTTY'.04130099
+                   88  R791ERR0-In-Key-BCSD-Data-Typ Value 'BCSD-DATAT'.04140099
+                   88  R791ERR0-In-Key-BCSD-Year     Value 'BCSD-YEAR '.04150099
+                   88  R791ERR0-In-Key-BCSD-Per-Type Value 'BCSD-PERTY'.04160099
+                   88  R791ERR0-In-Key-BCSD-Period   Value 'BCSD-PERIO'.04170099
+                   88  R791ERR0-In-Key-BCST-Date     Value 'BCST-DATE '.04180099
+                   88  R791ERR0-In-Key-BCPD-Prof-Cte Value 'BCPD-PROFC'.04190099
+                   88  R791ERR0-In-Key-BCPD-Sebu-Cod Value 'BCPD-SEBU '.04200099
+                   88  R791ERR0-In-Key-BCPD-Year     Value 'BCPD-YEAR '.04210099
+                   88  R791ERR0-In-Key-BCPD-Per-Type Value 'BCPD-PERTY'.04220099
+                   88  R791ERR0-In-Key-BCPD-Period   Value 'BCPD-PERIO'.04230099
+                   88  R791ERR0-In-Key-BCSK-Org-Unit Value 'BCSK-ORGUN'.04240099
+                   88  R791ERR0-In-Key-BCSA-Gl-Acc-C Value 'BCSA-GL-CR'.04250099
+                   88  R791ERR0-In-Key-BCSA-Gl-Acc-D Value 'BCSA-GL-DB'.04260099
+                   88  R791ERR0-In-Key-BCSA-Prod-No  Value 'BCSA-ProdN'.04270099
+                   88  R791ERR0-In-Key-BCRI-Name     Value 'BCRI-NAME '.04280099
+                   88  R791ERR0-In-Key-BCRT-Type     Value 'BCRT-TYPE '.04290099
+                                                                        04300099
+                 20  R791ERR0-In-Key-Int-Alpha  Pic  X(60).             04310099
+                 20  R791ERR0-In-Key-Int-Num    Redefines               04320099
+                     R791ERR0-In-Key-Int-Alpha  Pic  9(18).             04330099
+                                                                        04340099
+                 20  R791ERR0-In-Key-Ext-Alpha  Pic  X(60).             04350099
+                 20  R791ERR0-In-Key-Ext-Num    Redefines               04360099
+                     R791ERR0-In-Key-Ext-Alpha  Pic  9(18).             04370099
+      *                                                                 04380099
+      *      If you want to use symbolic variables in the message text, 04390099
+      *      this table is used to specify the data to merge into the   04400099
+      *      message text. Note that R791ERR0-In-Var-Type is mandatory. 04410099
+      *      In-Var-Key corresponds to the identificator(s) in the text 04420099
+      *      starting with & and ending with # (eg. &VAR1#).            04430099
+             10  R791ERR0-In-Var-Table.                                 04440099
+               15  R791ERR0-In-Var-Element      Occurs 15 Times.        04450099
+                 20  R791ERR0-In-Var-Key        Pic  X(10).             04460099
+                 20  R791ERR0-In-Var-Data       Pic  X(60).             04470099
+      *                                                                 04480099
+      *----------------------------------------------------------------*04490099
+      *                                                                 04500099
+      * Under normal conditions, these output fields should NOT be used.04510099
+      * They are meant to support special needs only, when you for some 04520099
+      * reason are unable to use the services of the F791ERR0 module    04530099
+      * to full extent.                                                 04540099
+      * The fields will be returned regardless of the action code.      04550099
+      *                                                                 04560099
+           05  R791ERR0-Output.                                         04570099
+      *                                                                 04580099
+      * Messages.                                                       04590099
+      *                                                                 04600099
+             10  R791ERR0-Out-Messages.                                 04610099
+      *                                                                 04620099
+               15  R791ERR0-Out-Msg-Table.                              04630099
+                 20  R791ERR0-Out-Msg-Element   Occurs 20 times.        04640099
+                   25  R791ERR0-Out-Message-ID  Pic  X(30).             04650099
+                   25  R791ERR0-Out-Message-No  Pic  9(08).             04660099
+                   25  R791ERR0-Out-Message-Text                        04670099
+                                                Pic  X(100).            04680099
+                   25  R791ERR0-Out-Reason-Code Pic  X(10).             04690099
+                     88  R791ERR0-Out-RC-Not-Found   Value 'NF        '.04700099
+                     88  R791ERR0-Out-RC-Already-Exist                  04710099
+                                                     Value 'AE        '.04720099
+                     88  R791ERR0-Out-RC-Input-Error Value 'INPERR    '.04730099
+                     88  R791ERR0-Out-RC-Logic-Error Value 'LOGERR    '.04740099
+                     88  R791ERR0-Out-RC-System-Error                   04750099
+                                                     Value 'SYSERR    '.04760099
+                     88  R791ERR0-Out-RC-Comm-Error  Value 'COMMERR   '.04770099
+                     88  R791ERR0-Out-RC-DB-Error    Value 'DBERR     '.04780099
+                     88  R791ERR0-Out-RC-DB-Inconsist                   04790099
+                                                     Value 'DBINCON   '.04800099
+                     88  R791ERR0-Out-RC-Timeout     Value 'TIMEOUT   '.04810099
+                   25  R791ERR0-Out-External-Ref                        04820099
+                                                Pic  X(20).             04830099
+      *                                                                 04840099
+      * Call Trace                                                      04850099
+      *                                                                 04860099
+             10  R791ERR0-Out-Call-Trace.                               04870099
+      *                                                                 04880099
+               15  R791ERR0-Out-Trc-Table.                              04890099
+                 20  R791ERR0-Out-Trc-Element   Occurs 20 times.        04900099
+                   25  R791ERR0-Out-System-ID   Pic  X(02).             04910099
+                   25  R791ERR0-Out-Module-ID   Pic  X(08).             04920099
+                   25  R791ERR0-Out-Paragraph-ID                        04930099
+                                                Pic  X(04).             04940099
+      *                                                                 04950099
+      * Keys                                                            04960099
+      *                                                                 04970099
+             10  R791ERR0-Out-Keys.                                     04980099
+      *                                                                 04990099
+               15  R791ERR0-Out-Key-Table.                              05000099
+                 20  R791ERR0-Out-Key-Element   Occurs 25 times.        05010099
+                   25  R791ERR0-Out-Key-Type    Pic  X(10).             05020099
+                                                                        05030099
+                   25  R791ERR0-Out-Key-Int-Alpha                       05040099
+                                                Pic  X(60).             05050099
+                   25  R791ERR0-Out-Key-Int-Num Redefines               05060099
+                       R791ERR0-Out-Key-Int-Alpha                       05070099
+                                                Pic  9(18).             05080099
+                                                                        05090099
+                   25  R791ERR0-Out-Key-Ext-Alpha                       05100099
+                                                Pic  X(60).             05110099
+                   25  R791ERR0-Out-Key-Ext-Num Redefines               05120099
+                       R791ERR0-Out-Key-Ext-Alpha                       05130099
+                                                Pic  9(18).             05140099
+      *                                                                 05150099

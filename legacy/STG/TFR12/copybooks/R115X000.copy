@@ -1,0 +1,73 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD Trade Finance                                                00030006
+      *                                                                 00040000
+      * Copy-area R115X000.                                             00050000
+      *                                                                 00060000
+      * This copy area contains several data items defined as external. 00070000
+      * These items can be accessed by any program in the logical unit  00080000
+      * of work, by specifying "Copy R115X000." in Working-Storage.     00090000
+      * The data items are initiated by program F115X000 only, and      00100000
+      * shall not be tampered with by any other program.                00110000
+      *                                                                 00120000
+      *################################################################*00130000
+      * Date ! Si! Change description                            ! 3A ! 00140000
+      *------+---+-----------------------------------------------+----+ 00150000
+      *040399!HLR! New copy area                                 !LG10! 00160000
+      *################################################################*00170000
+      *                                                                 00180000
+       01  R115X000-External-Data               External.               00190000
+      *                                                                 00200000
+           05  R115X000-External-Area           Pic  X(1024).           00210004
+      *                                                                 00220004
+      *----------------------------------------------------------------*00230004
+      *                                                                 00240004
+           05  Filler                           Redefines               00250004
+                                                R115X000-External-Area. 00260004
+      *                                                                 00270004
+             10  R115X000-Version-No            Pic  X(08).             00280004
+               88  R115X000-Version                  Value '19990304'.  00290004
+      *                                                                 00300000
+      *................................................................*00310004
+      *                                                                 00320000
+             10  R115X000-Control.                                      00330004
+      *                                                                 00340000
+               15  R115X000-Initiation-Switch   Pic  X(03).             00350004
+                 88  R115X000-Is-Initiated           Value 'YES'.       00360004
+      *                                                                 00370000
+      *................................................................*00380004
+      *                                                                 00390004
+             10  R115X000-Environment.                                  00400004
+      *                                                                 00410000
+               15  R115X000-Environment-Switch  Pic  X(08).             00420004
+                 88  R115X000-Env-CICS               Value 'CICS'.      00430004
+                 88  R115X000-Env-IMS                Value 'IMS'.       00440004
+                 88  R115X000-Env-Batch              Value 'BATCH'.     00450004
+      *                                                                 00460000
+               15  R115X000-Batch-Info.                                 00470004
+                 20  R115X000-Batch-Job-Name    Pic  X(08).             00480004
+                 20  R115X000-Batch-Step-Name   Pic  X(08).             00490004
+                 20  R115X000-Batch-Load-Name   Pic  X(08).             00500004
+                                                                        00510000
+               15  R115X000-CICS-Info.                                  00520004
+                 20  R115X000-CICS-ID           Pic  X(04).             00530004
+                                                                        00540003
+               15  R115X000-Trace-Switch.                               00550004
+                 20  R115X000-Trace             Pic  X(01).             00560004
+                   88  R115X000-Trace-On             Value 'Y'.         00570003
+                   88  R115X000-Trace-Off            Value ' '.         00580003
+      *                                                                 00590003
+      *................................................................*00600004
+      *                                                                 00610000
+             10  R115X000-Financial-Institution.                        00620004
+      *                                                                 00630000
+               15  R115X000-Fin-Inst-No         Pic  X(18).             00640004
+               15  R115X000-Fin-Inst-ID         Pic S9(18)       Comp-3.00650004
+      *                                                                 00660000
+      *        639-1 refers to ISO 639-1, which is two characters.      00670004
+      *        639-2 refers to ISO 639-2, which is three characters.    00680004
+               15  R115X000-FI-Language-639-1   Pic  X(02).             00690004
+               15  R115X000-FI-Language-639-2   Pic  X(03).             00700004
+      *                                                                 00710000
+      *----------------------------------------------------------------*00720000
+      *                                                                 00730000

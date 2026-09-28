@@ -1,0 +1,133 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * Copy-område R791904P.                                           00030000
+      * Generell submodul for validering av dato.                       00040000
+      *                                                                 00050000
+      * Logikk til Procedure Division.                                  00060004
+      *                                                                 00070000
+      * Kan benyttes sammen med R791904W dersom man ønsker å unngå kall.00080000
+      *                                                                 00090000
+      * Krever i tilfelle også copy-områdene                            00100003
+      *   - R791905W og R791905P.                                       00110003
+      *   - R791906W og R791906P.                                       00120003
+      *                                                                 00130000
+      *################################################################*00140000
+      * DATO ! SI! ENDRINGENS ART                                ! 3A ! 00150000
+      *---------------------------------------------------------------- 00160000
+      *130195!HLR! Nytt copy-område                              !JR68! 00170000
+      *################################################################*00180000
+       F7919040-Valider-Dato             Section.                       00190000
+      *                                                                 00200000
+           Perform F7919040-B000-Initialize                             00210000
+           Perform F7919040-C000-Beregning                              00220000
+      *                                                                 00230000
+           .                                                            00240000
+       F7919040-Exit.                                                   00250000
+           Exit.                                                        00260000
+      *################################################################*00270000
+       F7919040-B000-Initialize          Section.                       00280000
+      *                                                                 00290000
+           Set   R7919999-Retur-Ok       To    True                     00300000
+      *                                                                 00310000
+           .                                                            00320000
+       F7919040-B099-Exit.                                              00330000
+           Exit.                                                        00340000
+      *################################################################*00350000
+       F7919040-C000-Beregning           Section.                       00360000
+      *                                                                 00370000
+           Move  R7919040-In-Dato        In    R7919040-Valider-Dato    00380006
+                                         To    W9040-Split-Dato         00390006
+      *                                                                 00400006
+      * Finner antall dager i måneden:                                  00410003
+      *                                                                 00420003
+           Evaluate True                                                00430008
+             When W9040-SD-Dag           <     29                       00440006
+               Move  28                  To    R7919050-Ut-Dgr-I-Per    00450006
+      *                                                                 00460006
+             When ( W9040-SD-Mnd         Not = 02 )                     00470006
+             and  ( W9040-SD-Dag         <     31 )                     00480006
+               Move  30                  To    R7919050-Ut-Dgr-I-Per    00490006
+      *                                                                 00500006
+             When Other                                                 00510006
+               Initialize                      R7919050-Dager-I-Periode 00520006
+               Set   R7919050-Versjon    To    True                     00530006
+               Move  R7919040-In-Dato    In    R7919040-Valider-Dato    00540006
+                                         To    R7919050-In-Dato         00550003
+               Perform F7919050-Dager-I-Periode                         00560006
+               If  R7919999-Retur-Abend                                 00570006
+                   Move  'C001'          To    R7919999-Paragraf        00580006
+                   Perform F7919040-Z900-Abend                          00590006
+                   Go To F7919040-C099-Exit                             00600006
+               End-If                                                   00610006
+      *                                                                 00620000
+           End-Evaluate                                                 00630006
+      *                                                                 00640006
+      * Validerer datoen:                                               00650003
+      *                                                                 00660003
+           If  W9040-SD-Aar              <     1                        00670000
+           or  W9040-SD-Mnd              <     1                        00680000
+           or  W9040-SD-Mnd              >     12                       00690000
+           or  W9040-SD-Dag              <     1                        00700000
+           or  W9040-SD-Dag              >     R7919050-Ut-Dgr-I-Per    00710003
+               Move  Space               To    R7919999-Melding         00720000
+               Move  R7919040-In-Dato    In    R7919040-Valider-Dato    00730000
+                                         To    W9040-Display-Dato       00740000
+               String 'Ugyldig dato - '        Delimited by size        00750000
+                      W9040-Display-Dato       Delimited by size        00760000
+                      '.'                      Delimited by size        00770000
+                                         Into  R7919999-Melding         00780000
+               End-String                                               00790000
+               Move  'C002'              To    R7919999-Paragraf        00800005
+               Perform F7919040-Z800-Feil                               00810009
+               Go To F7919040-C099-Exit                                 00820000
+           End-If                                                       00830000
+      *                                                                 00840000
+           .                                                            00850000
+       F7919040-C099-Exit.                                              00860000
+           Exit.                                                        00870000
+      *################################################################*00880000
+       F7919040-Z800-Feil                Section.                       00890009
+      *                                                                 00900000
+           If  Not R7919999-Retur-Abend                                 00910000
+               Move  +0                  To    R7919999-Modul-Ind       00920000
+           End-If                                                       00930000
+      *                                                                 00940000
+           Add   +1                      To    R7919999-Modul-Ind       00950000
+      *                                                                 00960000
+           If  R7919999-Modul-Ind        Not >                          00970000
+                             ( Length    Of    R7919999-Modul-Tab       00980000
+                             / Length    Of    R7919999-Modul-Element ) 00990009
+               Move  'F7919040'          To    R7919999-Modul-Navn      01000000
+                                                    (R7919999-Modul-Ind)01010000
+               Move  R7919999-Paragraf   To    R7919999-Modul-Para      01020000
+                                                    (R7919999-Modul-Ind)01030000
+           End-If                                                       01040000
+      *                                                                 01050000
+           Set   R7919999-Retur-Feil     To    True                     01060009
+      *                                                                 01070000
+           .                                                            01080000
+       F7919040-Z899-Exit.                                              01090009
+           Exit.                                                        01100000
+      *################################################################*01110009
+       F7919040-Z900-Abend               Section.                       01120009
+      *                                                                 01130009
+           If  Not R7919999-Retur-Abend                                 01140009
+               Move  +0                  To    R7919999-Modul-Ind       01150009
+           End-If                                                       01160009
+      *                                                                 01170009
+           Add   +1                      To    R7919999-Modul-Ind       01180009
+      *                                                                 01190009
+           If  R7919999-Modul-Ind        Not >                          01200009
+                             ( Length    Of    R7919999-Modul-Tab       01210009
+                             / Length    Of    R7919999-Modul-Element ) 01220009
+               Move  'F7919040'          To    R7919999-Modul-Navn      01230009
+                                                    (R7919999-Modul-Ind)01240009
+               Move  R7919999-Paragraf   To    R7919999-Modul-Para      01250009
+                                                    (R7919999-Modul-Ind)01260009
+           End-If                                                       01270009
+      *                                                                 01280009
+           Set   R7919999-Retur-Abend    To    True                     01290009
+      *                                                                 01300009
+           .                                                            01310009
+       F7919040-Z999-Exit.                                              01320009
+           Exit.                                                        01330009

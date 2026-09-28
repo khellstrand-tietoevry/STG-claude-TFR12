@@ -1,0 +1,384 @@
+       Identification Division.                                                 
+       Program-Id. FTFRH120.                                                    
+       Author. Z2106NL                                                          
+      *################################################################*        
+      * Servo - logic-level / H-module - Main-module.                  *        
+      * Uses STG, in accordance with New Servo Standards               *        
+      *                                                                *        
+      * TFR12/01 - ReadCharge                                          *        
+      *                                                                *        
+      * THIS MODULE MUST NOT BE MODIFIED BY HUMAN HANDS !!!            *        
+      *                                                                *        
+      *################################################################*        
+      * Date ! Si! Type of change                                ! 3A !*        
+      *------+---+-----------------------------------------------+----+*        
+      *120315!&&&!New module                                     !&&&&!*        
+      *################################################################*        
+       Environment Division.                                                    
+       Configuration Section.                                                   
+       Special-Names.                                                           
+           Decimal-Point Is Comma.                                              
+      *################################################################*        
+       Data Division.                                                           
+       Working-Storage Section.                                                 
+      *                                                                         
+       01  W-Module-Constants.                                                  
+      *----------------------------------------------------------------*        
+      * Constants for the module:                                               
+      *                                                                         
+           05  WC-Program                Pic  x(08) Value 'FTFRH120'.           
+           05  WC-Sysid                  Pic  x(02) Value 'TF'.                 
+      *                                                                         
+      *                                                                         
+       01  W-Work-Fields.                                                       
+      *                                                                         
+           05  Filler                    Pic  X(01).                            
+      *                                                                         
+      *----------------------------------------------------------------*        
+      * Storage for error messages.                                             
+      *                                                                         
+           05  WS-Errormessage-Store.                                           
+               10  WS-Status-Code        Pic  X(02).                            
+               10  WS-Message-Code       Pic  X(30).                            
+               10  WS-Message-Text       Pic  X(79).                            
+      *                                                                         
+      *----------------------------------------------------------------*        
+      * Variables for trace logging                                             
+      *                                                                         
+       01  WT-Trace-Logging.                                                    
+           05  SW-Trace-Log              Pic  x(32).                            
+               88  SW-Trace-Default   Value Spaces.                             
+               88  SW-Trace-A000      Value 'A000-Main'.                        
+               88  SW-Trace-A001      Value 'A001'.                             
+               88  SW-Trace-A002      Value 'A002'.                             
+               88  SW-Trace-A003      Value 'A003'.                             
+               88  SW-Trace-C000      Value 'C000-Call-K-Modul'.                
+               88  SW-Trace-C001      Value 'C001'.                             
+               88  SW-Trace-D000      Value 'D000-Call-L-Modul'.                
+               88  SW-Trace-D001      Value 'D001'.                             
+      *                                                                         
+      *----------------------------------------------------------------*        
+      * Misc. copy books :                                                      
+      *                                                                         
+       01  Filler.                                                              
+           Copy R7918030.                                                       
+      *                                                                         
+           Copy R791TRAC.                                                       
+      *                                                                         
+      *################################################################*        
+       Linkage Section.                                                         
+      *                                                                         
+      * Fixed header from STG                                                   
+      *                                                                         
+       01  L-STG-Header.                                                        
+           Copy R400CH02.                                                       
+      *                                                                         
+      * Function data                                                           
+      *                                                                         
+       01  L-Input.                                                             
+           Copy RTFRE120.                                                       
+      *                                                                         
+      * Standard Error area                                                     
+      *                                                                         
+       Copy R7919999.                                                           
+      *                                                                         
+      *################################################################*        
+       Procedure Division                Using L-STG-Header                     
+                                               L-Input                          
+                                               R7919999-Error.                  
+      *                                                                         
+       A000-Main                         Section.                               
+      *                                                                         
+      *    If Trace is on, do logging of dataareas                              
+      *                                                                         
+           If  R400CH01-Trace-On                                                
+               Set  SW-Trace-A000        To    True                             
+               Perform  X999-Control-Trace                                      
+               Set  SW-Trace-A001        To    True                             
+               Perform  X999-Control-Trace                                      
+           End-If                                                               
+      *                                                                         
+           Perform B000-Initialize                                              
+      *                                                                         
+           Perform C000-Call-K-Module                                           
+           Perform D000-Call-L-Module                                           
+      *                                                                         
+      *    If Trace is on, do logging of dataareas                              
+      *                                                                         
+           If  R400CH01-Trace-On                                                
+               Set  SW-Trace-A002        To    True                             
+               Perform  X999-Control-Trace                                      
+               Set  SW-Trace-A003        To    True                             
+               Perform  X999-Control-Trace                                      
+           End-If                                                               
+           .                                                                    
+      *                                                                         
+       A000-Main-Ex.                                                            
+           Goback.                                                              
+                                                                                
+      *################################################################*        
+      * Perform required initialization for the module                 *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+       B000-Initialize                   Section.                               
+      *                                                                         
+           Initialize                          W-Work-Fields                    
+                                                                                
+           Set  R7919999-Retur-Ok        To    True                             
+           .                                                                    
+      *                                                                         
+       B000-Initialize-Ex.                                                      
+           Exit.                                                                
+                                                                                
+      *################################################################*        
+      * Call the control program for the function                      *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+       C000-Call-K-Module                Section.                               
+      *                                                                         
+           Call  'FTFRK120'              Using L-STG-Header                     
+                                               L-Input                          
+                                               R7919999-Error                   
+           End-Call                                                             
+      *                                                                         
+      *    If Trace is on, do logging of dataareas                              
+      *                                                                         
+           If  R400CH01-Trace-On                                                
+               Set  SW-Trace-C000        To    True                             
+               Perform  X999-Control-Trace                                      
+               Set  SW-Trace-C001        To    True                             
+               Perform  X999-Control-Trace                                      
+           End-If                                                               
+      *                                                                         
+      *    Check status-code from the control program                           
+      *                                                                         
+           If  (Not R7919999-Return-Ok                                          
+           Or  R7919999-Return-Warning)                                         
+           Or  R7919999-Return-Warning-Goback                                   
+               Move  'C001'              To    R7919999-Paragraph               
+               Perform S000-Status-Code                                         
+           End-If                                                               
+           .                                                                    
+      *                                                                         
+       C000-Call-K-Modul-Ex.                                                    
+           Exit.                                                                
+                                                                                
+      *################################################################*        
+      * Call the logic program for the function                        *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+       D000-Call-L-Module                Section.                               
+      *                                                                         
+           Call  'FTFRL120'              Using L-STG-Header                     
+                                               L-Input                          
+                                               R7919999-Error                   
+           End-Call                                                             
+      *                                                                         
+      *    If Trace is on, do logging of dataareas                              
+      *                                                                         
+           If  R400CH01-Trace-On                                                
+               Set  SW-Trace-D000        To    True                             
+               Perform  X999-Control-Trace                                      
+               Set  SW-Trace-D001        To    True                             
+               Perform  X999-Control-Trace                                      
+           End-If                                                               
+      *                                                                         
+      *    Check status-code from the logic program                             
+      *                                                                         
+           If  (Not R7919999-Return-Ok                                          
+           Or  R7919999-Return-Warning)                                         
+           Or  R7919999-Return-Warning-Goback                                   
+               Move  'D001'              To    R7919999-Paragraph               
+               Perform S000-Status-Code                                         
+           End-If                                                               
+           .                                                                    
+      *                                                                         
+       D000-Call-L-Modul-Ex.                                                    
+           Exit.                                                                
+                                                                                
+      *################################################################*        
+      * Check status code after calls to underlying modules            *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+       S000-Status-Code                  Section.                               
+      *                                                                         
+      *  We have to set the statuscode in the header based on the               
+      *  information in the R7919999-Error area.                                
+      *                                                                         
+      *  R7919999-Return-Ok      : All OK, continue processing                  
+      *  R7919999-Return-Warning : Warning. Create message, then                
+      *                            continue.                                    
+      *  R7919999-Return-Error   : Error in field/input processing. Set         
+      *                            header statuscode to AE                      
+      *  R7919999-Return-Abend   : Severe error. Set header statuscode          
+      *                            to AS                                        
+      *                                                                         
+      * We have a somewhat special releationship with the AW statuscode         
+      * from the K module. Since we are continuing processing , the L           
+      * module will override the status information from the K module.          
+      * Because of this, we have to save the status information from            
+      * the K module, and put it back if the L module returns ok                
+      * status information.                                                     
+      *                                                                         
+           Evaluate True                                                        
+      *                                                                         
+             When R7919999-Return-Warning-Goback                                
+      *                                                                         
+               Perform  Z000-ErrorMessage                                       
+               Move  'AW'                To    R400CH01-Status-Code             
+               Goback                                                           
+      *                                                                         
+             When R7919999-Return-Warning                                       
+      *                                                                         
+               Perform  Z000-ErrorMessage                                       
+               Move  'AW'                To    WS-Status-Code                   
+               Move  R400CH01-Message-Code                                      
+                                         To    WS-Message-Code                  
+               Move  R400CH01-Message-Text                                      
+                                         To    Ws-Message-Text                  
+               Move  WS-Status-Code      To    R400CH01-Status-Code             
+               Move  WS-Message-Code     To    R400CH01-Message-Code            
+               Move  WS-Message-Text     To    R400CH01-Message-Text            
+      *                                                                         
+             When R7919999-Return-OK                                            
+      *                                                                         
+               Move  WS-Status-Code      To    R400CH01-Status-Code             
+               Move  WS-Message-Code     To    R400CH01-Message-Code            
+               Move  WS-Message-Text     To    R400CH01-Message-Text            
+      *                                                                         
+             When R7919999-Return-Error                                         
+      *                                                                         
+               Move  'AE'                To    R400CH01-Status-Code             
+               Perform  Z000-ErrorMessage                                       
+               Goback                                                           
+      *                                                                         
+             When R7919999-Return-Abend                                         
+      *                                                                         
+               Move  'AS'                To    R400CH01-Status-Code             
+               Perform  Z000-ErrorMessage                                       
+               Goback                                                           
+      *                                                                         
+           End-Evaluate                                                         
+      *                                                                         
+           .                                                                    
+      *                                                                         
+       S000-Status-Code-Ex.                                                     
+           Exit.                                                                
+                                                                                
+      *################################################################*        
+      *  Call the trace interface                                      *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+       X999-Control-Trace                Section.                               
+      *                                                                         
+           If  Not  R791TRAC-Versjon                                            
+               Initialize                R791TRAC-Interface                     
+               Set  R791TRAC-Versjon     To    True                             
+               Move  WC-Sysid            To    R791TRAC-In-Sysid                
+               Move  WC-Program          To    R791TRAC-In-Program              
+           End-If                                                               
+      *                                                                         
+           Move  SW-Trace-Log            To    R791TRAC-In-Trace-Point          
+      *                                                                         
+           Evaluate True                                                        
+      *                                                                         
+             When  SW-Trace-A000                                                
+               Move  'R400CH01'          To    R791TRAC-In-Trace-Area           
+               Move  L-STG-Header        To    R791TRAC-In-Trace-Data           
+      *                                                                         
+             When  SW-Trace-A001                                                
+               Move  'RTFRE120'          To    R791TRAC-In-Trace-Area           
+               Move  L-Input             To    R791TRAC-In-Trace-Data           
+      *                                                                         
+             When  SW-Trace-A002                                                
+               Move  'R400CH01'          To    R791TRAC-In-Trace-Area           
+               Move  L-STG-Header        To    R791TRAC-In-Trace-Data           
+      *                                                                         
+             When  SW-Trace-A003                                                
+               Move  'RTFRE120'          To    R791TRAC-In-Trace-Area           
+               Move  L-Input             To    R791TRAC-In-Trace-Data           
+      *                                                                         
+             When  SW-Trace-C000                                                
+               Move  'R400CH01'          To    R791TRAC-In-Trace-Area           
+               Move  L-STG-Header        To    R791TRAC-In-Trace-Data           
+      *                                                                         
+             When  SW-Trace-C001                                                
+               Move  'RTFRE120'          To    R791TRAC-In-Trace-Area           
+               Move  L-Input             To    R791TRAC-In-Trace-Data           
+      *                                                                         
+             When  SW-Trace-D000                                                
+               Move  'R400CH01'          To    R791TRAC-In-Trace-Area           
+               Move  L-STG-Header        To    R791TRAC-In-Trace-Data           
+      *                                                                         
+             When  SW-Trace-D001                                                
+               Move  'RTFRE120'          To    R791TRAC-In-Trace-Area           
+               Move  L-Input             To    R791TRAC-In-Trace-Data           
+      *                                                                         
+           End-Evaluate                                                         
+      *                                                                         
+           Call  'F791TRAC'                                                     
+                 Using By Reference      R791TRAC-Interface                     
+           End-Call                                                             
+           .                                                                    
+      *                                                                         
+       X999-Control-Trace-Ex.                                                   
+           Exit.                                                                
+                                                                                
+      *################################################################*        
+      * Build the errormessage to return to caller                     *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+       Z000-ErrorMessage                 Section.                               
+      *                                                                         
+           Initialize                          R7918030-ErrorMessage            
+           Set   R7918030-Version        To    True                             
+           Move  R400CH01-Userid         To    R7918030-In-Logon-Id             
+           Move  R400CH01-Terminalid     To    R7918030-In-Terminal-Id          
+           Move  'FI'                    To    R7918030-In-System-Id            
+           If  R400CH01-Status-Code      =     'AS'                             
+               Set  R7918030-In-Log-Yes  To    True                             
+           End-If                                                               
+           Move  R400CH01-Message-Code   To    R7918030-In-MessageCode          
+           Move  R400CH01-Message-Text   To    R7918030-In-MessageText          
+           Move  R400CH01-Message-Var-Tab                                       
+                                         To  R7918030-In-Variable-Table         
+      *                                                                         
+           Call  'F7918030'              Using R7918030-ErrorMessage            
+           End-Call                                                             
+      *                                                                         
+           Move  R7918030-Out-MessageCode                                       
+                                         To    R400CH01-Message-Code            
+           Move  R7918030-Out-MessageText                                       
+                                         To    R400CH01-Message-Text            
+           .                                                                    
+      *                                                                         
+       Z000-ErrorMessage-Ex.                                                    
+           Exit.                                                                
+                                                                                
+      *################################################################*        
+      * Build the standard error area                                  *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+       Z900-Abend                        Section.                               
+      *                                                                         
+           If  R7919999-Return-Code      Not   Numeric                          
+           or  Not R7919999-Return-Abend                                        
+               Move  +0                  To    R7919999-Module-Ind              
+           End-If                                                               
+      *                                                                         
+           Add   +1                      To    R7919999-Module-Ind              
+      *                                                                         
+           If  R7919999-Module-Ind       Not >                                  
+                             ( Length    Of    R7919999-Module-Tab              
+                             / Length    Of    R7919999-Module-Element )        
+               Move  'FTFRH120'          To    R7919999-Module-Name             
+                                               (R7919999-Module-Ind)            
+               Move  R7919999-Paragraph  To    R7919999-Module-Para             
+                                               (R7919999-Module-Ind)            
+           End-If                                                               
+           .                                                                    
+      *                                                                         
+       Z900-Abend-Ex.                                                           
+           Goback.                                                              
+      *                                                                         
+       End Program FTFRH120.                                                    

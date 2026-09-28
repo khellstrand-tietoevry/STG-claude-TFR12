@@ -1,0 +1,187 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD Trade Finance                                                00030000
+      *                                                                 00040000
+      * Copy-area R115IHI0.                                             00050000
+      *                                                                 00060000
+      * Interface for all database access on table TF_History.          00070000
+      *                                                                 00080000
+      * The interface kan read one spesific occurence,                  00090000
+      * or several occurences, fully or partly qualified with           00100000
+      * from- and to- values.                                           00110000
+      *                                                                 00120000
+      * When reading several occurences, one must always start with     00130000
+      * -In-Get-1st, and continue with -In-Get-Next.                    00140000
+      *                                                                 00150000
+      * NB!  There are several key-fields, which may be used            00160000
+      *      differently depending on the need.                         00170000
+      *      See seperate description below.                            00180000
+      *                                                                 00190000
+      *                                                                 00200000
+      * An ordinary Select call may look like this:                     00210000
+      *                                                                 00220000
+      *    Initialize                          R115IHI0-Transaction     00230000
+      *    Set   R115IHI0-Version        To    True                     00240000
+      *    Set   R115IHI0-In-Get-1st     To    True                     00250000
+      *                                                                 00260000
+      * One of these:                                                   00270000
+      * 1) Move  &fin-inst-id            To    R115IHI0-In-Fin-Inst-ID  00280000
+      * 2) Move  &fin-inst-no            To    R115IHI0-In-Fin-Inst-No  00290000
+      *                                                                 00300000
+      *    Move  &contract-type          To    R115IHI0-In-Contract-Type00310000
+      *    Move  &contract-no            To    R115IHI0-In-Contract-No  00320000
+      *                                                                 00330000
+      *    Move  &currency (ISO 4217)    To    R115IHI0-In-CA-Currency  00340000
+      *    Move  &part-amount seq.no     To    R115IHI0-In-PA-Seq-No    00350000
+      *                                                                 00360000
+      *    Call  'F115ITR0'              Using R115IHI0-History         00390000
+      *                                        R7919999-Error-Area      00400000
+      *    End-Call                                                     00410000
+      *                                                                 00420000
+      *    Evaluate True                                                00430000
+      *      When R7919999-Return-Abend                                 00440000
+      *        Move  '&&&&'              To    R7919999-Paragraph       00450000
+      *        Perform Z900-Abend                                       00460000
+      *                                                                 00470000
+      *      When R7919999-Return-Error                                 00480000
+      *        ...not found...                                          00490000
+      *                                                                 00500000
+      *      When R7919999-Return-OK                                    00510000
+      *        ...found...                                              00520000
+      *                                                                 00530000
+      *    End-Evaluate                                                 00540000
+      *                                                                 00550000
+      *################################################################*00560000
+      * Date ! Si! Change description                            ! 3A ! 00570000
+      *------+---+-----------------------------------------------+----+ 00580000
+      *010300!LG ! New copy area                                 !LG10! 00590000
+      *################################################################*00600000
+      *                                                                 00610000
+         03  R115IHI0-History.                                          00620000
+      *                                                                 00630000
+           05  R115IHI0-Version-No              Pic  X(08).             00640000
+             88  R115IHI0-Version                    Value '20000103'.  00650000
+      *                                                                 00660000
+      *----------------------------------------------------------------*00670000
+      *                                                                 00680000
+           05  R115IHI0-Qualification.                                  00690000
+      *                                                                 00700000
+             10  R115IHI0-In-Action             Pic  X(16).             00710000
+               88  R115IHI0-In-Get-1st               Value 'GET-1ST'.   00720000
+               88  R115IHI0-In-Get-Next              Value 'GET-NEXT'.  00730000
+               88  R115IHI0-In-Insert                Value 'INSERT'.    00750000
+               88  R115IHI0-In-Delete                Value 'DELETE'.    00770000
+      *                                                                 00780000
+      * There are several key-fields, which may be used differently     00790000
+      * depending on the need.                                          00800000
+      *                                                                 00810000
+      * In-Table must be set whatever the desired action is.            00820000
+      *                                                                 00830000
+      * For Insert, use the Data area for all fields.                   00840000
+      *                                                                 00850000
+      * For and Delete, use:                                            00860000
+      *     - Fin-Inst-No or Fin-Inst-ID                                00870000
+      *     - Contract-Type                                             00880000
+      *     - Contract-No                                               00890000
+      *     - Currency                                                  00900000
+      *     - Part Amount Sequence Number                               00910000
+      *     - EH Sequence Number                                        00910100
+      *                                                                 00930000
+      * For cursor (Get-1st / Get-Next), use:                           00940000
+      *     - Optional: Fin-Inst-No or Fin-Inst-ID                      00950000
+      *     - Optional: Contract-Type                                   00960000
+      *             or: Contract-Type with mask (e.g. 'I* ')            00970000
+      *     - Optional: From-Contr-No and To-Contr-No                   00980000
+      *     - Optional: Currency and Part Amount Seq.no                 00990000
+      *     - Optional: Transaction Seq.no                              01000000
+      *                                                                 01010000
+             10  R115IHI0-In-Key.                                       01020000
+      *                                                                 01030000
+      *        It is optional wether you use Fin-Inst-No or Fin-Inst-ID.01040000
+               15  R115IHI0-In-Fin-Inst.                                01050000
+                 20  R115IHI0-In-Fin-Inst-No    Pic  X(18).             01060000
+                 20  R115IHI0-In-Fin-Inst-ID    Pic S9(18)       Comp-3.01070000
+      *                                                                 01080000
+      *        Contract-Type and -No is mandatory for                   01090000
+      *        Select/Update/Delete.                                    01100000
+               15  R115IHI0-In-Contract.                                01110000
+                 20  R115IHI0-In-Contract-Type  Pic  X(03).             01120000
+                 20  R115IHI0-In-Contract-No    Pic S9(07)       Comp-3.01130000
+      *                                                                 01140000
+                 20  R115IHI0-In-From-Contr-No  Pic S9(07)       Comp-3.01150000
+                 20  R115IHI0-In-To-Contr-No    Pic S9(07)       Comp-3.01160000
+      *                                                                 01170000
+      *        These fields are both mandatory for                      01180000
+      *        Delete.                                                  01190000
+               15  R115IHI0-In-Part-Amount.                             01200000
+                 20  R115IHI0-In-CA-Currency    Pic  X(03).             01210000
+                 20  R115IHI0-In-PA-Seq-No      Pic S9(04)       Comp.  01220000
+      *                                                                 01230000
+               15  R115IHI0-In-HI-Seq-No        Pic S9(04)       Comp.  01240000
+      *                                                                 01250000
+      * When performing a Get-1st-call one may ask for the total        01260000
+      * number of rows complying with the qualification.                01270000
+      *                                                                 01280000
+             10  R115IHI0-In-Code-Count         Pic  X(10).             01290000
+               88  R115IHI0-In-CC-Count              Value 'COUNT'.     01300000
+      *                                                                 01310000
+      *----------------------------------------------------------------*01320000
+      *                                                                 01330000
+           05  R115IHI0-Data.                                           01340000
+      *                                                                 01350000
+             10  R115IHI0-Key.                                          01360000
+               15  R115IHI0-Fin-Inst-ID         Pic S9(18)       Comp-3.01370000
+               15  R115IHI0-Contract-ID.                                01380000
+                 20  R115IHI0-Contract-Type     Pic  X(03).             01390000
+                 20  R115IHI0-Contract-No       Pic S9(07)       Comp-3.01400000
+      *                                                                 01410000
+               15  R115IHI0-Part-Amount.                                01420000
+                 20  R115IHI0-CA-Currency       Pic  X(03).             01430000
+                 20  R115IHI0-PA-Seq-No         Pic S9(04)       Comp.  01440000
+      *                                                                 01450000
+               15  R115IHI0-HI-Seq-No           Pic S9(04)       Comp.  01460000
+      *                                                                 01470000
+             10  R115IHI0-Operation-Type        Pic  X(20).             01480001
+      *                                                                 01510000
+             10  R115IHI0-User-Id               Pic  X(07).             01520003
+             10  R115IHI0-Timestamp             Pic  X(26).             01530000
+      *                                                                 01540000
+             10  R115IHI0-Text-Length           Pic s9(4)        Comp.  01540100
+      *                                                                 01540206
+             10  R115IHI0-Text                  Pic x(150).             01540300
+      *                                                                 01540406
+             10  Filler REDEFINES  R115IHI0-Text.                       01540504
+                 15  R115IHI0-Agent-Text        Pic X(24).              01540612
+                  88 R115HI0-Agent-Excist Value                         01540711
+                         'Avregnet agentprovisjon:'.                    01540811
+                 15  Filler                     Pic X(01).              01540904
+                 15  R115HI0-Agent-Am-Use       Pic 9(14)V9(03).        01541009
+                 15  R115HI0-Agent-Am-Display   Pic ZZZZZZ.ZZZ.ZZ9,999-.01541110
+                 15  R115HI0-Agent-Currency     Pic X(03).              01542007
+                 15  R115HI0-Agent-Part-Am-No   Pic 9(03).              01543007
+                 15  Filler                     Pic X(82).              01720011
+      *                                                                 01720107
+      * Don't change this redefine                                      01720214
+             10  Filler REDEFINES  R115IHI0-Text.                       01720313
+                 15  R115IHI0-SilentC-Text        Pic X(27).            01720413
+                  88 R115HI0-Silent-C-On Value                          01720513
+                         'Silent Confirmation valgt'.                   01720613
+                  88 R115HI0-Silent-C-Off Value                         01720713
+                         'Silent Confirmation fjernet'.                 01720813
+                 15  Filler                     Pic X(123).             01721213
+      *                                                                 01721313
+             10  Filler.                                                01721413
+               15  R115IHI0-Fin-Inst-No         Pic  X(18).             01722002
+      *                                                                 01723002
+      * The following accumulators are only relevant when performing    01730000
+      * Get-1st or Get-Next.                                            01740000
+      * Row-No starts on 1 when doing Get-1st, and increases by 1 for   01750000
+      * each Get-Next.                                                  01760000
+      * Total-Rows is set when doing Get-1st, but ONLY if the           01770000
+      * In-CC-Count is set. The field will tell you how many rows       01780000
+      * that complies with your qualification.                          01790000
+      *                                                                 01800000
+             10  R115IHI0-Out-Accumulators.                             01810000
+               15  R115IHI0-Out-Row-No          Pic S9(11)       Comp-3.01820000
+               15  R115IHI0-Out-Total-Rows      Pic S9(11)       Comp-3.01830000
+      *                                                                 01840000

@@ -1,0 +1,72 @@
+      *################################################################*00010006
+      *                                                                 00020006
+      *                                                                 00030011
+      * >>> NB! This copy book is also used outside EDB Core,  <<<      00040012
+      * >>> it is also defined in MKS/SubVersion.              <<<      00050011
+      * >>> If changes are required, these versions must be    <<<      00060011
+      * >>> harmonized. This must be done in co-operation with <<<      00070011
+      * >>> those responsible for PO and for iHub!!!           <<<      00080011
+      * >>>                       Jan.2009, Henning L. Rødland <<<      00090011
+      *                                                                 00100011
+      *                                                                 00110011
+      * Copy-område R7919220.                                           00120006
+      * Generell submodul som leverer informasjon om jobb og miljø.     00130006
+      *                                                                 00140006
+      * Ingen input-parametre nødvendig.                                00150006
+      *                                                                 00160006
+      * Eksempel på anrop:                                              00170006
+      *   Initialize                           R7919220-Jobb-Informasjon00180006
+      *   Set   R7919220-Versjon         To    True                     00190006
+      *   Call  'F7919220'               Using R7919220-Jobb-Informasjon00200006
+      *                                        R7919999-Error           00210006
+      *   End-Call                                                      00220006
+      *   If  R7919999-Retur-Abend                                      00230006
+      *       Move  '&&&&'               To    R7919999-Paragraf        00240006
+      *       Perform Z900-Abend                                        00250006
+      *   End-If                                                        00260006
+      *                                                                 00270006
+      *################################################################*00280006
+      * Dato ! Si! Endringens art                                ! 3A ! 00290006
+      *---------------------------------------------------------------- 00300006
+      *061023!HLR! Ny copy-versjon, bruker ikke IMS-online for   !    ! 00310009
+      *      !   ! gammel versjon lenger.                        !    ! 00320009
+      *060306!HLR! Lagt til 88-nivå for IMS-Online               !    ! 00330009
+      *070105!HLR! Lagt til div. CICS-info                       !    ! 00340007
+      *200704!HLR! Lagt til CPU-ID                               !    ! 00350006
+      *180501!HLR! Lagt til Jobb-ID                              !    ! 00360006
+      *200996!HLR! Nytt copy-område                              !    ! 00370006
+      *################################################################*00380006
+      *                                                                 00390006
+       01  R7919220-Jobb-Informasjon.                                   00400006
+      *                                                                 00410006
+           05  R7919220-Versjons-Nr             Pic  X(08).             00420006
+               88  R7919220-Versjon                  Value '20061023'.  00430009
+      *                                                                 00440006
+      *----------------------------------------------------------------*00450006
+      *                                                                 00460006
+      * Ingen kvalifisering nødvendig.                                  00470006
+      *                                                                 00480006
+      *----------------------------------------------------------------*00490006
+      *                                                                 00500006
+           05  R7919220-Resultat.                                       00510006
+               10  R7919220-Ut-Environment      Pic  X(08).             00520006
+                 88  R7919220-Ut-CICS                Value 'CICS'.      00530006
+                 88  R7919220-Ut-IMS                 Value 'IMS',       00540007
+                                                           'IMS-ONL'.   00550007
+                 88  R7919220-Ut-IMS-Online          Value 'IMS-ONL'.   00560007
+                 88  R7919220-Ut-Batch               Value 'BATCH'.     00570006
+      *                                                                 00580006
+               10  R7919220-Ut-Info.                                    00590006
+                 15  R7919220-Ut-Jobb-Navn      Pic  X(08).             00600006
+                 15  R7919220-Ut-Step-Navn      Pic  X(08).             00610006
+                 15  R7919220-Ut-Load-Navn      Pic  X(08).             00620006
+                 15  R7919220-Ut-Jobb-ID        Pic  X(08).             00630006
+                 15  R7919220-Ut-CPU-ID         Pic  X(04).             00640006
+      *                                                                 00650006
+               10  R7919220-Ut-CICS-Info.                               00660006
+                 15  R7919220-Ut-CICS-ID        Pic  X(04).             00670006
+                 15  R7919220-Ut-Trans-ID       Pic  X(04).             00680006
+                 15  R7919220-Ut-Terminal-ID    Pic  X(08).             00690006
+                 15  R7919220-Ut-User-ID        Pic  X(08).             00700006
+                 15  R7919220-Ut-User-Navn      Pic  X(20).             00710006
+      *                                                                 00720006

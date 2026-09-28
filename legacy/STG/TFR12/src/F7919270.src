@@ -1,0 +1,627 @@
+       Identification Division.                                                 
+       Program-ID. F7919270.                                                    
+       Author.  Henning Langfeldt Rødland.                                      
+      *################################################################*        
+      *                                                                         
+      * Generell submodul for å konvertere mellom timestamp-formater.           
+      *                                                                         
+      * Man leverer enten:                                                      
+      *   - Dato           (ååååmmdd)                                           
+      *   - Tid                                                                 
+      *     enten:                                                              
+      *       - Tid-TMS        (ttmmss)                                         
+      *     eller:                                                              
+      *       - Tid-TMSH       (ttmmsshh)                                       
+      *   - Mikro-sekunder (seks siffer, hvis ønskelig)                         
+      * eller:                                                                  
+      *   - timestamp      (ååååmmddttmmsshh)                                   
+      * eller:                                                                  
+      *   - DB2 timestamp  (åååå-mm-dd-hh.mm.ss.nnnnnn)                         
+      *                                                                         
+      * I retur vil man få alle tilsvarende felter utfylt.                      
+      *                                                                         
+      * Eksempel på anrop:                                                      
+      *    Initialize                          R7919270-Konv-Timestamp          
+      *    Set   R7919270-Versjon        To    True                             
+      *    Move  &ååååmmdd               To    R7919270-In-Dato                 
+      *    Move  &ttmmss                 To    R7919270-In-Tid-TMS              
+      *    Call  'F7919270'              Using R7919270-Konv-Timestamp          
+      *                                        R7919999-Error                   
+      *    End-Call                                                             
+      *    If  R7919999-Retur-Abend                                             
+      *        Move  '&&&&'              To    R7919999-Paragraf                
+      *        Perform Z900-Abend                                               
+      *    End-If                                                               
+      *    Move  R7919270-Ut-Timestamp-DB2                                      
+      *                                  To    ...                              
+      *                                                                         
+      *################################################################*        
+      *DDMMÅÅ! Si! Endringens art                                ! 3A !         
+      *----------------------------------------------------------------         
+      *130924!SM ! Recompile to Cobol 6.3                   !CMAS-1886!*        
+      *------+---+-----------------------------------------------+----+*        
+MIPS  *280521!OBJ! Recompiled to version 6.3 (OptiMIPS)          !    !         
+      *281019!IBA! Rekompilert med Cob.4.2 pga S0C7 i prodcics idag.. !         
+      *----------------------------------------------------------------         
+      *170904!HLR! ('Noe' er endret av Henning...? Hilsen Ingvild)    !         
+      *----------------------------------------------------------------         
+      *110899!SS ! Økt R7919270-Ut-Tid-TMSH fra 9(7) til 9(9)    !LI65!         
+      *----------------------------------------------------------------         
+      *101296!HLR! Ny modul                                      !KC24!         
+      *################################################################*        
+       Environment Division.                                                    
+       Configuration Section.                                                   
+       Special-Names.                                                           
+           Decimal-Point is comma.                                              
+      *################################################################*        
+       Data Division.                                                           
+       Working-Storage Section.                                                 
+      *                                                                         
+       Copy R7919270.                                                           
+      *                                                                         
+       01  W-Arbeids-Felter.                                                    
+      *                                                                         
+           05  W-Display-Tid             Pic  99.99.99.                         
+      *                                                                         
+           05  W-Splitt-Dato             Pic  9(08).                            
+           05  Filler                    Redefines W-Splitt-Dato.               
+               10  W-S-Dato-Aar          Pic  9(04).                            
+               10  W-S-Dato-Mnd          Pic  9(02).                            
+               10  W-S-Dato-Dag          Pic  9(02).                            
+      *                                                                         
+           05  W-Splitt-TMS              Pic  9(06).                            
+           05  Filler                    Redefines W-Splitt-TMS.                
+               10  W-S-TMS-Time          Pic  9(02).                            
+               10  W-S-TMS-Minutt        Pic  9(02).                            
+               10  W-S-TMS-Sekund        Pic  9(02).                            
+      *                                                                         
+           05  W-Splitt-TMSH             Pic  9(08).                            
+           05  Filler                    Redefines W-Splitt-TMSH.               
+               10  W-S-TMSH-Time         Pic  9(02).                            
+               10  W-S-TMSH-Minutt       Pic  9(02).                            
+               10  W-S-TMSH-Sekund       Pic  9(02).                            
+               10  W-S-TMSH-Hundre       Pic  9(02).                            
+      *                                                                         
+           05  W-Splitt-Mikro            Pic  9(06).                            
+           05  Filler                    Redefines W-Splitt-Mikro.              
+               10  W-S-Mikro-Hundre      Pic  9(02).                            
+      *                                                                         
+           05  W-Splitt-Timestamp        Pic  9(16).                            
+           05  Filler                    Redefines W-Splitt-Timestamp.          
+               10  W-S-TS-Aar            Pic  9(04).                            
+               10  W-S-TS-Mnd            Pic  9(02).                            
+               10  W-S-TS-Dag            Pic  9(02).                            
+               10  W-S-TS-Time           Pic  9(02).                            
+               10  W-S-TS-Minutt         Pic  9(02).                            
+               10  W-S-TS-Sekund         Pic  9(02).                            
+               10  W-S-TS-Hundre         Pic  9(02).                            
+      *                                                                         
+           05  W-Splitt-DB2              Pic  X(26).                            
+           05  Filler                    Redefines W-Splitt-DB2.                
+               10  W-S-DB2-Aar           Pic  9(04).                            
+               10  Filler                Pic  X(01).                            
+               10  W-S-DB2-Mnd           Pic  9(02).                            
+               10  Filler                Pic  X(01).                            
+               10  W-S-DB2-Dag           Pic  9(02).                            
+               10  Filler                Pic  X(01).                            
+               10  W-S-DB2-Time          Pic  9(02).                            
+               10  Filler                Pic  X(01).                            
+               10  W-S-DB2-Minutt        Pic  9(02).                            
+               10  Filler                Pic  X(01).                            
+               10  W-S-DB2-Sekund        Pic  9(02).                            
+               10  Filler                Pic  X(01).                            
+               10  W-S-DB2-Mikro         Pic  9(06).                            
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+       Copy R7919040.                                                           
+       Copy R791904W.                                                           
+      *                                                                         
+       Copy R7919050.                                                           
+       Copy R791905W.                                                           
+      *                                                                         
+       Copy R7919060.                                                           
+       Copy R791906W.                                                           
+      *                                                                         
+      *################################################################*        
+       Linkage Section.                                                         
+      *                                                                         
+       Copy R7919270                     Replacing                              
+                                               R7919270-Konv-Timestamp          
+                                         By    F7919270-Ext-IO-Area.            
+       Copy R7919999.                                                           
+      *                                                                         
+      *----------------------------------------------------------------*        
+      * Her ligger gamle versjoner av copy-området, på grunn av                 
+      * versjonshåndtering.                                                     
+      * Vi skal konvertere til og fra ny layout.                                
+      *                                                                         
+       Copy R791927G.                                                           
+      *                                                                         
+      *################################################################*        
+       Procedure Division                Using F7919270-Ext-IO-Area             
+                                               R7919999-Error.                  
+                                                                                
+       A000-Main                         Section.                               
+      *                                                                         
+           Set   R7919999-Retur-Ok       To    True                             
+      *                                                                         
+           Perform ZI00-Konv-Input-Versjon                                      
+           Perform F7919270-Konv-Timestamp                                      
+           Perform ZO00-Konv-Output-Versjon                                     
+      *                                                                         
+           Goback.                                                              
+      *################################################################*        
+       F7919270-Konv-Timestamp           Section.                               
+      *                                                                         
+           Perform B000-Initialize                                              
+           Perform C000-Beregning                                               
+      *                                                                         
+           .                                                                    
+      *################################################################*        
+       B000-Initialize                   Section.                               
+      *                                                                         
+           Set   R7919999-Retur-Ok       To    True                             
+           Initialize                          R7919270-Resultat                
+                                         In    R7919270-Konv-Timestamp          
+      *                                                                         
+           Initialize                          W-Arbeids-Felter                 
+      *                                                                         
+           .                                                                    
+      *################################################################*        
+       C000-Beregning                    Section.                               
+      *                                                                         
+      * Først konverterer vi input til dato, tid og mikrosekunder.              
+      *                                                                         
+           Perform D000-Konv-Fra-Input                                          
+      *                                                                         
+      * Validerer dato og tid.                                                  
+      *                                                                         
+           Perform C100-Valider-Dato                                            
+           Perform C200-Valider-Tid                                             
+      *                                                                         
+      * Deretter benytter vi TMSH til å danne alle output-datoene.              
+      *                                                                         
+           Perform E000-Konv-Til-Output                                         
+           If  R7919999-Retur-Abend                                             
+               Move  'C003'              To    R7919999-Paragraf                
+               Perform Z900-Abend                                               
+           End-If                                                               
+      *                                                                         
+           .                                                                    
+      *################################################################*        
+       C100-Valider-Dato                 Section.                               
+      *                                                                         
+           Initialize                          R7919040-Valider-Dato            
+           Set   R7919040-Versjon        To    True                             
+           Move  W-Splitt-Dato           To    R7919040-In-Dato                 
+      *                                                                         
+           Perform F7919040-Valider-Dato                                        
+      *                                                                         
+           If  Not R7919999-Retur-OK                                            
+               Move  'C101'              To    R7919999-Paragraf                
+               Perform Z900-Abend                                               
+           End-If                                                               
+      *                                                                         
+           .                                                                    
+      *################################################################*        
+       C200-Valider-Tid                  Section.                               
+      *                                                                         
+           Evaluate W-S-TMS-Time                                                
+           also     W-S-TMS-Minutt                                              
+           also     W-S-TMS-Sekund                                              
+      *                                                                         
+             When 00 thru 23                                                    
+             also 00 thru 59                                                    
+             also 00 thru 59                                                    
+               Continue                                                         
+      *                                                                         
+             When 24                                                            
+             also 00                                                            
+             also 00                                                            
+               Continue                                                         
+      *                                                                         
+             When other                                                         
+               Move  Space               To    R7919999-Melding                 
+               Move  W-Splitt-TMS        To    W-Display-Tid                    
+               String 'Ugyldig klokkeslett - ' Delimited by size                
+                      W-Display-Tid            Delimited by size                
+                      '.'                      Delimited by size                
+                                         Into  R7919999-Melding                 
+               End-String                                                       
+               Move  'C202'              To    R7919999-Paragraf                
+               Perform Z900-Abend                                               
+      *                                                                         
+           End-Evaluate                                                         
+      *                                                                         
+           .                                                                    
+      *################################################################*        
+       D000-Konv-Fra-Input               Section.                               
+      *                                                                         
+      * Uansett hva vi får input, så konverteres det til                        
+      *   - W-Splitt-Dato                                                       
+      *   - W-Splitt-TMS                                                        
+      *   - W-Splitt-Mikro                                                      
+      *                                                                         
+           Move  0                       To    W-Splitt-Dato                    
+           Move  0                       To    W-Splitt-TMS                     
+           Move  0                       To    W-Splitt-Mikro                   
+      *                                                                         
+           Evaluate R7919270-In-Dato     In    R7919270-Konv-Timestamp          
+           also     R7919270-In-Tid-TMS  In    R7919270-Konv-Timestamp          
+           also     R7919270-In-Tid-TMSH In    R7919270-Konv-Timestamp          
+           also     R7919270-In-Mikro-Sek                                       
+                                         In    R7919270-Konv-Timestamp          
+           also     R7919270-In-Timestamp                                       
+                                         In    R7919270-Konv-Timestamp          
+           also     R7919270-In-Timestamp-DB2                                   
+                                         In    R7919270-Konv-Timestamp          
+      *                                                                         
+             When +0                                                            
+             also +0                                                            
+             also +0                                                            
+             also +0                                                            
+             also +0                                                            
+             also space                                                         
+               Move  'Ingen input-felter er utfylt.'                            
+                                         To    R7919999-Melding                 
+               Move  'D001'              To    R7919999-Paragraf                
+               Perform Z900-Abend                                               
+      *                                                                         
+             When +0                                                            
+             also +0                                                            
+             also +0                                                            
+             also +0                                                            
+             also +0                                                            
+             also any                                                           
+               Perform D100-Konv-Fra-Timestamp-DB2                              
+      *                                                                         
+             When +0                                                            
+             also +0                                                            
+             also +0                                                            
+             also +0                                                            
+             also any                                                           
+             also space                                                         
+               Perform D200-Konv-Fra-Timestamp                                  
+      *                                                                         
+             When +00010101 thru +99991231                                      
+             also +000001   thru +235959                                        
+             also +0                                                            
+             also any                                                           
+             also +0                                                            
+             also space                                                         
+               Perform D300-Konv-Fra-Dato-TMS                                   
+      *                                                                         
+             When +00010101 thru +99991231                                      
+             also any                                                           
+             also +00000001 thru +23595999                                      
+             also any                                                           
+             also +0                                                            
+             also space                                                         
+               Perform D400-Konv-Fra-Dato-TMSH                                  
+      *                                                                         
+             When +00010101 thru +99991231                                      
+             also +0                                                            
+             also +0                                                            
+             also any                                                           
+             also +0                                                            
+             also space                                                         
+               Perform D500-Konv-Fra-Dato                                       
+      *                                                                         
+             When other                                                         
+               Move  'Input er ikke entydig, kan ikke konvertere.'              
+                                         To    R7919999-Melding                 
+               Move  'D002'              To    R7919999-Paragraf                
+               Perform Z900-Abend                                               
+      *                                                                         
+           End-Evaluate                                                         
+      *                                                                         
+           .                                                                    
+      *################################################################*        
+       D100-Konv-Fra-Timestamp-DB2       Section.                               
+      *                                                                         
+           Move  R7919270-In-Timestamp-DB2                                      
+                                         In    R7919270-Konv-Timestamp          
+                                         To    W-Splitt-DB2                     
+      *                                                                         
+           Move  W-S-DB2-Aar             To    W-S-Dato-Aar                     
+           Move  W-S-DB2-Mnd             To    W-S-Dato-Mnd                     
+           Move  W-S-DB2-Dag             To    W-S-Dato-Dag                     
+      *                                                                         
+           Move  W-S-DB2-Time            To    W-S-TMS-Time                     
+           Move  W-S-DB2-Minutt          To    W-S-TMS-Minutt                   
+           Move  W-S-DB2-Sekund          To    W-S-TMS-Sekund                   
+      *                                                                         
+           Move  W-S-DB2-Mikro           To    W-Splitt-Mikro                   
+      *                                                                         
+           .                                                                    
+      *################################################################*        
+       D200-Konv-Fra-Timestamp           Section.                               
+      *                                                                         
+           Move  R7919270-In-Timestamp   In    R7919270-Konv-Timestamp          
+                                         To    W-Splitt-Timestamp               
+      *                                                                         
+           Move  W-S-TS-Aar              To    W-S-Dato-Aar                     
+           Move  W-S-TS-Mnd              To    W-S-Dato-Mnd                     
+           Move  W-S-TS-Dag              To    W-S-Dato-Dag                     
+      *                                                                         
+           Move  W-S-TS-Time             To    W-S-TMS-Time                     
+           Move  W-S-TS-Minutt           To    W-S-TMS-Minutt                   
+           Move  W-S-TS-Sekund           To    W-S-TMS-Sekund                   
+      *                                                                         
+           Move  W-S-TS-Hundre           To    W-S-Mikro-Hundre                 
+      *                                                                         
+           .                                                                    
+      *################################################################*        
+       D300-Konv-Fra-Dato-TMS            Section.                               
+      *                                                                         
+           Move  R7919270-In-Dato        In    R7919270-Konv-Timestamp          
+                                         To    W-Splitt-Dato                    
+      *                                                                         
+           Move  R7919270-In-Tid-TMS     In    R7919270-Konv-Timestamp          
+                                         To    W-Splitt-TMS                     
+      *                                                                         
+      * GMjr 20010612                                                           
+      *                                                                         
+           Move  R7919270-In-Mikro-Sek   In    R7919270-Konv-Timestamp          
+                                         To    W-Splitt-Mikro                   
+      *                                                                         
+           .                                                                    
+      *################################################################*        
+       D400-Konv-Fra-Dato-TMSH           Section.                               
+      *                                                                         
+           Move  R7919270-In-Dato        In    R7919270-Konv-Timestamp          
+                                         To    W-Splitt-Dato                    
+      *                                                                         
+           Move  R7919270-In-Tid-TMSH    In    R7919270-Konv-Timestamp          
+                                         To    W-Splitt-TMSH                    
+      *                                                                         
+      * HLR 20040917 - hundredelene fra mikro blir overskrevet med              
+      *                hundredelene fra tid-tmsh.                               
+           Move  R7919270-In-Mikro-Sek   In    R7919270-Konv-Timestamp          
+                                         To    W-Splitt-Mikro                   
+      *                                                                         
+           Move  W-S-TMSH-Time           To    W-S-TMS-Time                     
+           Move  W-S-TMSH-Minutt         To    W-S-TMS-Minutt                   
+           Move  W-S-TMSH-Sekund         To    W-S-TMS-Sekund                   
+      *                                                                         
+           Move  W-S-TMSH-Hundre         To    W-S-Mikro-Hundre                 
+      *                                                                         
+           .                                                                    
+      *################################################################*        
+       D500-Konv-Fra-Dato                Section.                               
+      *                                                                         
+           Move  R7919270-In-Dato        In    R7919270-Konv-Timestamp          
+                                         To    W-Splitt-Dato                    
+      *                                                                         
+           .                                                                    
+      *################################################################*        
+       E000-Konv-Til-Output              Section.                               
+      *                                                                         
+           Perform E100-Konv-Til-TMSH                                           
+           Perform E200-Konv-Til-Timestamp                                      
+           Perform E300-Konv-Til-Timestamp-DB2                                  
+      *                                                                         
+           Move  W-Splitt-Dato           To    R7919270-Ut-Dato                 
+                                         In    R7919270-Konv-Timestamp          
+                                                                                
+           Move  W-Splitt-TMS            To    R7919270-Ut-Tid-TMS              
+                                         In    R7919270-Konv-Timestamp          
+                                                                                
+           Move  W-Splitt-TMSH           To    R7919270-Ut-Tid-TMSH             
+                                         In    R7919270-Konv-Timestamp          
+                                                                                
+           Move  W-Splitt-Mikro          To    R7919270-Ut-Mikro-Sek            
+                                         In    R7919270-Konv-Timestamp          
+                                                                                
+           Move  W-Splitt-Timestamp      To    R7919270-Ut-Timestamp            
+                                         In    R7919270-Konv-Timestamp          
+                                                                                
+           Move  W-Splitt-DB2            To    R7919270-Ut-Timestamp-DB2        
+                                         In    R7919270-Konv-Timestamp          
+      *                                                                         
+           .                                                                    
+      *################################################################*        
+       E100-Konv-Til-TMSH                Section.                               
+      *                                                                         
+           Move  W-S-TMS-Time            To    W-S-TMSH-Time                    
+           Move  W-S-TMS-Minutt          To    W-S-TMSH-Minutt                  
+           Move  W-S-TMS-Sekund          To    W-S-TMSH-Sekund                  
+                                                                                
+           Move  W-S-Mikro-Hundre        To    W-S-TMSH-Hundre                  
+      *                                                                         
+           .                                                                    
+      *################################################################*        
+       E200-Konv-Til-Timestamp           Section.                               
+      *                                                                         
+           Move  W-S-Dato-Aar            To    W-S-TS-Aar                       
+           Move  W-S-Dato-Mnd            To    W-S-TS-Mnd                       
+           Move  W-S-Dato-Dag            To    W-S-TS-Dag                       
+                                                                                
+           Move  W-S-TMS-Time            To    W-S-TS-Time                      
+           Move  W-S-TMS-Minutt          To    W-S-TS-Minutt                    
+           Move  W-S-TMS-Sekund          To    W-S-TS-Sekund                    
+                                                                                
+           Move  W-S-Mikro-Hundre        To    W-S-TS-Hundre                    
+      *                                                                         
+           .                                                                    
+      *################################################################*        
+       E300-Konv-Til-Timestamp-DB2       Section.                               
+      *                                                                         
+           Move  '0001-01-01-00.00.00.000000'                                   
+                                         To    W-Splitt-DB2                     
+                                                                                
+           Move  W-S-Dato-Aar            To    W-S-DB2-Aar                      
+           Move  W-S-Dato-Mnd            To    W-S-DB2-Mnd                      
+           Move  W-S-Dato-Dag            To    W-S-DB2-Dag                      
+                                                                                
+           Move  W-S-TMS-Time            To    W-S-DB2-Time                     
+           Move  W-S-TMS-Minutt          To    W-S-DB2-Minutt                   
+           Move  W-S-TMS-Sekund          To    W-S-DB2-Sekund                   
+                                                                                
+           Move  W-Splitt-Mikro          To    W-S-DB2-Mikro                    
+      *                                                                         
+           .                                                                    
+      *################################################################*        
+       ZI00-Konv-Input-Versjon           Section.                               
+      *                                                                         
+           Evaluate True                                                        
+             When R7919270-Versjon       In    F7919270-Ext-IO-Area             
+               Move  F7919270-Ext-IO-Area                                       
+                                         To    R7919270-Konv-Timestamp          
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+             When R7919270-Versjons-Nr   In    F7919270-Ext-IO-Area             
+                                         =     '19961210'                       
+      *                                                                         
+               Set   Address             Of    F7919270-Versjon-19961210        
+                 To  Address             Of    F7919270-Ext-IO-Area             
+      *                                                                         
+               Initialize                      R7919270-Konv-Timestamp          
+               Set   R7919270-Versjon    In    R7919270-Konv-Timestamp          
+                                         To    True                             
+      *                                                                         
+               Move  R7919270-Kvalifisering                                     
+                                         In    F7919270-Versjon-19961210        
+                 To  R7919270-Kvalifisering                                     
+                                         In    R7919270-Konv-Timestamp          
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+             When R7919270-Versjons-Nr   In    F7919270-Ext-IO-Area             
+                                         =     '19951231'                       
+      *                                                                         
+               Set   Address             Of    F7919270-Versjon-19951231        
+                 To  Address             Of    F7919270-Ext-IO-Area             
+      *                                                                         
+               Initialize                      R7919270-Konv-Timestamp          
+               Set   R7919270-Versjon    In    R7919270-Konv-Timestamp          
+                                         To    True                             
+      *                                                                         
+               Move  R7919270-Kvalifisering                                     
+                                         In    F7919270-Versjon-19951231        
+                 To  R7919270-Kvalifisering                                     
+                                         In    R7919270-Konv-Timestamp          
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+             When Other                                                         
+               Move  Space               To    R7919999-Melding                 
+               String 'Beklager, vi håndterer ikke versjon "'                   
+                                               Delimited by size                
+                      R7919270-Versjons-Nr                                      
+                                         In    F7919270-Ext-IO-Area             
+                                               Delimited by size                
+                      '". Ta i bruk ny versjon.'                                
+                                               Delimited by size                
+                                         Into  R7919999-Melding                 
+               End-String                                                       
+               Move  'ZI01'              To    R7919999-Paragraf                
+               Perform Z900-Abend                                               
+      *                                                                         
+           End-Evaluate                                                         
+      *                                                                         
+           .                                                                    
+      *################################################################*        
+       ZO00-Konv-Output-Versjon          Section.                               
+      *                                                                         
+           Evaluate True                                                        
+             When R7919270-Versjon       In    F7919270-Ext-IO-Area             
+               Move  R7919270-Konv-Timestamp                                    
+                                         To    F7919270-Ext-IO-Area             
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+             When R7919270-Versjons-Nr   In    F7919270-Ext-IO-Area             
+                                         =     '19961210'                       
+      *                                                                         
+               Set   Address             Of    F7919270-Versjon-19961210        
+                 To  Address             Of    F7919270-Ext-IO-Area             
+      *                                                                         
+               Initialize                                                       
+                     R7919270-Resultat   In    F7919270-Versjon-19961210        
+               Move  R7919270-Ut-Dato    In    R7919270-Konv-Timestamp          
+                 To  R7919270-Ut-Dato    In    F7919270-Versjon-19961210        
+      *                                                                         
+               Move  R7919270-Ut-Tid-TMS In    R7919270-Konv-Timestamp          
+                 To  R7919270-Ut-Tid-TMS In    F7919270-Versjon-19961210        
+      *                                                                         
+               Move  R7919270-Ut-Tid-TMSH                                       
+                                         In    R7919270-Konv-Timestamp          
+                 To  R7919270-Ut-Tid-TMSH                                       
+                                         In    F7919270-Versjon-19961210        
+      *                                                                         
+               Move  R7919270-Ut-Mikro-Sek                                      
+                                         In    R7919270-Konv-Timestamp          
+                 To  R7919270-Ut-Mikro-Sek                                      
+                                         In    F7919270-Versjon-19961210        
+      *                                                                         
+               Move  R7919270-Ut-Timestamp                                      
+                                         In    R7919270-Konv-Timestamp          
+                 To  R7919270-Ut-Timestamp                                      
+                                         In    F7919270-Versjon-19961210        
+      *                                                                         
+               Move  R7919270-Ut-Timestamp-DB2                                  
+                                         In    R7919270-Konv-Timestamp          
+                 To  R7919270-Ut-Timestamp-DB2                                  
+                                         In    F7919270-Versjon-19961210        
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+             When R7919270-Versjons-Nr   In    F7919270-Ext-IO-Area             
+                                         =     '19951231'                       
+      *                                                                         
+               Set   Address             Of    F7919270-Versjon-19951231        
+                 To  Address             Of    F7919270-Ext-IO-Area             
+      *                                                                         
+               Initialize                                                       
+                     R7919270-Resultat   In    F7919270-Versjon-19951231        
+               Move  R7919270-Resultat   In    R7919270-Konv-Timestamp          
+                 To  R7919270-Resultat   In    F7919270-Versjon-19951231        
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+             When Other                                                         
+               Move  Space               To    R7919999-Melding                 
+               String 'Systemfeil, vi håndterte versjon "'                      
+                                               Delimited by size                
+                      R7919270-Versjons-Nr                                      
+                                         In    F7919270-Ext-IO-Area             
+                                               Delimited by size                
+                      '" inn, skulle også gjort det ut.'                        
+                                               Delimited by size                
+                                         Into  R7919999-Melding                 
+               End-String                                                       
+               Move  'ZO01'              To    R7919999-Paragraf                
+               Perform Z900-Abend                                               
+      *                                                                         
+           End-Evaluate                                                         
+      *                                                                         
+           .                                                                    
+      *################################################################*        
+       Z900-Abend                        Section.                               
+      *                                                                         
+           If  Not R7919999-Retur-Abend                                         
+               Move  +0                  To    R7919999-Modul-Ind               
+           End-If                                                               
+      *                                                                         
+           Add   +1                      To    R7919999-Modul-Ind               
+      *                                                                         
+           If  R7919999-Modul-Ind        Not >                                  
+                             ( Length    Of    R7919999-Modul-Tab               
+                             / Length    Of    R7919999-Modul-Element )         
+               Move  'F7919270'          To    R7919999-Modul-Navn              
+                                                    (R7919999-Modul-Ind)        
+               Move  R7919999-Paragraf   To    R7919999-Modul-Para              
+                                                    (R7919999-Modul-Ind)        
+           End-If                                                               
+      *                                                                         
+           Set   R7919999-Retur-Abend    To    True                             
+      *                                                                         
+           Goback.                                                              
+      *################################################################*        
+           Copy R791904P.                                                       
+           Copy R791905P.                                                       
+           Copy R791906P.                                                       
+      *################################################################*        

@@ -1,0 +1,102 @@
+      *################################################################*        
+      *                                                                         
+      * OBS!                                                                    
+      * - Denne interfacen er "clutchet" mot iHUB Organization.                 
+      *   Dvs. den går ikke lenger mot OA_Konsern, men henter relevant          
+      *   informasjon fra OR_Organization og evt. OR_Org_Unit_Attr              
+      *   ved hjelp av iHUB Org's database-interfacer.                          
+      * - Det finnes også en copy-versjon av informasjonen fra                  
+      *   OR_Organization, se evt. modul F587901T og copy R587901*.             
+      *                                                                         
+      *                                                                         
+      * Copy-område R5879010                                                    
+      * Interface for les av KONSERN                                            
+      * OBS!  For -Select : -Konsernnr må angis                                 
+      *                                                                         
+      * R587xxxx-Package skal kun være utfylt dersom kalleren IKKE              
+      * er gruppedelt.                                                          
+      *                                                                         
+      * Et normalt anrop kan f.eks. se slik ut:                                 
+      *    Initialize                          R5879010-Konsern                 
+      *    Set   R5879010-Versjon        To    True                             
+      *    Set   R5879010-In-Select      To    True                             
+      *    Move  [konsernnummer]         To    R5879010-In-Konsern              
+      *                                                                         
+      *  Ved behov for ekstra info:                                             
+      *    Set   R5879010-In-Xtra-Info-Yes                                      
+      *                                  To    True                             
+      *                                                                         
+      *    Call  'F5879010'              Using R5879010-Konsern                 
+      *                                        R7919999-Error                   
+      *    End-Call                                                             
+      *                                                                         
+      *    Evaluate True                                                        
+      *      When R7919999-Return-Abend                                         
+      *        Move  '&&&&'              To    R7919999-Paragraph               
+      *        Perform Z900-Abend                                               
+      *      When R7919999-Return-Error                                         
+      *        ...not found...                                                  
+      *    End-Evaluate                                                         
+      *                                                                         
+      *################################################################*        
+      * Dato ! Si! Endringens art                                ! 3A !         
+      *----------------------------------------------------------------         
+      *110609!HLR! "Clutchet" interfacen mot iHUB Org.           !iHUB!         
+      *      !   ! Innført -In-Xtra-Info-Yes.                    !    !         
+      *----------------------------------------------------------------         
+      *140303!RS ! Lagt inn mulighet for get 1st/get next-logikk.!LI06!         
+      *----------------------------------------------------------------         
+      *090298!RS ! Lagt inn ut-KO-Konsern-Id                     !JM93!         
+      *----------------------------------------------------------------         
+      *180297!NHR! Nytt copyområde                               !KA81!         
+      *################################################################*        
+      *                                                                         
+         03  R5879010-Konsern.                                                  
+      *                                                                         
+           05  R5879010-Versjons-Nr             Pic  X(08).                     
+             88  R5879010-Versjon                    Value '20090611'.          
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+           05  R5879010-Kvalifisering.                                          
+             10  R5879010-In-Aksjon             Pic  X(16).                     
+               88  R5879010-In-Get-1st               Value 'GET-1ST'.           
+               88  R5879010-In-Get-Next              Value 'GET-NEXT'.          
+               88  R5879010-In-Select                Value 'SELECT'.            
+      *                                                                         
+             10  R5879010-Package.                                              
+               15  R5879010-In-Gruppe           Pic  X(03).                     
+                 88  R5879010-In-B02                 Value 'B02'.               
+                 88  R5879010-In-C03                 Value 'C03'.               
+                 88  R5879010-In-E05                 Value 'E05'.               
+                 88  R5879010-In-G07                 Value 'G07'.               
+                 88  R5879010-In-L12                 Value 'L12'.               
+                 88  R5879010-In-M13                 Value 'M13'.               
+      *                                                                         
+             10  R5879010-In-Key.                                               
+               15  R5879010-In-Konsernnr        Pic  9(04).                     
+               15  R5879010-In-Konsern-Id       Pic  9(18).                     
+      *                                                                         
+      * Følgende bryter må settes om man ønsker ekstra info.                    
+      *                                                                         
+             10  R5879010-In-Xtra-Info          Pic  X(01).                     
+               88  R5879010-In-Xtra-Info-Yes         Value 'Y'.                 
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+           05  R5879010-Resultat.                                               
+             10  R5879010-Ut-KO-Konsern-Id      Pic  9(18).                     
+             10  R5879010-Ut-KO-Konsernnummer   Pic  9(05).                     
+             10  R5879010-Ut-KO-Maalform        Pic  X(01).                     
+             10  R5879010-Ut-KO-Endret-Dato     Pic  X(10).                     
+             10  R5879010-Ut-KO-Endre-Logonid   Pic  X(07).                     
+      *                                                                         
+      * Følgende info blir kun returnert om man ber spesifikt om det            
+      * vha. -In-Xtra-Info-Yes.                                                 
+      *                                                                         
+             10  R5879010-Ut-Xtra-Info.                                         
+               15  R5879010-Ut-KO-Kjoregruppe   Pic  X(03).                     
+               15  R5879010-Ut-KO-Delgruppe     Pic  9(04).                     
+               15  R5879010-Ut-KO-Oppdat-Kode   Pic  9(04).                     
+               15  R5879010-Ut-KO-Mellomregnrte Pic S9(02)V9(03).               
+      *                                                                         

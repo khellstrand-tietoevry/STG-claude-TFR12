@@ -1,0 +1,42 @@
+      *################################################################*00010004
+      *                                                                 00020004
+      * Copy-område R7919040.                                           00030004
+      * Generell submodul for validering av dato.                       00040004
+      *                                                                 00050004
+      * Man leverer dato, og får retur-kode i retur.                    00060004
+      *                                                                 00070004
+      * Eksempel på anrop:                                              00080004
+      *   Initialize                           R7919040-Valider-Dato    00090004
+      *   Set   R7919040-Versjon         To    True                     00100004
+      *   Move  ååååmmdd                 To    R7919040-In-Dato         00110004
+      *   Call  'F7919040'               Using R7919040-Valider-Dato    00120004
+      *                                        R7919999-Error           00130004
+      *   End-Call                                                      00140004
+      *   Evaluate True                                                 00150004
+      *     When R7919999-Retur-Abend                                   00160004
+      *       abend                                                     00170004
+      *     When R7919999-Retur-Feil                                    00180004
+      *       ugyldig dato                                              00190004
+      *   End-Evaluate                                                  00200004
+      *                                                                 00210004
+      *################################################################*00220004
+      * DATO ! SI! ENDRINGENS ART                                ! 3A ! 00230004
+      *---------------------------------------------------------------- 00240004
+      *020195!HLR! Nytt copy-område                              !JR68! 00250004
+      *################################################################*00260004
+       01  R7919040-VALIDATE-DATE.                                      00270005
+      *                                                                 00280004
+           05  R7919040-VERSION-NR       PIC  X(08).                    00290005
+             88  R7919040-VERSION                   VALUE '19950113'.   00300005
+      *                                                                 00310004
+           05  R7919040-QUALIFICATION.                                  00320005
+               10  R7919040-IN-DATE      PIC S9(09)              COMP-3.00330005
+      *                                                                 00340004
+       01  R7919040-VALIDER-DATO   Redefines R7919040-VALIDATE-DATE.    00350006
+      *                                                                 00360005
+           05  R7919040-VERSJONS-NR      PIC  X(08).                    00370005
+             88  R7919040-VERSJON                   VALUE '19950113'.   00380005
+      *                                                                 00390005
+           05  R7919040-KVALIFISERING.                                  00400005
+               10  R7919040-IN-DATO      PIC S9(09)              COMP-3.00410005
+      *                                                                 00420005

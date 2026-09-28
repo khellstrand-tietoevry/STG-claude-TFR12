@@ -1,0 +1,146 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD Trade Finance                                                00030000
+      *                                                                 00040000
+      * Copy-area R115ICT0.                                             00050000
+      *                                                                 00060000
+      * Interface for all database access on table TF_Sys_Charge_Type.  00070000
+      *                                                                 00080000
+      * The interface kan read one spesific occurence,                  00090000
+      * or several occurences, fully or partly qualified with           00100000
+      * from- and to- values.                                           00110000
+      *                                                                 00120000
+      * When reading several occurences, one must always start with     00130000
+      * -In-Get-1st, and continue with -In-Get-Next.                    00140000
+      *                                                                 00150000
+      * NB!  There are several key-fields, which may be used            00160000
+      *      differently depending on the need.                         00170000
+      *      See seperate description below.                            00180000
+      *                                                                 00190000
+      *                                                                 00200000
+      * An ordinary Select call may look like this:                     00210000
+      *                                                                 00220000
+      *    Initialize                          R115ICT0-Sys-Charge-Type 00230000
+      *    Set   R115ICT0-Version        To    True                     00240000
+      *    Set   R115ICT0-In-Select      To    True                     00250000
+      *    Move  &charge-type            To    R115ICT0-In-CT-Type      00260002
+      *    Move  &regno                  To    R115ICT0-In-Regno        00261017
+      *                                                                 00270000
+      *    Call  'F115ICT0'              Using R115ICT0-Sys-Charge-Type 00280000
+      *                                        R7919999-Error-Area      00290000
+      *    End-Call                                                     00300000
+      *                                                                 00310000
+      *    Evaluate True                                                00320000
+      *      When R7919999-Return-Abend                                 00330000
+      *        Move  '&&&&'              To    R7919999-Paragraph       00340000
+      *        Perform Z900-Abend                                       00350000
+      *                                                                 00360000
+      *      When R7919999-Return-Error                                 00370000
+      *        ...not found...                                          00380000
+      *                                                                 00390000
+      *      When R7919999-Return-OK                                    00400000
+      *        ...found...                                              00410000
+      *                                                                 00420000
+      *    End-Evaluate                                                 00430000
+      *                                                                 00440000
+      *################################################################*00450000
+      * Date ! Si! Change description                            ! 3A ! 00460000
+      *------+---+-----------------------------------------------+----+ 00470000
+      *200813!NDL! Added new GAR-account                         !LO18! 00480027
+      *230801!NDL! Added new GL-account and regno                !LO18! 00480127
+      *050101!NDL! Removed Paying_Pty, Min_Max, added Sort       !LT12! 00480227
+      *160800!NDL! Added split-pct                               !LR02! 00480327
+      *060999!HLR! Added two new GL accounts                     !LG10! 00481014
+      *      !   ! Renamed GL-Account to GL-Coll-Acc             !    ! 00490013
+      *190399!HLR! New copy area                                 !LG10! 00500013
+      *################################################################*00510000
+      *                                                                 00520000
+         03  R115ICT0-Sys-Charge-Type.                                  00530000
+      *                                                                 00540000
+           05  R115ICT0-Version-No              Pic  X(08).             00550000
+             88  R115ICT0-Version                    Value '19990906'.  00560013
+      *                                                                 00570000
+      *----------------------------------------------------------------*00580000
+      *                                                                 00590000
+           05  R115ICT0-Qualification.                                  00600000
+      *                                                                 00610000
+             10  R115ICT0-In-Action             Pic  X(16).             00620000
+               88  R115ICT0-In-Get-1st               Value 'GET-1ST'.   00630000
+               88  R115ICT0-In-Get-Next              Value 'GET-NEXT'.  00640000
+               88  R115ICT0-In-Select                Value 'SELECT'.    00650000
+               88  R115ICT0-In-Insert                Value 'INSERT'.    00660000
+               88  R115ICT0-In-Update                Value 'UPDATE'.    00670000
+               88  R115ICT0-In-Delete                Value 'DELETE'.    00680000
+      *                                                                 00690000
+      * For cursor (Get-1st / Get-Next), you may mask the type field,   00700000
+      * like this: 'ABC*'. This will give you all rows with type        00710000
+      * starting with 'ABC'.                                            00720000
+      *                                                                 00730000
+             10  R115ICT0-In-Key.                                       00740000
+               15  R115ICT0-In-Fin-Inst-Id      Pic S9(18)       Comp-3.00750003
+               15  R115ICT0-In-Fin-Inst-No      Pic  X(18).             00760003
+               15  R115ICT0-In-CT-Type          Pic  X(20).             00770003
+               15  R115ICT0-In-Regno            Pic S9(04)       Comp.  00771017
+      *                                                                 00780000
+      * When performing a Get-1st-call one may ask for the total        00790000
+      * number of rows complying with the qualification.                00800000
+      *                                                                 00810000
+             10  R115ICT0-In-Code-Count         Pic  X(10).             00820000
+               88  R115ICT0-In-CC-Count              Value 'COUNT'.     00830000
+      *                                                                 00840000
+      *----------------------------------------------------------------*00850000
+      *                                                                 00860000
+           05  R115ICT0-Data.                                           00870000
+      *                                                                 00880000
+             10  R115ICT0-Key.                                          00890000
+               15  R115ICT0-Fin-Inst-Id         Pic S9(18)       Comp-3.00900004
+               15  R115ICT0-CT-Type             Pic  X(20).             00910003
+               15  R115ICT0-Regno               Pic S9(04)       Comp.  00911017
+      *                                                                 00920000
+             10  Filler.                                                00930003
+               15  R115ICT0-Fin-Inst-No         Pic  X(18).             00940004
+      *                                                                 00950003
+             10  R115ICT0-Description           Pic  X(80).             00960000
+             10  R115ICT0-Method-Calc           Pic  X(01).             00970003
+               88  R115ICT0-MethCalc-Part-Amount     Value 'A'.         00980009
+               88  R115ICT0-MethCalc-Canceling       Value 'C'.         00990009
+               88  R115ICT0-MethCalc-Settlement      Value 'S'.         01000009
+               88  R115ICT0-MethCalc-Pct-Of-CA       Value 'P'.         01010012
+               88  R115ICT0-MethCalc-Pct-Of-PA       Value 'Q'.         01020012
+             10  R115ICT0-Sort                  Pic  X(01).             01030016
+      *      10  R115ICT0-Paying-Party          Pic S9(18)       Comp-3.01040016
+             10  R115ICT0-Credit                Pic  X(01).             01050003
+               88  R115ICT0-Agent                    Value 'A'.         01060011
+               88  R115ICT0-Other-Bank               Value 'T'.         01070011
+               88  R115ICT0-Own-Bank                 Value 'W'.         01080010
+      *      10  R115ICT0-Min-Max               Pic S9(11)       Comp-3.01090016
+             10  R115ICT0-PPFT-Code             Pic  X(06).             01100003
+             10  R115ICT0-GL-Coll-Acc           Pic S9(11)       Comp-3.01110013
+             10  R115ICT0-GL-ELC-Acc            Pic S9(11)       Comp-3.01120013
+             10  R115ICT0-GL-ILC-Acc            Pic S9(11)       Comp-3.01130013
+             10  R115ICT0-Branch-Code           Pic S9(05)       Comp-3.01140005
+             10  R115ICT0-Split-Pct             Pic S9(03)v9(2)  Comp-3.01141015
+             10  R115ICT0-Read-POP              Pic  X(01).             01142019
+               88  R115ICT0-Read-POP-Yes             Value ' '.         01142126
+               88  R115ICT0-Read-POP-No              Value 'N'.         01142226
+             10  R115ICT0-Paying-Pty            Pic  X(06).             01143019
+               88  R115ICT0-ANY                      Value '      '.    01144022
+               88  R115ICT0-Buyer                    Value 'BUYER '.    01145020
+               88  R115ICT0-Seller                   Value 'SELLER'.    01146020
+               88  R115ICT0-GLACC                    Value 'GLACC '.    01146123
+               88  R115ICT0-Agent-pty                Value 'AGENT '.    01146225
+             10  R115ICT0-GL-E-Coll-Acc         Pic S9(11)       Comp-3.01147021
+             10  R115ICT0-GL-GAR-Acc            Pic S9(11)       Comp-3.01148027
+      *                                                                 01150003
+      * The following accumulators are only relevant when performing    01160000
+      * Get-1st or Get-Next.                                            01170000
+      * Row-No starts on 1 when doing Get-1st, and increases by 1 for   01180000
+      * each Get-Next.                                                  01190000
+      * Total-Rows is set when doing Get-1st, but ONLY if the           01200000
+      * In-CC-Count is set. The field will tell you how many rows       01210000
+      * that complies with your qualification.                          01220000
+      *                                                                 01230000
+             10  R115ICT0-Out-Accumulators.                             01240000
+               15  R115ICT0-Out-Row-No          Pic S9(11)       Comp-3.01250000
+               15  R115ICT0-Out-Total-Rows      Pic S9(11)       Comp-3.01260000
+      *                                                                 01270000

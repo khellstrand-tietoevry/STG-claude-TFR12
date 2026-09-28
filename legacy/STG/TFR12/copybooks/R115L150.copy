@@ -1,0 +1,54 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD/Trade Finance                                                00030000
+      *                                                                 00040000
+      * Read POP.                                                       00050000
+      *                                                                 00060000
+      *################################################################*00070000
+      *                                                                 00080000
+           03  R115L150-TF-POP.                                         00090003
+      *                                                                 00100000
+             05  R115L150-Version-No                Pic  X(08).         00110000
+               88  R115L150-Version                    Value '19990623'.00120004
+      *                                                                 00130000
+             05  R115L150-Qualification.                                00140000
+      *                                                                 00140100
+               10  R115L150-In-Key.                                     00140200
+      *                                                                 00140300
+                 15  R115L150-In-Table-Version      Pic  X(16).         00140408
+                   88  R115L150-In-Actual                Value 'ACTUAL'.00140508
+                   88  R115L150-In-Work                  Value 'WORK'.  00140609
+                 15  R115L150-In-Fin-Inst.                              00141400
+                   20  R115L150-In-Fin-Inst-No      Pic  X(18).         00141500
+                   20  R115L150-In-Fin-Inst-ID      Pic S9(18).         00141600
+                 15  R115L150-In-Contract-ID.                           00141707
+                   20  R115L150-In-Contract-Type    Pic  X(03).         00142007
+                   20  R115L150-In-Contract-No      Pic S9(07)  Comp-3. 00142107
+                 15  R115L150-In-Reg-No             Pic  9(04).         00142211
+                 15  R115L150-In-Part-Amount-No     Pic S9(04)  Comp.   00143004
+                 15  R115L150-In-Charge-Type        Pic  X(20).         00143600
+                 15  R115L150-In-Valid-Date         Pic S9(09)  Comp-3. 00143710
+      *                                                                 00143800
+      *----------------------------------------------------------------*00143900
+      *                                                                 00144000
+             05  R115L150-Data.                                         00144102
+      *                                                                 00145000
+               10  R115L150-Key.                                        00146004
+                 15  R115L150-Fin-Inst.                                 00147006
+                   20  R115L150-Fin-Inst-ID    Pic S9(18).              00149006
+                   20  R115L150-Fin-Inst-No    Pic  X(18).              00149106
+                 15  R115L150-Contract-ID.                              00149207
+                   20  R115L150-Contract-Type  Pic  X(03).              00149307
+                   20  R115L150-Contract-No    Pic S9(07)  Comp-3.      00149407
+                 15  R115L150-Charge-Type      Pic  X(20).              00160006
+                 15  R115L150-Valid-Date       Pic  X(20).              00170006
+      *                                                                 00220000
+               10  R115L150-Default-Charge.                             00230004
+                 15  R115L150-Percent-Comm     Pic S9(02)V9(03) Comp-3. 00240005
+                 15  R115L150-Charge-Amount    Pic S9(14)V9(03) Comp-3. 00240105
+                 15  R115L150-Currency         Pic  X(03).              00250004
+      *                                                                 00260004
+               10  R115L150-Max-Min-Charge.                             00270004
+                 15  R115L150-Maximum-Charge   Pic S9(14)V9(03) Comp-3. 00280004
+                 15  R115L150-Minimum-Charge   Pic S9(14)V9(03) Comp-3. 00290004
+      *                                                                 00300004

@@ -1,0 +1,168 @@
+      *################################################################*00010005
+      *                                                                 00020000
+      * Copy-område R791MQS0.                                           00030000
+      * Generell interface for å kommunisere med MQSeries.              00040000
+      *                                                                 00050000
+      *                                                                 00070000
+      *         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                  00080014
+      * F791MQV0 - når det lages ny versjon av R791MQS0 MÅ man huske    00090013
+      *            å kompilere om F791MQV0 også.                        00100013
+      *            DETTE MÅ ALLTID GJØRES                               00110013
+      * F791MQSL - når det lages ny versjon av R791MQS0 MÅ man huske    00111015
+      *            å kompilere om F791MQSL også.                        00112015
+      *            Husk også versjonskonvsertering i F791MQSL(ZI og ZO  00112116
+      *            sections)                                            00112216
+      *            DETTE MÅ ALLTID GJØRES                               00113015
+      *         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                  00120014
+      *                                                                 00130000
+      *################################################################*00140000
+      * DATO ! SI! ENDRINGENS ART                                ! 3A ! 00150000
+      *---------------------------------------------------------------- 00160000
+      *141117!DJ ! R791MQS0-Ut-Expiry lagt inn                   !    ! 00190019
+      *100129!jm ! Lagt format                                   !    ! 00190119
+      *090204!jm ! Lagt convert                                  !    ! 00190219
+      *161101!jm ! Lagt expiry                                   !    ! 00190319
+      *170898!JPK! Lagt inn mulighet for å lese med skip backout !    ! 00190419
+      *180398!JPK! Lagt inn mulighet for å logge utenfor sync    !    ! 00190519
+      *190397!JPK! Nytt copy-område                              !    ! 00191006
+      *################################################################*00200000
+       01  R791MQS0-Interface.                                          00210000
+      *                                                                 00220000
+           05  R791MQS0-Versjons-Nr      Pic  X(08).                    00230000
+             88  R791MQS0-Versjon                   Value '20171114'.   00240020
+      *---------------------------------------------------------------  00250000
+      *                                                                 00260000
+           05  R791MQS0-Kvalifisering.                                  00270000
+             10  R791MQS0-In-Aksjon      Pic  X(10).                    00280000
+               88  R791MQS0-In-Connect              Value 'CONNECT   '. 00290000
+               88  R791MQS0-In-DisConnect           Value 'DISCONNECT'. 00300000
+               88  R791MQS0-In-Open                 Value 'OPEN      '. 00310000
+               88  R791MQS0-In-Open-Browse          Value 'OPEN-BRWS '. 00320000
+               88  R791MQS0-In-Open-Input           Value 'OPEN-INPUT'. 00330000
+               88  R791MQS0-In-Open-Output          Value 'OPEN-OUTPT'. 00340000
+               88  R791MQS0-In-Close                Value 'CLOSE     '. 00350000
+               88  R791MQS0-In-Get                  Value 'GET       '. 00360000
+               88  R791MQS0-In-Get-Browse           Value 'GETBROWSE '. 00361018
+               88  R791MQS0-In-Put                  Value 'PUT       '. 00370000
+               88  R791MQS0-In-Put1                 Value 'PUT1      '. 00380000
+               88  R791MQS0-In-Commit               Value 'COMMIT    '. 00390000
+               88  R791MQS0-In-Rollback             Value 'ROLLBACK  '. 00400000
+               88  R791MQS0-In-Trace                Value 'TRACE     '. 00410000
+      *-----------------------------------------------------------------00420000
+      * In-Option benyttes bare hvis en basis -In-Open er angitt !      00430000
+      *                                                                 00440000
+      *                                                                 00450000
+             10  R791MQS0-In-Option      Pic s9(04)             Binary. 00460000
+               88  R791MQS0-In-O-F-Browse           Value +0.           00470000
+               88  R791MQS0-In-O-F-Output           Value +1.           00480000
+               88  R791MQS0-In-O-F-Input-As-Q-D     Value +2.           00490000
+               88  R791MQS0-In-O-F-Input-Shared     Value +3.           00500000
+               88  R791MQS0-In-O-F-Input-Excl       Value +4.           00510000
+      *-----------------------------------------------------------------00520000
+      * In-Get-Option benyttes bare i spesial tifeller                  00530000
+      *                                                                 00540000
+      *                                                                 00550000
+             10  R791MQS0-In-Get-Option  Pic s9(09) Binary Value +0.    00560000
+             10  R791MQS0-In-Pers-Option                                00570003
+                  Redefines R791MQS0-In-Get-Option                      00580001
+                                         Pic s9(09) Binary.             00590002
+      *-----------------------------------------------------------------00600000
+      * In-Sync-Option benyttes bare i spesial tifeller                 00610000
+      *                                                                 00620000
+      *                                                                 00630000
+             10  R791MQS0-In-Sync-Option Pic s9(09)             Binary. 00640000
+               88  R791MQS0-In-Syncpoint            Value +0.           00650000
+               88  R791MQS0-In-No-Syncpoint         Value +1.           00660000
+               88  R791MQS0-In-Mark-Skip-Backout    Value +2.           00670000
+      *-----------------------------------------------------------------00680000
+      * In-Wait-Option benyttes bare i spesial tifeller                 00690000
+      *                                                                 00700000
+      *                                                                 00710000
+             10  R791MQS0-In-Wait-Option Pic s9(09) Binary Value +0.    00720000
+                 88 R791MQS0-In-Wait-Unlimited      Value -1.           00730000
+      *-----------------------------------------------------------------00731006
+      * In-Expiry-Option benyttes bare når man ønsker at en melding     00732006
+      * skal forsvinne etter en viss tid hvis den ikke er behandlet.    00732106
+      * Oppgis i 10-dels sekunder. Verdien 10 = 1 sekund                00733007
+      * Virker foreløpig ikke ved skriv via sentralbordet.              00733109
+      *                                                                 00733207
+      *                                                                 00734006
+             10  R791MQS0-In-Expiry-Option Pic s9(09) Binary Value +0.  00735008
+                 88 R791MQS0-In-Expiry-Unlimited      Value -1.         00736006
+      *-----------------------------------------------------------------00740000
+      * in-Msg-Type benyttes bare hvis en skal sende spesielle kontroll 00750000
+      * meldinger                                                       00760000
+      *                                                                 00770000
+             10  R791MQS0-In-Msg-Type    Pic s9(09) Binary Value 8.     00780000
+                 88 R791MQS0-In-Request             Value 1.            00790000
+                 88 R791MQS0-In-Reply               Value 2.            00800000
+                 88 R791MQS0-In-Report              Value 4.            00810000
+                 88 R791MQS0-In-Datagram            Value 8.            00820000
+      *-----------------------------------------------------------------00830000
+      * in-Feedback benyttes bare hvis en skal sende spesielle kontroll 00840000
+      * meldinger                                                       00850000
+      *                                                                 00860000
+             10  R791MQS0-In-Feedback    Pic s9(09) Binary Value 0.     00870000
+      *-----------------------------------------------------------------00871010
+      * in-Convert benyttes bare hvis en skal gjøre get uten convert    00872010
+      *                                                                 00874010
+             10  R791MQS0-In-Convert-Option  Pic s9(09) Binary Value 0. 00875012
+               88  R791MQS0-In-Convert              Value +0.           00876010
+               88  R791MQS0-In-No-Convert           Value +1.           00877010
+      *-----------------------------------------------------------------00878017
+      * in-Format  benyttes bare hvis en skal gjøre put med annet format00879017
+      *            enn string                                           00879117
+      *                                                                 00879217
+             10  R791MQS0-In-Format-Option  Pic s9(09) Binary Value 0.  00879317
+               88  R791MQS0-In-Format-String       Value +0.            00879417
+               88  R791MQS0-In-Format-None         Value +1.            00879517
+               88  R791MQS0-In-Format-Bin          Value +2.            00879617
+      *-----------------------------------------------------------------00880000
+      * Default verdi for MSGID og CORRELID                             00890000
+      *                                                                 00900000
+      *                                                                 00910000
+             10  R791MQS0-In-Msgid       Pic  x(24) Value Low-Values.   00920000
+             10  R791MQS0-In-Correlid    Pic  x(24) Value Low-Values.   00930000
+      *-----------------------------------------------------------------00940000
+      *                                                                 00950000
+      *                                                                 00960000
+             10  R791MQS0-In-QueueMgr    Pic  X(48).                    00970000
+             10  R791MQS0-In-QueueName   Pic  X(48).                    00980000
+      *-----------------------------------------------------------------00990000
+      *                                                                 01000000
+      *                                                                 01010000
+      *                                                                 01020000
+             10  R791MQS0-In-Get-LL      Pic s9(09)             Binary. 01030000
+      *                                                                 01040000
+             10  R791MQS0-In-Put-LL      Pic s9(09)             Binary. 01050000
+      ******************************************************************01060000
+      *    Output felter                                                01070000
+      *                                                                 01080000
+           05  R791MQS0-Resultat.                                       01090000
+      *-----------------------------------------------------------------01100000
+      *      Følgende felt vil ALLTID bli returnert ved alle kall       01110000
+      *                                                                 01120000
+             10  R791MQS0-Ut-Completion  Pic s9(09)             Binary. 01130000
+             10  R791MQS0-Ut-Reason      Pic s9(09)             Binary. 01140000
+                 88  R791MQS0-Ut-No-Msg            Value +2033.         01150000
+                                                                        01160000
+      *-----------------------------------------------------------------01170000
+      *      Følgende felter vil være fyllt ut ved en GET               01180000
+      *                                                                 01190000
+             10  R791MQS0-Ut-Get-LL      Pic s9(09)             Binary. 01200000
+             10  R791MQS0-Ut-Msgid       Pic  x(24).                    01210000
+             10  R791MQS0-Ut-Correlid    Pic  x(24).                    01220000
+      *                                                                 01230000
+             10  R791MQS0-Ut-ReplytoQ    Pic  x(48).                    01240000
+             10  R791MQS0-Ut-ReplytoQmgr Pic  x(48).                    01250000
+      *                                                                 01260000
+             10  R791MQS0-Ut-Putapplname Pic  x(28).                    01270000
+             10  R791MQS0-Ut-Putdate     Pic  x(08).                    01280000
+             10  R791MQS0-Ut-Puttime     Pic  x(08).                    01290000
+      *                                                                 01300000
+             10  R791MQS0-Ut-Msgtype     Pic s9(09)             Binary. 01310000
+             10  R791MQS0-Ut-Feedback    Pic s9(09)             Binary. 01320000
+             10  R791MQS0-Ut-Userid      Pic  x(12).                    01330000
+      *                                                                 01340000
+             10  R791MQS0-Ut-Expiry      Pic s9(09)             Binary. 01350019
+      *                                                                 01360019

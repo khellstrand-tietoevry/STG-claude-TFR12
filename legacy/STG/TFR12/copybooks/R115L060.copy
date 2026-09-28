@@ -1,0 +1,130 @@
+      *################################################################*00010015
+      *                                                                 00020003
+      * FD/Trade Finance                                                00030003
+      *                                                                 00040003
+      * Copy area, Listing/Computation of sum total of charges.         00050053
+      *                                                                 00060003
+      * If part amount no is supplied, all charges are read from        00061058
+      * table TF_Part_Charge. Else, all charges are read from table     00062058
+      * TF_Main_Charge.                                                 00063058
+      *                                                                 00065058
+      * NB! This module presents figures exactly as they appear from    00066059
+      * one and only one of the two database tables. If you need        00066160
+      * modified figures for settlement or for presentation to the      00066259
+      * end user, use module F115L070!                                  00066359
+      *                                                                 00067059
+      *################################################################*00070015
+      *                                                                 00080003
+           03  R115L060-Comp-Charge.                                    00090003
+      *                                                                 00100003
+             05  R115L060-Version-No                Pic  X(08).         00110003
+               88  R115L060-Version                    Value '19990624'.00120053
+      *                                                                 00130003
+             05  R115L060-Qualification.                                00140003
+      *                                                                 00140118
+               10  R115L060-In-Key.                                     00140218
+      *                                                                 00140318
+                 15  R115L060-In-Table-Version      Pic  X(16).         00140418
+                   88  R115L060-In-Actual                Value 'ACTUAL'.00140518
+                   88  R115L060-In-Work                  Value 'WORK'.  00140618
+      *                                                                 00140733
+      * Optional.                                                       00140833
+                 15  R115L060-In-Read.                                  00140933
+                   19  R115L060-In-Read-From        Pic S9(04)   Comp.  00141033
+                   19  R115L060-In-Read-To          Pic S9(04)   Comp.  00141133
+      *                                                                 00141233
+      * Fin-Inst-No is mandatory.                                       00141333
+                 15  R115L060-In-Fin-Inst.                              00141433
+                   20  R115L060-In-Fin-Inst-No      Pic  X(18).         00141533
+                   20  R115L060-In-Fin-Inst-ID      Pic S9(18).         00141633
+                 15  R115L060-In-Reg-No             Pic  9(04).         00141777
+      *                                                                 00142103
+      * Use both.                                                       00142203
+                 15  R115L060-In-Contract.                              00142318
+                   20  R115L060-In-Contract-Type    Pic  X(03).         00142418
+                   20  R115L060-In-Contract-No      Pic S9(07)   Comp-3.00143018
+      *                                                                 00143103
+      * May be zero.                                                    00143203
+                 15  R115L060-In-PA-Seq-No          Pic S9(04)   Comp.  00144018
+      *                                                                 00145006
+                 15  R115L060-In-Operation-Type     Pic  X(20).         00146018
+      *                                                                 00147078
+                 15  R115L060-In-Check-Pa           Pic s9(04)   Comp.  00148078
+      *                                                                 00150003
+      *----------------------------------------------------------------*00151015
+      *                                                                 00152015
+             05  R115L060-Data.                                         00160003
+      *                                                                 00170214
+               07  R115L060-Charge-Tab.                                 00170314
+      *                                                                 00170422
+      * Number of rows in the array.                                    00170531
+                 10  R115L060-Max-Tab-Occ           Pic S9(02)   Comp.  00170650
+      *                                                                 00170850
+      * Number of rows containing non-initial values.                   00170931
+                 10  R115L060-No-Tab-Occ            Pic S9(02)   Comp.  00171038
+      *                                                                 00171131
+                 10  R115L060-Charge-Element        Occurs 50.          00171275
+                   15  R115L060-Charge-Type         Pic  X(20).         00171314
+                   15  R115L060-Charge-Method-Calc  Pic  X(01).         00172035
+                     88  R115L060-MethCalc-Part-Amount   Value 'A'.     00173053
+                     88  R115L060-MethCalc-Canceling     Value 'C'.     00173153
+                     88  R115L060-MethCalc-Settlement    Value 'S', 'C'.00174057
+                     88  R115L060-MethCalc-Pct-Of-CA     Value 'P'.     00175062
+                     88  R115L060-MethCalc-Pct-Of-PA     Value 'Q'.     00176062
+                   15  R115L060-Charge-Role-Type    Pic  X(05).         00180042
+                     88  R115L060-Seller                 Value 'DRWER', 00181064
+                                                               'BENEF'. 00182064
+                     88  R115L060-Buyer                  Value 'DRWEE', 00183064
+                                                               'ISSUI', 00184064
+                                                               'CUSTM', 00185070
+                                                               '     '. 00186069
+                   15  R115L060-Charge-Amount       Pic S9(14)V9(3)     00190051
+                                                         Comp-3.        00190151
+                   15  R115L060-Charge-Currency     Pic  X(03).         00191035
+                   15  R115L060-Charge-Percentage   Pic  9(03)V9(03)    00191173
+                                                                 Comp-3.00191267
+                   15  R115L060-Maximum-Charge      Pic S9(14)V9(03)    00191361
+                                                                 Comp-3.00191461
+                   15  R115L060-Minimum-Charge      Pic S9(14)V9(03)    00191561
+                                                                 Comp-3.00191661
+                   15  R115L060-Charge-Description  Pic  X(80).         00191761
+                   15  R115L060-Charge-Credit       Pic  X(01).         00191861
+                     88  R115L060-Credit-Agent-Bank      Value 'A'.     00191961
+                     88  R115L060-Credit-Other-Bank      Value 'T'.     00192061
+                     88  R115L060-Credit-Own-Bank        Value 'W'.     00192161
+                   15  R115L060-PPFT-Code           Pic  X(06).         00192261
+                   15  R115L060-GL-Account          Pic S9(11)   Comp-3.00192361
+                   15  R115L060-Branch-Code         Pic S9(05)   Comp-3.00192461
+                   15  R115L060-Charge-Text         Pic  X(30).         00192579
+      *                                                                 00192661
+               07  R115L060-Totals-Seller.                              00192761
+                 10  R115L060-Ch-Seller-Cred-Agent  Pic S9(14)V9(3)     00192861
+                                                         Comp-3.        00192961
+                 10  R115L060-Ch-Seller-Cred-T-Bank Pic S9(14)V9(3)     00193061
+                                                         Comp-3.        00193161
+                 10  R115L060-Ch-Seller-Cred-W-Bank Pic S9(14)V9(3)     00193261
+                                                         Comp-3.        00193361
+                 10  R115L060-Total-Charge-Seller   Pic S9(14)V9(3)     00193461
+                                                         Comp-3.        00193561
+      *                                                                 00193661
+               07  R115L060-Totals-Buyer.                               00193761
+                 10  R115L060-Ch-Buyer-Cred-Agent   Pic S9(14)V9(3)     00193861
+                                                         Comp-3.        00193961
+                 10  R115L060-Ch-Buyer-Cred-T-Bank  Pic S9(14)V9(3)     00194061
+                                                         Comp-3.        00194161
+                 10  R115L060-Ch-Buyer-Cred-W-Bank  Pic S9(14)V9(3)     00194261
+                                                         Comp-3.        00194361
+                 10  R115L060-Total-Charge-Buyer    Pic S9(14)V9(3)     00194461
+                                                         Comp-3.        00194561
+      *                                                                 00195046
+               07  R115L060-Totals-Agent.                               00196046
+                 10  R115L060-Tot-Agent-Commission  Pic S9(14)V9(3)     00200051
+                                                         Comp-3.        00200151
+      *                                                                 00200208
+               07  R115L060-CA-Currency             Pic  X(03).         00201035
+      *                                                                 00210003
+               07  R115L060-Read.                                       00220033
+                 10  R115L060-No-Read               Pic S9(04)   Comp.  00230033
+                 10  R115L060-Read-From             Pic S9(04)   Comp.  00240033
+                 10  R115L060-Read-To               Pic S9(04)   Comp.  00250033
+      *                                                                 00260035

@@ -1,0 +1,63 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD Trade Finance                                                00030000
+      *                                                                 00040000
+      * Copy-area R115ISCS.                                             00050000
+      *                                                                 00060000
+      * This copy-area is in use for module F115ISCR and F115ISCU,      00070000
+      * which are sub-modules to F115ISC0.                              00080000
+      *   - F115ISCR handles read-only SQL's.                           00090000
+      *   - F115ISCU handles updating SQL's.                            00100000
+      *                                                                 00110000
+      *################################################################*00120000
+      * Date ! Si! Change description                            ! 3A ! 00130000
+      *------+---+-----------------------------------------------+----+ 00140000
+      *090201!HLR! Tuning - Removed the cursors without qual.    !    ! 00150005
+      *      !   !          on type & fin-inst.                  !    ! 00160005
+      *170399!HLR! New copy area                                 !LG10! 00170000
+      *################################################################*00180000
+      *                                                                 00190000
+         03  R115ISCS-SQL-Submodules.                                   00200000
+      *                                                                 00210000
+           05  R115ISCS-Version-No              Pic  X(08).             00220000
+             88  R115ISCS-Version                    Value '19990317'.  00230000
+      *                                                                 00240000
+      *----------------------------------------------------------------*00250000
+      *                                                                 00260000
+           05  R115ISCS-Qualification.                                  00270000
+      *                                                                 00280000
+             10  R115ISCS-In-Action             Pic  X(16).             00290000
+               88  R115ISCS-In-Count-Cursor          Value 'COUNT'.     00300000
+               88  R115ISCS-In-Open-Cursor           Value 'OPEN'.      00310000
+               88  R115ISCS-In-Fetch-Cursor          Value 'FETCH'.     00320000
+               88  R115ISCS-In-Close-Cursor          Value 'CLOSE'.     00330000
+               88  R115ISCS-In-Select                Value 'SELECT'.    00340000
+               88  R115ISCS-In-Insert                Value 'INSERT'.    00350000
+               88  R115ISCS-In-Update                Value 'UPDATE'.    00360000
+               88  R115ISCS-In-Delete                Value 'DELETE'.    00370000
+      *                                                                 00380000
+      *----------------------------------------------------------------*00390000
+      * For cursor use, we need some additional information.            00400000
+      *                                                                 00410000
+      * Switches used for selecting the correct cursor:                 00420000
+      *                                                                 00430000
+             10  R115ISCS-Cursor-Code           Pic  X(08).             00440000
+               88  R115ISCS-Use-Ty-Fi-Asc            Value 'TF    '.    00450002
+               88  R115ISCS-Use-Ty-Fi-Co-Asc         Value 'TF C  '.    00460002
+               88  R115ISCS-Use-Ty-Fi-Ct-Co-Asc      Value 'TFCC  '.    00470001
+      *                                                                 00480000
+      * These fields are used for SQL qualification:                    00490000
+      *                                                                 00500000
+             10  R115ISCS-DB-Key.                                       00510000
+               15  R115ISCS-DB-Type             Pic  X(20).             00520000
+               15  R115ISCS-DB-Fin-Inst-Id      Pic S9(18)       Comp-3.00530001
+               15  R115ISCS-DB-Contr-Type       Pic  X(03).             00540001
+               15  R115ISCS-DB-Code             Pic  X(20).             00550001
+      *                                                                 00560000
+      * Here is the result of a Count request:                          00570000
+      *                                                                 00580000
+             10  R115ISCS-Out-Accumulators.                             00590000
+               15  R115ISCS-Out-Total-Rows      Pic S9(11)       Comp-3.00600000
+      *                                                                 00610000
+      *----------------------------------------------------------------*00620000
+      *                                                                 00630000

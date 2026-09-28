@@ -1,0 +1,208 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD Trade Finance                                                00030000
+      *                                                                 00040000
+      * Copy-area R115IMC0.                                             00050005
+      *                                                                 00060000
+      * Interface for all database access on table TF_Main_Contract.    00070005
+      *                                                                 00080000
+      * The interface kan read one spesific occurence,                  00090000
+      * or several occurences, fully or partly qualified with           00100000
+      * from- and to- values.                                           00110000
+      *                                                                 00120000
+      * When reading several occurences, one must always start with     00130000
+      * -In-Get-1st, and continue with -In-Get-Next.                    00140000
+      *                                                                 00150000
+      * NB!  There are several key-fields, which may be used            00160002
+      *      differently depending on the need.                         00170002
+      *      See seperate description below.                            00180002
+      *                                                                 00190002
+      *                                                                 00200000
+      * An ordinary Select call may look like this:                     00210001
+      *                                                                 00220000
+      *    Initialize                          R115IMC0-Main-Contract   00230005
+      *    Set   R115IMC0-Version        To    True                     00240005
+      *    Set   R115IMC0-In-Select      To    True                     00250005
+      *                                                                 00260027
+      * One of these:                                                   00270027
+      * 1) Set   R115IMC0-In-Actual      To    True                     00280027
+      * 2) Set   R115IMC0-In-Work        To    True                     00290027
+      *                                                                 00300027
+      *    Move  &fin-inst-id            To    R115IMC0-In-Fin-Inst-ID  00310005
+      *    Move  &contract-type          To    R115IMC0-In-Contract-Type00320007
+      *    Move  &contract-no            To    R115IMC0-In-Contract-No  00330007
+      *                                                                 00340000
+      *    Call  'F115IMC0'              Using R115IMC0-Main-Contract   00350005
+      *                                        R7919999-Error-Area      00360017
+      *    End-Call                                                     00370000
+      *                                                                 00380000
+      *    Evaluate True                                                00390000
+      *      When R7919999-Return-Abend                                 00400017
+      *        Move  '&&&&'              To    R7919999-Paragraph       00410017
+      *        Perform Z900-Abend                                       00420000
+      *                                                                 00430000
+      *      When R7919999-Return-Error                                 00440018
+      *        ...not found...                                          00450000
+      *                                                                 00460000
+      *      When R7919999-Return-OK                                    00470017
+      *        ...found...                                              00480000
+      *                                                                 00490000
+      *    End-Evaluate                                                 00500000
+      *                                                                 00510000
+      *################################################################*00520000
+      * Date ! Si! Change description                            ! 3A ! 00530000
+      *------+---+-----------------------------------------------+----+ 00540000
+      *090113!NDL! Added -Incom-Swift for Guarantiees            !    ! 00540145
+      *030703!NDL! Added -Silent Confirmation                    !LY15! 00541039
+      *230401!NDL! Added -Incom-Swift                            !LT12! 00542039
+      *190600!HLR! Changed cursor-qual. on TFMC_Contr_Type       !LO18! 00550035
+      *      !   ! from "Like" to "=".                           !    ! 00560032
+      *      !   ! Removed -In-From-Contr-No.                    !    ! 00570034
+      *      !   ! Removed -In-To-Contr-No.                      !    ! 00580034
+      *150699!HLR! Added -In-Status                              !LG10! 00590030
+      *310599!HLR! Added -Issued-Date & -Confirmed.              !LG10! 00600030
+      *290499!HLR! Added -Upd-Timestamp.                         !LG10! 00610029
+      *280499!HLR! New fields: Upd-User-ID, Upd-Date, Upd-Time   !LG10! 00620021
+      *080399!HLR! Availability changed from X(12) to X(01)      !LG10! 00630020
+      *290199!HLR! New copy area                                 !LG10! 00640013
+      *################################################################*00650000
+      *                                                                 00660000
+         03  R115IMC0-Main-Contract.                                    00670005
+      *                                                                 00680000
+           05  R115IMC0-Version-No              Pic  X(08).             00690005
+             88  R115IMC0-Version                    Value '20000619'.  00700034
+      *                                                                 00710000
+      *----------------------------------------------------------------*00720000
+      *                                                                 00730000
+           05  R115IMC0-Qualification.                                  00740005
+      *                                                                 00750000
+             10  R115IMC0-In-Action             Pic  X(16).             00760005
+               88  R115IMC0-In-Get-1st               Value 'GET-1ST'.   00770005
+               88  R115IMC0-In-Get-Next              Value 'GET-NEXT'.  00780005
+               88  R115IMC0-In-Select                Value 'SELECT'.    00790005
+               88  R115IMC0-In-Insert                Value 'INSERT'.    00800005
+               88  R115IMC0-In-Update                Value 'UPDATE'.    00810005
+               88  R115IMC0-In-Delete                Value 'DELETE'.    00820005
+               88  R115IMC0-In-Upd-Status            Value 'UPDSTA'.    00822042
+               88  R115IMC0-In-Upd-TimeStamp         Value 'UPDTST'.    00823043
+      *                                                                 00830000
+      * In-Upd-Status updates both status and timestamp                 00831043
+      *                                                                 00832043
+      * There are several key-fields, which may be used differently     00840001
+      * depending on the need.                                          00850001
+      *                                                                 00860000
+      * In-Table must be set whatever the desired action is.            00870027
+      *                                                                 00880027
+      * For Insert, use the Data area for all fields.                   00890023
+      *                                                                 00900023
+      * For Select, Update and Delete, use:                             00910023
+      *     - Fin-Inst-No or Fin-Inst-ID                                00920001
+      *     - Contract-Type                                             00930007
+      *     - Contract-No                                               00940007
+      *                                                                 00950001
+      * For cursor (Get-1st / Get-Next), use:                           00960001
+      *     - Optional: Fin-Inst-No or Fin-Inst-ID                      00970001
+      *     - Optional: Customer-No or Customer-ID                      00980001
+      *                 (If used, Fin-Inst is mandatory)                00990033
+      *     - Optional: Contract-Type                                   01000006
+      *     - Optional: Contract-No                                     01010034
+      *     - Optional: Status (only with Fin-Inst-No)                  01020030
+      *                                                                 01030001
+             10  R115IMC0-In-Key.                                       01040005
+      *                                                                 01050001
+               15  R115IMC0-In-Table-Version    Pic  X(16).             01060028
+                 88  R115IMC0-In-Actual              Value 'ACTUAL'.    01070027
+                 88  R115IMC0-In-Work                Value 'WORK'.      01080027
+      *                                                                 01090027
+      *        It is optional wether you use Fin-Inst-No or Fin-Inst-ID.01100001
+               15  R115IMC0-In-Fin-Inst.                                01110005
+                 20  R115IMC0-In-Fin-Inst-No    Pic  X(18).             01120015
+                 20  R115IMC0-In-Fin-Inst-ID    Pic S9(18)       Comp-3.01130005
+      *                                                                 01140001
+      *        It is optional wether you use Customer-No or Customer-ID.01150001
+      *        When using Customer-No, Fin-Inst is mandatory.           01160001
+      *        Customer is only relevant for cursor (Get-1st/Get-Next)  01170001
+               15  R115IMC0-In-Customer.                                01180005
+                 20  R115IMC0-In-Customer-No    Pic S9(11)       Comp-3.01190005
+                 20  R115IMC0-In-Customer-ID    Pic S9(11)       Comp-3.01200005
+      *                                                                 01210001
+      *        Contract-Type and -No is mandatory for                   01220007
+      *        Select/Update/Delete.                                    01230023
+               15  R115IMC0-In-Contract.                                01240006
+                 20  R115IMC0-In-Contract-Type  Pic  X(03).             01250007
+                 20  R115IMC0-In-Contract-No    Pic S9(07)       Comp-3.01260009
+      *                                                                 01270007
+      *        Status is optional for Get-1st / Get-Next.               01280030
+               15  R115IMC0-In-Status           Pic  X(12).             01290030
+      *                                                                 01300030
+      * When performing a Get-1st-call one may ask for the total        01310000
+      * number of rows complying with the qualification.                01320000
+      *                                                                 01330000
+             10  R115IMC0-In-Code-Count         Pic  X(10).             01340005
+               88  R115IMC0-In-CC-Count              Value 'COUNT'.     01350005
+      *                                                                 01360000
+      *----------------------------------------------------------------*01370000
+      *                                                                 01380000
+           05  R115IMC0-Data.                                           01390005
+      *                                                                 01400000
+             10  R115IMC0-Key.                                          01410005
+               15  R115IMC0-Fin-Inst-ID         Pic S9(18)       Comp-3.01420005
+               15  R115IMC0-Customer-ID         Pic S9(11)       Comp-3.01430005
+               15  R115IMC0-Contract-ID.                                01440006
+                 20  R115IMC0-Contract-Type     Pic  X(03).             01450009
+                 20  R115IMC0-Contract-No       Pic S9(07)       Comp-3.01460009
+      *                                                                 01470000
+             10  Filler.                                                01480014
+               15  R115IMC0-Fin-Inst-No         Pic  X(18).             01490015
+               15  R115IMC0-Customer-No         Pic S9(11)       Comp-3.01500005
+      *                                                                 01510000
+             10  R115IMC0-KFAV-Seq-No           Pic S9(04)       Comp.  01520025
+             10  R115IMC0-Availability          Pic  X(01).             01530012
+               88  R115IMC0-Avl-At-Sight             Value 'S'.         01540012
+               88  R115IMC0-Avl-Deferred             Value 'D'.         01550012
+               88  R115IMC0-Avl-Accept               Value 'A'.         01560012
+               88  R115IMC0-Avl-Mixed                Value 'M'.         01570031
+      *                                                                 01580012
+             10  R115IMC0-Status                Pic  X(12).             01590011
+      *        88  R115IMC0-...                      Value '..........'.01600011
+      *                                                                 01610012
+             10  R115IMC0-In-Progress           Pic  X(01).             01620006
+               88  R115IMC0-In-Progress-Yes          Value 'Y'.         01630006
+               88  R115IMC0-In-Progress-No           Value 'N'.         01640006
+      *                                                                 01650012
+             10  R115IMC0-Register-Date         Pic S9(08)       Comp-3.01660020
+      *                                                                 01670020
+             10  R115IMC0-Upd-User-ID           Pic  X(08).             01680021
+      *                                                                 01690021
+      *      When performing an update call, it is optional whether     01700022
+      *      you fill in Timestamp or Date & Time, but one of them      01710021
+      *      must be populated.                                         01720021
+      *      Upon read, all three fields will be populated.             01730021
+             10  R115IMC0-Upd-Timestamp         Pic  X(26).             01740021
+             10  R115IMC0-Upd-Date              Pic S9(08)       Comp-3.01750021
+             10  R115IMC0-Upd-Time              Pic S9(08)       Comp-3.01760019
+      *                                                                 01770019
+             10  R115IMC0-Issued-Date           Pic S9(08)       Comp-3.01780029
+             10  R115IMC0-Confirmed             Pic  X(01).             01790029
+             10  R115IMC0-Incom-Swift           Pic  X(01).             01791036
+               88  R115IMC0-Incom-MT700              Value 'Y'.         01792038
+               88  R115IMC0-Incom-MT707              Value 'E'.         01793038
+               88  R115IMC0-Incom-MT760              Value 'G'.         01793145
+               88  R115IMC0-Incom-MT767              Value 'A'.         01793245
+               88  R115IMC0-Transfered               Value 'T'.         01794044
+             10  R115IMC0-Silent-Confrm         Pic  X(01).             01795040
+               88  R115IMC0-Silent-C-Yes             Value 'Y'.         01796039
+               88  R115IMC0-Silent-C-No              Value 'N', ' '.    01797041
+      *                                                                 01800029
+      * The following accumulators are only relevant when performing    01810000
+      * Get-1st or Get-Next.                                            01820000
+      * Row-No starts on 1 when doing Get-1st, and increases by 1 for   01830000
+      * each Get-Next.                                                  01840000
+      * Total-Rows is set when doing Get-1st, but ONLY if the           01850000
+      * In-CC-Count is set. The field will tell you how many rows       01860000
+      * that complies with your qualification.                          01870000
+      *                                                                 01880000
+             10  R115IMC0-Out-Accumulators.                             01890005
+               15  R115IMC0-Out-Row-No          Pic S9(11)       Comp-3.01900005
+               15  R115IMC0-Out-Total-Rows      Pic S9(11)       Comp-3.01910005
+      *                                                                 01920000

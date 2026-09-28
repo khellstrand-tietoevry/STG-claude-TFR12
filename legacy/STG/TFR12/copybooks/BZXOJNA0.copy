@@ -1,0 +1,424 @@
+      *<META START-OF-COPYBOOK>                                                 
+      ******************************************************************        
+      *                                                                *        
+      * Generated  : 100129                              *                      
+      *                                                                *        
+      * Copy-area BZXOJNA0                                             *        
+      *                                                                *        
+      * Interface to read and update table OR_ORG_UNIT_ATTR                     
+      *                                                                *        
+      ******************************************************************        
+      *                                                                         
+          03  BZXOJNA0-OR-ORG-UNIT-ATTR.                                        
+            05  BZXOJNA0-Prefix.                                                
+              10  BZXOJNA0-Eyecatcher-ID         Pic  X(08).                    
+                  88  BZXOJNA0-Eyecatcher             Value 'BZXOJNA0'.         
+              10  BZXOJNA0-Version-No            Pic  X(08).                    
+                  88  BZXOJNA0-Version                Value '1'.                
+      *                                                                         
+              10  BZXOJNA0-Cursor-Id             Pic  X(20).                    
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+      *                                                                         
+          05  BZXOJNA0-Misc-Input.                                              
+             10  BZXOJNA0-In-UID           Pic X(12).                           
+             10  BZXOJNA0-In-HONA-TX-ID    PIC X(12).                           
+      *                                                                         
+             10  BZXOJNA0-In-HONA-HIST-REASON                                   
+                                           PIC X(2).                            
+                   88  BZXOJNA0-In-Del-Hist    Value 'D'.                       
+                   88  BZXOJNA0-In-Update-No-End-Time                           
+                                               Value 'U'.                       
+                   88  BZXOJNA0-In-Update-End-Time                              
+                                               Value 'T'.                       
+                   88  BZXOJNA0-In-Batch-Hist  Value 'BM'.                      
+      *                                                                         
+            05  BZXOJNA0-Qualification.                                         
+      *                                                                         
+              10  BZXOJNA0-In-Action            Pic  X(16).                     
+                  88  BZXOJNA0-In-Get-1st           Value 'GET-1ST'.            
+                  88  BZXOJNA0-In-Get-Next          Value 'GET-NEXT'.           
+                  88  BZXOJNA0-In-Close             Value 'CLOSE'.              
+                  88  BZXOJNA0-In-Count-Only        Value 'COUNT'.              
+      *                                                                         
+      *           Check if there is any occurrences of a cursor                 
+                  88  BZXOJNA0-In-Check-Exist       Value 'EXIST'.              
+      *                                                                         
+                  88  BZXOJNA0-In-Select            Value 'SELECT'.             
+                  88  BZXOJNA0-In-Insert            Value 'INSERT'.             
+                  88  BZXOJNA0-In-Update            Value 'UPDATE'.             
+                  88  BZXOJNA0-In-Delete            Value 'DELETE'.             
+      *                                                                         
+      *           Initialize entries the internal storage. Under normal         
+      *           conditions, this should not be necessary.                     
+                  88  BZXOJNA0-In-Initialize        Value 'INITIALIZE'.         
+      *</META>                                                                  
+      *                                                                         
+      *      User defined action codes can be inserted here.                    
+      *                                                                         
+      *<META VARIOUS-ITEMS>                                                     
+      * For Reads                                                               
+      *    - All fields will be populated                                       
+      *    - When BZXOJNA0-In-DB-All, and eof reached on Live db, a             
+      *      Get-1st/Get-Next will be done on the History table.  The           
+      *      interface will then return BZXOJNA0-In-DB-Hist.  Continue          
+      *      with function Get-Next and BZXOJNA0-In-DB-Hist.                    
+      *    - When BZXOJNA0-In-DB-Flag is blank, default.  Default               
+      *      action is read on only Live                                        
+      *                                                                         
+              10  BZXOJNA0-In-DB-Flag       Pic X(1).                           
+                  88  BZXOJNA0-In-DB-Live         Value 'L', ' '.               
+                  88  BZXOJNA0-In-DB-Hist         Value 'H'.                    
+                  88  BZXOJNA0-In-DB-All          Value 'A'.                    
+                                                                                
+      *                                                                         
+      *       If you need to access information on another production           
+      *       group, (collection) you must set the desired group here.          
+              10  BZXOJNA0-In-PackageSet         Pic  X(08).                    
+      *                                                                         
+      *       Logging is performed at two places in the interface.              
+      *       -After input convert, the input qualification is                  
+      *        displayed. For Insert and Update also the data items             
+      *        are displayed.                                                   
+      *       -Before output convert, the retrieved data is displayed.          
+      *        The output data is only displayed when data is found             
+      *        (i.e. -Return-OK) and input qualification is a read              
+      *        (Get first/next, select or count) For count, only the            
+      *        count is displayed.                                              
+      *                                                                         
+      *       Options for logging:                                              
+      *       -Logging-No No logging is performed. This is the default.         
+      *       -Logging-Dump Unformatted dump.                                   
+      *       -Logging-Format All items are prefixed by their name,             
+      *        but no new line between the items.                               
+      *       -Logging-Format-Line All items are prefixed by their name,        
+      *        each item on a separate line.                                    
+      *                                                                         
+              10  BZXOJNA0-Logging           Pic  X(10).                        
+                88  BZXOJNA0-Logging-No             Value Space.                
+                88  BZXOJNA0-Logging-Dump           Value 'DUMP'.               
+                88  BZXOJNA0-Logging-Format         Value 'FORMAT'.             
+                88  BZXOJNA0-Logging-Format-Line    Value 'FORMATL'.            
+      *</META>                                                                  
+      *<META CURSORS>                                                           
+              10  BZXOJNA0-In-Cursor            Pic  X(18).                     
+                  88  BZXOJNA0-Cursor1                                          
+                                         Value 'Cursor1'.                       
+                  88  BZXOJNA0-Cursor1-ET                                       
+                                         Value 'Cursor1-ET'.                    
+                  88  BZXOJNA0-Cursor2                                          
+                                         Value 'Cursor2'.                       
+                  88  BZXOJNA0-Cursor2-ET                                       
+                                         Value 'Cursor2-ET'.                    
+                  88  BZXOJNA0-Cursor3                                          
+                                         Value 'Cursor3'.                       
+                  88  BZXOJNA0-Cursor3-ET                                       
+                                         Value 'Cursor3-ET'.                    
+                  88  BZXOJNA0-Cursor4                                          
+                                         Value 'Cursor4'.                       
+                  88  BZXOJNA0-Cursor4-ET                                       
+                                         Value 'Cursor4-ET'.                    
+                  88  BZXOJNA0-Cursor5                                          
+                                         Value 'Cursor5'.                       
+                  88  BZXOJNA0-Cursor5-ET                                       
+                                         Value 'Cursor5-ET'.                    
+                  88  BZXOJNA0-Cursor6                                          
+                                         Value 'Cursor6'.                       
+                  88  BZXOJNA0-Cursor7                                          
+                                         Value 'Cursor7'.                       
+      *                                                                         
+      *  Description and qualifications for the different cursors.              
+      *  It is required to populate all %-In-% items.                           
+      *                                                                         
+      *  Cursor1                                                                
+      *    WHERE   FK_OR_ORG_ID                                                 
+      *    =       BZXOJNA0-In-FK-OR-ORG-ID                                     
+      *    AND     FK_UN_ID                                                     
+      *    =       BZXOJNA0-In-FK-UN-ID                                         
+      *    AND     ORNA_VAL_FROM_DT                                             
+      *    <=      BZXOJNA0-In-ORNA-VAL-TO-DT                                   
+      *    AND     ORNA_VAL_TO_DT                                               
+      *    >=      BZXOJNA0-In-ORNA-VAL-FROM-DT                                 
+      *    Order  By                                                            
+      *            FK_OR_ORG_ID  ASC                                            
+      *          , FK_TY_INT_CODE  ASC                                          
+      *          , ORNA_VAL_FROM_DT  ASC                                        
+      *                                                                         
+      *  Cursor1-ET                                                             
+      *    WHERE   FK_OR_ORG_ID                                                 
+      *    =       BZXOJNA0-In-FK-OR-ORG-ID                                     
+      *    AND     FK_UN_ID                                                     
+      *    =       BZXOJNA0-In-FK-UN-ID                                         
+      *    AND     ORNA_VAL_FROM_DT                                             
+      *    <=      BZXOJNA0-In-ORNA-VAL-TO-DT                                   
+      *    AND     ORNA_VAL_TO_DT                                               
+      *    >=      BZXOJNA0-In-ORNA-VAL-FROM-DT                                 
+      *    AND     ORNA_END_TIME                                                
+      *    =       '00.00.00'                                                   
+      *    Order  By                                                            
+      *            FK_OR_ORG_ID  ASC                                            
+      *          , FK_TY_INT_CODE  ASC                                          
+      *          , ORNA_VAL_FROM_DT  ASC                                        
+      *                                                                         
+      *  Cursor2                                                                
+      *    WHERE   FK_OR_ORG_ID                                                 
+      *    =       BZXOJNA0-In-FK-OR-ORG-ID                                     
+      *    AND     FK_TY_INT_CODE                                               
+      *    =       BZXOJNA0-In-FK-TY-INT-CODE                                   
+      *    AND     ORNA_VAL_FROM_DT                                             
+      *    <=      BZXOJNA0-In-ORNA-VAL-TO-DT                                   
+      *    AND     ORNA_VAL_TO_DT                                               
+      *    >=      BZXOJNA0-In-ORNA-VAL-FROM-DT                                 
+      *    Order  By                                                            
+      *            FK_OR_ORG_ID  ASC                                            
+      *          , ORNA_VAL_FROM_DT  ASC                                        
+      *                                                                         
+      *  Cursor2-ET                                                             
+      *    WHERE   FK_OR_ORG_ID                                                 
+      *    =       BZXOJNA0-In-FK-OR-ORG-ID                                     
+      *    AND     FK_TY_INT_CODE                                               
+      *    =       BZXOJNA0-In-FK-TY-INT-CODE                                   
+      *    AND     ORNA_VAL_FROM_DT                                             
+      *    <=      BZXOJNA0-In-ORNA-VAL-TO-DT                                   
+      *    AND     ORNA_VAL_TO_DT                                               
+      *    >=      BZXOJNA0-In-ORNA-VAL-FROM-DT                                 
+      *    AND     ORNA_END_TIME                                                
+      *    =       '00.00.00'                                                   
+      *    Order  By                                                            
+      *            FK_OR_ORG_ID  ASC                                            
+      *          , ORNA_VAL_FROM_DT  ASC                                        
+      *                                                                         
+      *  Cursor3                                                                
+      *    WHERE   FK_OR_ORG_ID                                                 
+      *    =       BZXOJNA0-In-FK-OR-ORG-ID                                     
+      *    AND     FK_UN_ID                                                     
+      *    =       BZXOJNA0-In-FK-UN-ID                                         
+      *    AND     FK_TY_INT_CODE                                               
+      *    =       BZXOJNA0-In-FK-TY-INT-CODE                                   
+      *    AND     ORNA_VAL_FROM_DT                                             
+      *    <=      BZXOJNA0-In-ORNA-VAL-TO-DT                                   
+      *    AND     ORNA_VAL_TO_DT                                               
+      *    >=      BZXOJNA0-In-ORNA-VAL-FROM-DT                                 
+      *    Order  By                                                            
+      *            FK_OR_ORG_ID  ASC                                            
+      *          , ORNA_VAL_FROM_DT  ASC                                        
+      *                                                                         
+      *  Cursor3-ET                                                             
+      *    WHERE   FK_OR_ORG_ID                                                 
+      *    =       BZXOJNA0-In-FK-OR-ORG-ID                                     
+      *    AND     FK_UN_ID                                                     
+      *    =       BZXOJNA0-In-FK-UN-ID                                         
+      *    AND     FK_TY_INT_CODE                                               
+      *    =       BZXOJNA0-In-FK-TY-INT-CODE                                   
+      *    AND     ORNA_VAL_FROM_DT                                             
+      *    <=      BZXOJNA0-In-ORNA-VAL-TO-DT                                   
+      *    AND     ORNA_VAL_TO_DT                                               
+      *    >=      BZXOJNA0-In-ORNA-VAL-FROM-DT                                 
+      *    AND     ORNA_END_TIME                                                
+      *    =       '00.00.00'                                                   
+      *    Order  By                                                            
+      *            FK_OR_ORG_ID  ASC                                            
+      *          , ORNA_VAL_FROM_DT  ASC                                        
+      *                                                                         
+      *  Cursor4                                                                
+      *    WHERE   FK_OR_ORG_ID                                                 
+      *    =       BZXOJNA0-In-FK-OR-ORG-ID                                     
+      *    AND     FK_UN_ID                                                     
+      *    =       BZXOJNA0-In-FK-UN-ID                                         
+      *    AND     FK_TY_INT_CODE                                               
+      *    =       BZXOJNA0-In-FK-TY-INT-CODE                                   
+      *    AND     ORNA_DATA                                                    
+      *    =       BZXOJNA0-In-ORNA-DATA                                        
+      *    AND     ORNA_VAL_FROM_DT                                             
+      *    <=      BZXOJNA0-In-ORNA-VAL-TO-DT                                   
+      *    AND     ORNA_VAL_TO_DT                                               
+      *    >=      BZXOJNA0-In-ORNA-VAL-FROM-DT                                 
+      *    Order  By                                                            
+      *            FK_OR_ORG_ID  ASC                                            
+      *          , ORNA_VAL_FROM_DT  ASC                                        
+      *                                                                         
+      *  Cursor4-ET                                                             
+      *    WHERE   FK_OR_ORG_ID                                                 
+      *    =       BZXOJNA0-In-FK-OR-ORG-ID                                     
+      *    AND     FK_UN_ID                                                     
+      *    =       BZXOJNA0-In-FK-UN-ID                                         
+      *    AND     FK_TY_INT_CODE                                               
+      *    =       BZXOJNA0-In-FK-TY-INT-CODE                                   
+      *    AND     ORNA_DATA                                                    
+      *    =       BZXOJNA0-In-ORNA-DATA                                        
+      *    AND     ORNA_VAL_FROM_DT                                             
+      *    <=      BZXOJNA0-In-ORNA-VAL-TO-DT                                   
+      *    AND     ORNA_VAL_TO_DT                                               
+      *    >=      BZXOJNA0-In-ORNA-VAL-FROM-DT                                 
+      *    AND     ORNA_END_TIME                                                
+      *    =       '00.00.00'                                                   
+      *    Order  By                                                            
+      *            FK_OR_ORG_ID  ASC                                            
+      *          , ORNA_VAL_FROM_DT  ASC                                        
+      *                                                                         
+      *  Cursor5                                                                
+      *    WHERE   FK_OR_ORG_ID                                                 
+      *    =       BZXOJNA0-In-FK-OR-ORG-ID                                     
+      *    AND     FK_TY_INT_CODE                                               
+      *    =       BZXOJNA0-In-FK-TY-INT-CODE                                   
+      *    AND     ORNA_DATA                                                    
+      *    =       BZXOJNA0-In-ORNA-DATA                                        
+      *    AND     ORNA_VAL_FROM_DT                                             
+      *    <=      BZXOJNA0-In-ORNA-VAL-TO-DT                                   
+      *    AND     ORNA_VAL_TO_DT                                               
+      *    >=      BZXOJNA0-In-ORNA-VAL-FROM-DT                                 
+      *    Order  By                                                            
+      *            FK_OR_ORG_ID  ASC                                            
+      *          , ORNA_VAL_FROM_DT  ASC                                        
+      *                                                                         
+      *  Cursor5-ET                                                             
+      *    WHERE   FK_OR_ORG_ID                                                 
+      *    =       BZXOJNA0-In-FK-OR-ORG-ID                                     
+      *    AND     FK_TY_INT_CODE                                               
+      *    =       BZXOJNA0-In-FK-TY-INT-CODE                                   
+      *    AND     ORNA_DATA                                                    
+      *    =       BZXOJNA0-In-ORNA-DATA                                        
+      *    AND     ORNA_VAL_FROM_DT                                             
+      *    <=      BZXOJNA0-In-ORNA-VAL-TO-DT                                   
+      *    AND     ORNA_VAL_TO_DT                                               
+      *    >=      BZXOJNA0-In-ORNA-VAL-FROM-DT                                 
+      *    AND     ORNA_END_TIME                                                
+      *    =       '00.00.00'                                                   
+      *    Order  By                                                            
+      *            FK_OR_ORG_ID  ASC                                            
+      *          , ORNA_VAL_FROM_DT  ASC                                        
+      *                                                                         
+      *  Cursor6                                                                
+      *    WHERE   FK_OR_ORG_ID                                                 
+      *    =       BZXOJNA0-In-FK-OR-ORG-ID                                     
+      *    AND     ORNA_TX_ID                                                   
+      *    =       BZXOJNA0-In-ORNA-TX-ID                                       
+      *    Order  By                                                            
+      *            FK_OR_ORG_ID  ASC                                            
+      *          , ORNA_VAL_FROM_DT  ASC                                        
+      *                                                                         
+      *  Cursor7                                                                
+      *    WHERE   FK_OR_ORG_ID                                                 
+      *    =       BZXOJNA0-In-FK-OR-ORG-ID                                     
+      *    AND     ORNA_ID                                                      
+      *    =       BZXOJNA0-In-ORNA-ID                                          
+      *    AND     ORNA_VAL_FROM_DT                                             
+      *    <=      BZXOJNA0-In-ORNA-VAL-TO-DT                                   
+      *    AND     ORNA_VAL_TO_DT                                               
+      *    >=      BZXOJNA0-In-ORNA-VAL-FROM-DT                                 
+      *    Order  By                                                            
+      *            ORNA_ID  ASC                                                 
+      *                                                                         
+      *</META>                                                                  
+      *                                                                         
+      *#UserCode#                                                               
+      *User defines 88 levels for cursors                                       
+      *                                                                         
+      *<META QUALIFICATION-VARIABLES>                                           
+              10  BZXOJNA0-In-Keys.                                             
+      *                                                                         
+      *      Primary key, use these items for                                   
+      *      Select and Delete.                                                 
+      *      NB! For Insert and Update, use the BZXOJNA0-Keys                   
+      *      in BZXOJNA0-Data below.                                            
+                15  BZXOJNA0-In-FK-OR-ORG-ID                                    
+                                                 Pic s9(18) COMP-3.             
+                15  BZXOJNA0-In-ORNA-ID                                         
+                                                 Pic X(12).                     
+      *                                                                         
+      *      Other qualification items                                          
+                15  BZXOJNA0-In-FK-UN-ID                                        
+                                                 Pic X(12).                     
+                15  BZXOJNA0-In-ORNA-VAL-FROM-DT                                
+                                                 Pic  9(08).                    
+                15  BZXOJNA0-In-ORNA-VAL-TO-DT                                  
+                                                 Pic  9(08).                    
+                15  BZXOJNA0-In-ORNA-END-TIME                                   
+                                                 Pic  9(06).                    
+                15  BZXOJNA0-In-FK-TY-INT-CODE                                  
+                                                 Pic X(05).                     
+                15  BZXOJNA0-In-ORNA-DATA                                       
+                                                 Pic X(255).                    
+                15  BZXOJNA0-In-ORNA-TX-ID                                      
+                                                 Pic X(12).                     
+      *                                                                         
+      *      User defined items                                                 
+      *</META>                                                                  
+      *                                                                         
+      * #UserCode#                                                              
+      * User defined input variables                                            
+      *                                                                         
+      *<META OUTPUT-VARIABLES>                                                  
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+            05  BZXOJNA0-Data.                                                  
+              10  BZXOJNA0-Keys.                                                
+                15  BZXOJNA0-ORNA-ID                                            
+                                                Pic X(12).                      
+                15  BZXOJNA0-FK-OR-ORG-ID                                       
+                                                Pic s9(18) COMP-3.              
+      *                                                                         
+              10  BZXOJNA0-Info.                                                
+                15  BZXOJNA0-FK-TY-INT-CODE                                     
+                                                Pic X(05).                      
+                15  BZXOJNA0-FK-UN-ID                                           
+                                                Pic X(12).                      
+                15  BZXOJNA0-ORNA-CRE-TS.                                       
+                  20  BZXOJNA0-ORNA-CRE-TS-D                                    
+                                                Pic  9(08).                     
+                  20  BZXOJNA0-ORNA-CRE-TS-T                                    
+                                                Pic  9(08).                     
+                15  BZXOJNA0-FK-US-CRE-LOGID                                    
+                                                Pic X(12).                      
+                15  BZXOJNA0-ORNA-END-TIME                                      
+                                                Pic   9(06).                    
+                15  BZXOJNA0-ORNA-VAL-FROM-DT                                   
+                                                Pic   9(08).                    
+                15  BZXOJNA0-ORNA-VAL-TO-DT                                     
+                                                Pic   9(08).                    
+                15  BZXOJNA0-ORNA-TX-ID                                         
+                                                Pic X(12).                      
+                15  BZXOJNA0-FK-US-CHG-LOGID                                    
+                                                Pic X(12).                      
+                15  BZXOJNA0-ORNA-CHG-TS.                                       
+                  20  BZXOJNA0-ORNA-CHG-TS-D                                    
+                                                Pic  9(08).                     
+                  20  BZXOJNA0-ORNA-CHG-TS-T                                    
+                                                Pic  9(08).                     
+                15  BZXOJNA0-ORNA-DATA                                          
+                                                Pic X(255).                     
+      *                                                                         
+      * The following items is from history tables only                         
+      *                                                                         
+              10  BZXOJNA0-HONA-History-Items.                                  
+                15  BZXOJNA0-HONA-Hist-Tx-Id                                    
+                                                Pic  X(12).                     
+      *                                                                         
+                15  BZXOJNA0-HONA-Hist-Cre-Ts.                                  
+                  20  BZXOJNA0-HONA-Hist-Cre-Ts-D                               
+                                                Pic  9(08).                     
+                  20  BZXOJNA0-HONA-Hist-Cre-Ts-T                               
+                                                Pic  9(08).                     
+      *                                                                         
+                15  BZXOJNA0-HONA-Hist-Cre-Uid                                  
+                                                Pic  X(12).                     
+                15  BZXOJNA0-HONA-Hist-Reason                                   
+                                                Pic  X(02).                     
+      *                                                                         
+      * The following accumulators are only relevant when performing            
+      * Count-Only, Get-1st or Get-Next.                                        
+      * Row-No starts on 1 when doing Get-1st, and increases by 1 for           
+      * each Get-Next.                                                          
+      * Total-Rows is set only when doing Count-Only. The field will            
+      * tell you how many rows that complies with your qualification.           
+      *                                                                         
+              10  BZXOJNA0-Out-Accumulators.                                    
+                15  BZXOJNA0-Out-Row-No          Pic  9(15).                    
+                15  BZXOJNA0-Out-Total-Rows      Pic  9(15).                    
+      *                                                                         
+              10  BZXOJNA0-Table-Returned      Pic X(1).                        
+                88  BZXOJNA0-Live-Returned         Value 'L'.                   
+                88  BZXOJNA0-Hist-Returned         Value 'H'.                   
+      *</META>                                                                  

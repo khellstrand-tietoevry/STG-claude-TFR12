@@ -1,0 +1,100 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      *                                                                 00030015
+      * >>> NB! This copy book is also used outside EDB Core,  <<<      00040015
+      * >>> it is also defined in MKS/SubVersion.              <<<      00050015
+      * >>> If changes are required, these versions must be    <<<      00060015
+      * >>> harmonized. This must be done in co-operation with <<<      00070015
+      * >>> those responsible for PO and for iHub!!!           <<<      00080015
+      * >>>                       Jan.2009, Henning L. Rødland <<<      00090015
+      *                                                                 00100015
+      *                                                                 00110015
+      * Src-fragment necessary to run F791ERR0-Error-Handling routines. 00120000
+      *                                                                 00130000
+      * Documentation: see FPO.MASTF.COPY(R791ERR0).                    00140000
+      *                                                                 00150000
+      *################################################################*00160000
+       Z100-Error-Initialize             Section.                       00170000
+      *                                                                 00180000
+      * This section is used for initializing all Error information.    00190002
+      *                                                                 00200002
+           Set   R791ERR0-Version        To    True                     00210014
+           Set   R791ERR0-In-Initialize  To    True                     00220014
+           Move  WC-Program-ID           To    R791ERR0-In-Module-ID    00230014
+      *                                                                 00240000
+           Perform ZSYS-Error-System-Exit                               00250006
+      *                                                                 00260001
+           Call  'F791ERR0'              Using R791ERR0-Error-Handling  00270000
+           End-Call                                                     00280000
+      *                                                                 00290000
+      * We will not do a goback in this section.                        00300011
+      *                                                                 00310011
+           .                                                            00320000
+      *################################################################*00330003
+       Z600-Error-Handling               Section.                       00340000
+      *                                                                 00350000
+      * This section is used when you want to create a new message.     00360002
+      *                                                                 00370002
+           Set   R791ERR0-Version        To    True                     00380000
+           Set   R791ERR0-In-Error-Handling                             00390000
+                                         To    True                     00400000
+           Move  WC-Program-ID           To    R791ERR0-In-Module-ID    00410000
+      *                                                                 00420000
+           Perform ZSYS-Error-System-Exit                               00430006
+      *                                                                 00440001
+                                                                        00450007
+           Call  'F791ERR0'              Using R791ERR0-Error-Handling  00460000
+           End-Call                                                     00470000
+      *                                                                 00480000
+           Goback                                                       00490000
+           .                                                            00500000
+      *################################################################*00510000
+       Z800-Call-Trace                   Section.                       00520000
+      *                                                                 00530000
+      * This section is used when you want to keep the message returned 00540002
+      * from a subprogram.                                              00550002
+      *                                                                 00560002
+           Set   R791ERR0-Version        To    True                     00570000
+           Set   R791ERR0-In-Call-Trace  To    True                     00580000
+           Move  WC-Program-ID           To    R791ERR0-In-Module-ID    00590000
+      *                                                                 00600000
+           Perform ZSYS-Error-System-Exit                               00610006
+      *                                                                 00620001
+           Call  'F791ERR0'              Using R791ERR0-Error-Handling  00630000
+           End-Call                                                     00640000
+      *                                                                 00650000
+           Goback                                                       00660000
+           .                                                            00670000
+      *################################################################*00680012
+       Z900-Request-Info                 Section.                       00690012
+      *                                                                 00700012
+      * This section is used for fetching message- and trace-info.      00710012
+      *                                                                 00720012
+           Set   R791ERR0-Version        To    True                     00730012
+           Set   R791ERR0-In-Request-Info                               00740012
+                                         To    True                     00750012
+      *                                                                 00760012
+           Call  'F791ERR0'              Using R791ERR0-Error-Handling  00770012
+           End-Call                                                     00780012
+      *                                                                 00790012
+      * We will not do a goback in this section.                        00800012
+      *                                                                 00810012
+           .                                                            00820012
+      *################################################################*00830013
+       ZA00-Add-User-Message             Section.                       00840013
+      *                                                                 00850013
+      * This section is used to add a user-oriented error message.      00860013
+      *                                                                 00870013
+           Set   R791ERR0-Version        To    True                     00880013
+           Set   R791ERR0-In-Add-User-Message                           00890013
+                                         To    True                     00900013
+           Move  WC-Program-ID           To    R791ERR0-In-Module-ID    00910013
+      *                                                                 00920013
+           Perform ZSYS-Error-System-Exit                               00930013
+      *                                                                 00940013
+           Call  'F791ERR0'              Using R791ERR0-Error-Handling  00950013
+           End-Call                                                     00960013
+      *                                                                 00970013
+      * We will not do a goback in this section.                        00980013
+      *                                                                 00990013
+           .                                                            01000013

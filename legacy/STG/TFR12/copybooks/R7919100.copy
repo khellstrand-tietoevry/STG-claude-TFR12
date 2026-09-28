@@ -1,0 +1,135 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * Copy-område R7919100.                                           00030000
+      * Generell submodul for å konvertere mellom dato-formater.        00040000
+      *                                                                 00050000
+      * Man leverer dato på ett eller annet format inn.                 00060002
+      * Dersom kun en input-dato er utfylt er det ikke nødvendig å      00070002
+      * fortelle hva slags type det er, ellers må man sette bryter      00080002
+      * for typen også.                                                 00090002
+      * I retur vil man få datoen i ymse formater, bare å velge.        00100000
+      *                                                                 00110000
+      * Eksempel på anrop:                                              00120000
+      *   Initialize                           R7919100-Konverter-Dato  00130000
+      *   Set   R7919100-Versjon         To    True                     00140000
+      *   Move  ååååmmdd                 To    R7919100-In-Dato-AMD9    00150000
+      *   Set   R7919100-In-Konv-Til-DB2 To    True                     00160012
+      *   Call  'F7919100'               Using R7919100-Konverter-Dato  00170000
+      *                                        R7919999-Error           00180000
+      *   End-Call                                                      00190000
+      *   If  R7919999-Retur-Abend                                      00200000
+      *       abend                                                     00210000
+      *   End-If                                                        00220000
+      *   Move  R7919100-Ut-Dato-DB2     To    ...                      00230000
+      *                                                                 00240000
+      *################################################################*00250000
+      * DATO ! SI! ENDRINGENS ART                                ! 3A ! 00260000
+      *---------------------------------------------------------------- 00270000
+      *120697!HLR! Lagt inn -In-Til-Formater (tuning)            !    ! 00281013
+      *210297!HLR! Lagt inn -Dato-A4D3 og -Dato-A2D3             !    ! 00290011
+      *301096!HLR! Lagt inn -In-Glidende-Vindu.                  !JV12! 00300008
+      *140296!HLR! Lagt inn -In-DB2-Format                       !JV60! 00310007
+      *150295!HLR! Nytt copy-område                              !JR68! 00320004
+      *################################################################*00330000
+       01  R7919100-KONVERTER-DATO.                                     00340003
+      *                                                                 00350000
+           05  R7919100-VERSJONS-NR           PIC  X(08).               00360011
+             88  R7919100-VERSJON                   VALUE '19970612'.   00370011
+      *                                                                 00380000
+      *----------------------------------------------------------------*00390007
+      *                                                                 00400007
+           05  R7919100-KVALIFISERING.                                  00410003
+      *                                                                 00420010
+      * Følgende formater benyttes:                                     00430010
+      *   AMD9: ÅÅÅÅMMDD                                                00440010
+      *   DMA9: DDMMÅÅÅÅ                                                00450010
+      *   AMD7: ÅÅMMDD                                                  00460010
+      *   DMA7: DDMMÅÅ                                                  00470010
+      *   JUL : Ant. dager siden 31.12.1899, 360 dgr/år (01.01.1900 = 1)00480010
+      *   DB2 : ÅÅÅÅ-MM-DD el. DD.MM.ÅÅÅÅ el. MM/DD/ÅÅÅÅ                00490010
+      *   A4D3: ÅÅÅÅDDD der DDD er reellt dag-nummer i året             00500010
+      *   A2D3: ÅÅDDD der DDD er reellt dag-nummer i året               00510010
+      *                                                                 00520010
+             10  R7919100-IN-DATOER.                                    00530007
+               15  R7919100-IN-DATO-AMD9      PIC S9(09)         COMP-3.00540011
+               15  R7919100-IN-DATO-DMA9      PIC S9(09)         COMP-3.00550011
+               15  R7919100-IN-DATO-AMD7      PIC S9(07)         COMP-3.00560011
+               15  R7919100-IN-DATO-DMA7      PIC S9(07)         COMP-3.00570011
+               15  R7919100-IN-DATO-JUL       PIC S9(05)         COMP-3.00580011
+               15  R7919100-IN-DATO-DB2       PIC  X(10).               00590011
+               15  R7919100-IN-DATO-A4D3      PIC S9(07)         COMP-3.00600011
+               15  R7919100-IN-DATO-A2D3      PIC S9(05)         COMP-3.00610011
+      *                                                                 00620000
+      * Følgende bryter behøver ikke settes om kun en dato er utfylt.   00630002
+      *                                                                 00640002
+             10  R7919100-IN-FRA-FORMATER.                              00650012
+               15  R7919100-IN-KONV-TYPE      PIC  X(04).               00660012
+                 88  R7919100-IN-KONV-FRA-AMD9      VALUE 'AMD9'.       00670012
+                 88  R7919100-IN-KONV-FRA-DMA9      VALUE 'DMA9'.       00680012
+                 88  R7919100-IN-KONV-FRA-AMD7      VALUE 'AMD7'.       00690012
+                 88  R7919100-IN-KONV-FRA-DMA7      VALUE 'DMA7'.       00700012
+                 88  R7919100-IN-KONV-FRA-JUL       VALUE 'JUL '.       00710012
+                 88  R7919100-IN-KONV-FRA-DB2       VALUE 'DB2 '.       00720012
+                 88  R7919100-IN-KONV-FRA-A4D3      VALUE 'A4D3'.       00730012
+                 88  R7919100-IN-KONV-FRA-A2D3      VALUE 'A2D3'.       00740012
+      *                                                                 00750000
+      * Følgende brytere styrer hvilke datoer det skal konverteres til. 00760011
+      * Default er INNTIL VIDERE at det konverteres til:                00770011
+      *    AMD9, DMA9, AMD7, DMA7, JUL og DB2.                          00780011
+      * Det konverteres IKKE til øvrige datoer hvis ikke kode er satt.  00790011
+      *                                                                 00800011
+             10  R7919100-IN-TIL-FORMATER.                              00810012
+               15  R7919100-IN-TIL-AMD9       PIC  X(01).               00820012
+                 88  R7919100-IN-KONV-TIL-AMD9      VALUE 'J'.          00830012
+                                                                        00840012
+               15  R7919100-IN-TIL-DMA9       PIC  X(01).               00850012
+                 88  R7919100-IN-KONV-TIL-DMA9      VALUE 'J'.          00860012
+                                                                        00870012
+               15  R7919100-IN-TIL-AMD7       PIC  X(01).               00880012
+                 88  R7919100-IN-KONV-TIL-AMD7      VALUE 'J'.          00890012
+                                                                        00900012
+               15  R7919100-IN-TIL-DMA7       PIC  X(01).               00910012
+                 88  R7919100-IN-KONV-TIL-DMA7      VALUE 'J'.          00920012
+                                                                        00930012
+               15  R7919100-IN-TIL-JUL        PIC  X(01).               00940012
+                 88  R7919100-IN-KONV-TIL-JUL       VALUE 'J'.          00950012
+                                                                        00960012
+               15  R7919100-IN-TIL-DB2        PIC  X(01).               00970012
+                 88  R7919100-IN-KONV-TIL-DB2       VALUE 'J'.          00980012
+                                                                        00990012
+               15  R7919100-IN-TIL-A4D3       PIC  X(01).               01000012
+                 88  R7919100-IN-KONV-TIL-A4D3      VALUE 'J'.          01010012
+                                                                        01020012
+               15  R7919100-IN-TIL-A2D3       PIC  X(01).               01030012
+                 88  R7919100-IN-KONV-TIL-A2D3      VALUE 'J'.          01040012
+      *                                                                 01050011
+      * Følgende bryter kan settes dersom man ønsker et spesielt        01060005
+      * format på -Ut-Dato-DB2. Default er ISO-format (ÅÅÅÅ-MM-DD).     01070005
+      *                                                                 01080004
+             10  R7919100-IN-DB2-FORMAT       PIC  X(03).               01090011
+               88  R7919100-IN-DB2-DEFAULT          VALUE '   ', 'ISO'. 01100007
+               88  R7919100-IN-DB2-ISO              VALUE 'ISO'.        01110007
+               88  R7919100-IN-DB2-EUR              VALUE 'EUR'.        01120007
+               88  R7919100-IN-DB2-USA              VALUE 'USA'.        01130007
+      *                                                                 01131013
+      * Ved konvertering fra dato med to-sifret årstall benyttes        01150007
+      * glidende vindu. Default er 49 år før og 50 år etter dagens dato.01160007
+      * Dersom man ønsker et annet vindu benyttes følgende felt til å   01170007
+      * angi antall år frem i tid i forhold til dagens dato.            01180007
+      *                                                                 01190007
+             10  R7919100-IN-GLIDENDE-VINDU.                            01200007
+               15  R7919100-IN-AAR-FREM-I-TID PIC  9(02).               01210011
+      *                                                                 01220007
+      *----------------------------------------------------------------*01230007
+      *                                                                 01240007
+           05  R7919100-RESULTAT.                                       01250003
+             10  R7919100-UT-DATOER.                                    01260007
+               15  R7919100-UT-DATO-AMD9      PIC S9(09)         COMP-3.01270011
+               15  R7919100-UT-DATO-DMA9      PIC S9(09)         COMP-3.01280011
+               15  R7919100-UT-DATO-AMD7      PIC S9(07)         COMP-3.01290011
+               15  R7919100-UT-DATO-DMA7      PIC S9(07)         COMP-3.01300011
+               15  R7919100-UT-DATO-JUL       PIC S9(05)         COMP-3.01310011
+               15  R7919100-UT-DATO-DB2       PIC  X(10).               01320011
+               15  R7919100-UT-DATO-A4D3      PIC S9(07)         COMP-3.01330011
+               15  R7919100-UT-DATO-A2D3      PIC S9(05)         COMP-3.01340011
+      *                                                                 01350000

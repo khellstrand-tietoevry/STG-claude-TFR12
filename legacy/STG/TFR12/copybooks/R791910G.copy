@@ -1,0 +1,194 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * Copy-område R791910G.                                           00030000
+      * Generell submodul for å konvertere mellom dato-formater.        00040000
+      *                                                                 00050000
+      * Her ligger gamle versjoner av copy-området, på grunn av         00060000
+      * versjonshåndtering.                                             00070000
+      * Vi skal konvertere til og fra ny layout.                        00080000
+      *                                                                 00090000
+      * Ved innleggelse av "gammel" versjon:                            00100000
+      *  - Lag nytt 01-nivå                                             00110000
+      *  - Kopier inn copy-området før dette endres                     00120000
+      *                                                                 00130000
+      *################################################################*00140000
+      * DATO ! SI! ENDRINGENS ART                                ! 3A ! 00150000
+      *---------------------------------------------------------------- 00160000
+      *120697!HLR! Lagt inn versjon 19970221.                    !    ! 00170007
+      *210297!HLR! Lagt inn versjon 19961030.                    !    ! 00180007
+      *      !   ! Fjernet  versjon 19950215.                    !    ! 00190005
+      *301096!HLR! Lagt inn versjon 19960214.                    !JV12! 00200005
+      *140296!HLR! Lagt inn versjon 19950215.                    !JV60! 00210003
+      *150295!HLR! Nytt copy-område                              !JR68! 00220002
+      *################################################################*00230000
+       01  F7919100-Versjon-19970221.                                   00240006
+      *                                                                 00250006
+           05  R7919100-VERSJONS-NR      PIC  X(08).                    00260006
+             88  R7919100-VERSJON                   VALUE '19970221'.   00270006
+      *                                                                 00280006
+      *----------------------------------------------------------------*00290006
+      *                                                                 00300006
+           05  R7919100-KVALIFISERING.                                  00310006
+      *                                                                 00320006
+      * Følgende formater benyttes:                                     00330006
+      *   AMD9: ÅÅÅÅMMDD                                                00340006
+      *   DMA9: DDMMÅÅÅÅ                                                00350006
+      *   AMD7: ÅÅMMDD                                                  00360006
+      *   DMA7: DDMMÅÅ                                                  00370006
+      *   JUL : Ant. dager siden 31.12.1899, 360 dgr/år (01.01.1900 = 1)00380006
+      *   DB2 : ÅÅÅÅ-MM-DD el. DD.MM.ÅÅÅÅ el. MM/DD/ÅÅÅÅ                00390006
+      *   A4D3: ÅÅÅÅDDD der DDD er reellt dag-nummer i året             00400006
+      *   A2D3: ÅÅDDD der DDD er reellt dag-nummer i året               00410006
+      *                                                                 00420006
+             10  R7919100-IN-DATOER.                                    00430006
+               15  R7919100-IN-DATO-AMD9 PIC S9(09)              COMP-3.00440006
+               15  R7919100-IN-DATO-DMA9 PIC S9(09)              COMP-3.00450006
+               15  R7919100-IN-DATO-AMD7 PIC S9(07)              COMP-3.00460006
+               15  R7919100-IN-DATO-DMA7 PIC S9(07)              COMP-3.00470006
+               15  R7919100-IN-DATO-JUL  PIC S9(05)              COMP-3.00480006
+               15  R7919100-IN-DATO-DB2  PIC  X(10).                    00490006
+               15  R7919100-IN-DATO-A4D3 PIC S9(07)              COMP-3.00500006
+               15  R7919100-IN-DATO-A2D3 PIC S9(05)              COMP-3.00510006
+      *                                                                 00520006
+      * Følgende bryter behøver ikke settes om kun en dato er utfylt.   00530006
+      *                                                                 00540006
+             10  R7919100-IN-KONV-TYPE   PIC  X(04).                    00550006
+               88  R7919100-IN-KONV-FRA-AMD9        VALUE 'AMD9'.       00560006
+               88  R7919100-IN-KONV-FRA-DMA9        VALUE 'DMA9'.       00570006
+               88  R7919100-IN-KONV-FRA-AMD7        VALUE 'AMD7'.       00580006
+               88  R7919100-IN-KONV-FRA-DMA7        VALUE 'DMA7'.       00590006
+               88  R7919100-IN-KONV-FRA-JUL         VALUE 'JUL '.       00600006
+               88  R7919100-IN-KONV-FRA-DB2         VALUE 'DB2 '.       00610006
+               88  R7919100-IN-KONV-FRA-A4D3        VALUE 'A4D3'.       00620006
+               88  R7919100-IN-KONV-FRA-A2D3        VALUE 'A2D3'.       00630006
+      *                                                                 00640006
+      * Følgende bryter kan settes dersom man ønsker et spesielt        00650006
+      * format på -Ut-Dato-DB2. Default er ISO-format (ÅÅÅÅ-MM-DD).     00660006
+      *                                                                 00670006
+             10  R7919100-IN-DB2-FORMAT  PIC  X(03).                    00680006
+               88  R7919100-IN-DB2-DEFAULT          VALUE '   ', 'ISO'. 00690006
+               88  R7919100-IN-DB2-ISO              VALUE 'ISO'.        00700006
+               88  R7919100-IN-DB2-EUR              VALUE 'EUR'.        00710006
+               88  R7919100-IN-DB2-USA              VALUE 'USA'.        00720006
+      *                                                                 00730006
+      * Ved konvertering fra dato med to-sifret årstall benyttes        00740006
+      * glidende vindu. Default er 49 år før og 50 år etter dagens dato.00750006
+      * Dersom man ønsker et annet vindu benyttes følgende felt til å   00760006
+      * angi antall år frem i tid i forhold til dagens dato.            00770006
+      *                                                                 00780006
+             10  R7919100-IN-GLIDENDE-VINDU.                            00790006
+               15  R7919100-IN-AAR-FREM-I-TID                           00800006
+                                         PIC  9(02).                    00810006
+      *                                                                 00820006
+      *----------------------------------------------------------------*00830006
+      *                                                                 00840006
+           05  R7919100-RESULTAT.                                       00850006
+             10  R7919100-UT-DATOER.                                    00860006
+               15  R7919100-UT-DATO-AMD9 PIC S9(09)              COMP-3.00870006
+               15  R7919100-UT-DATO-DMA9 PIC S9(09)              COMP-3.00880006
+               15  R7919100-UT-DATO-AMD7 PIC S9(07)              COMP-3.00890006
+               15  R7919100-UT-DATO-DMA7 PIC S9(07)              COMP-3.00900006
+               15  R7919100-UT-DATO-JUL  PIC S9(05)              COMP-3.00910006
+               15  R7919100-UT-DATO-DB2  PIC  X(10).                    00920006
+               15  R7919100-UT-DATO-A4D3 PIC S9(07)              COMP-3.00930006
+               15  R7919100-UT-DATO-A2D3 PIC S9(05)              COMP-3.00940006
+      *                                                                 00950006
+      *################################################################*00960006
+       01  F7919100-Versjon-19960214.                                   00970006
+      *                                                                 00980006
+           05  R7919100-VERSJONS-NR      PIC  X(08).                    00990003
+             88  R7919100-VERSJON                   VALUE '19960214'.   01000003
+      *                                                                 01010003
+           05  R7919100-KVALIFISERING.                                  01020003
+             10  R7919100-IN-DATOER.                                    01030004
+               15  R7919100-IN-DATO-AMD9 PIC S9(09)              COMP-3.01040004
+               15  R7919100-IN-DATO-DMA9 PIC S9(09)              COMP-3.01050004
+               15  R7919100-IN-DATO-AMD7 PIC S9(07)              COMP-3.01060004
+               15  R7919100-IN-DATO-DMA7 PIC S9(07)              COMP-3.01070004
+               15  R7919100-IN-DATO-JUL  PIC S9(05)              COMP-3.01080004
+               15  R7919100-IN-DATO-DB2  PIC  X(10).                    01090004
+      *                                                                 01100003
+      * Følgende bryter behøver ikke settes om kun en dato er utfylt.   01110003
+      *                                                                 01120003
+             10  R7919100-IN-KONV-TYPE   PIC  X(04).                    01130004
+               88  R7919100-IN-KONV-FRA-AMD9        VALUE 'AMD9'.       01140004
+               88  R7919100-IN-KONV-FRA-DMA9        VALUE 'DMA9'.       01150004
+               88  R7919100-IN-KONV-FRA-AMD7        VALUE 'AMD7'.       01160004
+               88  R7919100-IN-KONV-FRA-DMA7        VALUE 'DMA7'.       01170004
+               88  R7919100-IN-KONV-FRA-JUL         VALUE 'JUL '.       01180004
+               88  R7919100-IN-KONV-FRA-DB2         VALUE 'DB2 '.       01190004
+      *                                                                 01200003
+      * Følgende bryter kan settes dersom man ønsker et spesielt        01210003
+      * format på -Ut-Dato-DB2. Default er ISO-format (ÅÅÅÅ-MM-DD).     01220003
+      *                                                                 01230003
+             10  R7919100-IN-DB2-FORMAT  PIC  X(03).                    01240004
+               88  R7919100-IN-DB2-DEFAULT          VALUE '   ', 'ISO'. 01250004
+               88  R7919100-IN-DB2-ISO              VALUE 'ISO'.        01260004
+               88  R7919100-IN-DB2-EUR              VALUE 'EUR'.        01270004
+               88  R7919100-IN-DB2-USA              VALUE 'USA'.        01280004
+      *                                                                 01290003
+           05  R7919100-RESULTAT.                                       01300003
+             10  R7919100-UT-DATOER.                                    01310004
+               15  R7919100-UT-DATO-AMD9 PIC S9(09)              COMP-3.01320004
+               15  R7919100-UT-DATO-DMA9 PIC S9(09)              COMP-3.01330004
+               15  R7919100-UT-DATO-AMD7 PIC S9(07)              COMP-3.01340004
+               15  R7919100-UT-DATO-DMA7 PIC S9(07)              COMP-3.01350004
+               15  R7919100-UT-DATO-JUL  PIC S9(05)              COMP-3.01360004
+               15  R7919100-UT-DATO-DB2  PIC  X(10).                    01370004
+      *                                                                 01380003
+      *################################################################*01390005
+       01  F7919100-Versjon-19961030.                                   01400005
+      *                                                                 01410005
+           05  R7919100-VERSJONS-NR      PIC  X(08).                    01420005
+             88  R7919100-VERSJON                   VALUE '19961030'.   01430005
+      *                                                                 01440005
+      *----------------------------------------------------------------*01450005
+      *                                                                 01460005
+           05  R7919100-KVALIFISERING.                                  01470005
+             10  R7919100-IN-DATOER.                                    01480005
+               15  R7919100-IN-DATO-AMD9 PIC S9(09)              COMP-3.01490005
+               15  R7919100-IN-DATO-DMA9 PIC S9(09)              COMP-3.01500005
+               15  R7919100-IN-DATO-AMD7 PIC S9(07)              COMP-3.01510005
+               15  R7919100-IN-DATO-DMA7 PIC S9(07)              COMP-3.01520005
+               15  R7919100-IN-DATO-JUL  PIC S9(05)              COMP-3.01530005
+               15  R7919100-IN-DATO-DB2  PIC  X(10).                    01540005
+      *                                                                 01550005
+      * Følgende bryter behøver ikke settes om kun en dato er utfylt.   01560005
+      *                                                                 01570005
+             10  R7919100-IN-KONV-TYPE   PIC  X(04).                    01580005
+               88  R7919100-IN-KONV-FRA-AMD9        VALUE 'AMD9'.       01590005
+               88  R7919100-IN-KONV-FRA-DMA9        VALUE 'DMA9'.       01600005
+               88  R7919100-IN-KONV-FRA-AMD7        VALUE 'AMD7'.       01610005
+               88  R7919100-IN-KONV-FRA-DMA7        VALUE 'DMA7'.       01620005
+               88  R7919100-IN-KONV-FRA-JUL         VALUE 'JUL '.       01630005
+               88  R7919100-IN-KONV-FRA-DB2         VALUE 'DB2 '.       01640005
+      *                                                                 01650005
+      * Følgende bryter kan settes dersom man ønsker et spesielt        01660005
+      * format på -Ut-Dato-DB2. Default er ISO-format (ÅÅÅÅ-MM-DD).     01670005
+      *                                                                 01680005
+             10  R7919100-IN-DB2-FORMAT  PIC  X(03).                    01690005
+               88  R7919100-IN-DB2-DEFAULT          VALUE '   ', 'ISO'. 01700005
+               88  R7919100-IN-DB2-ISO              VALUE 'ISO'.        01710005
+               88  R7919100-IN-DB2-EUR              VALUE 'EUR'.        01720005
+               88  R7919100-IN-DB2-USA              VALUE 'USA'.        01730005
+      *                                                                 01740005
+      * Ved konvertering fra dato med to-sifret årstall benyttes        01750005
+      * glidende vindu. Default er 49 år før og 50 år etter dagens dato.01760005
+      * Dersom man ønsker et annet vindu benyttes følgende felt til å   01770005
+      * angi antall år frem i tid i forhold til dagens dato.            01780005
+      *                                                                 01790005
+             10  R7919100-IN-GLIDENDE-VINDU.                            01800005
+               15  R7919100-IN-AAR-FREM-I-TID                           01810005
+                                         PIC  9(02).                    01820005
+      *                                                                 01830005
+      *----------------------------------------------------------------*01840005
+      *                                                                 01850005
+           05  R7919100-RESULTAT.                                       01860005
+             10  R7919100-UT-DATOER.                                    01870005
+               15  R7919100-UT-DATO-AMD9 PIC S9(09)              COMP-3.01880005
+               15  R7919100-UT-DATO-DMA9 PIC S9(09)              COMP-3.01890005
+               15  R7919100-UT-DATO-AMD7 PIC S9(07)              COMP-3.01900005
+               15  R7919100-UT-DATO-DMA7 PIC S9(07)              COMP-3.01910005
+               15  R7919100-UT-DATO-JUL  PIC S9(05)              COMP-3.01920005
+               15  R7919100-UT-DATO-DB2  PIC  X(10).                    01930005
+      *                                                                 01940005

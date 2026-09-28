@@ -1,0 +1,62 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD Trade Finance                                                00030000
+      *                                                                 00040000
+      * Copy-area R115ICTS.                                             00050000
+      *                                                                 00060000
+      * This copy-area is in use for module F115ICTR and F115ICTU,      00070000
+      * which are sub-modules to F115ICT0.                              00080000
+      *   - F115ICTR handles read-only SQL's.                           00090000
+      *   - F115ICTU handles updating SQL's.                            00100000
+      *                                                                 00110000
+      *################################################################*00120000
+      * Date ! Si! Change description                            ! 3A ! 00130000
+      *------+---+-----------------------------------------------+----+ 00140000
+      *230801!NDL! Regno in key                                  !LO18! 00150002
+      *190399!HLR! New copy area                                 !LG10! 00151002
+      *################################################################*00160000
+      *                                                                 00170000
+         03  R115ICTS-SQL-Submodules.                                   00180000
+      *                                                                 00190000
+           05  R115ICTS-Version-No              Pic  X(08).             00200000
+             88  R115ICTS-Version                    Value '19990319'.  00210000
+      *                                                                 00220000
+      *----------------------------------------------------------------*00230000
+      *                                                                 00240000
+           05  R115ICTS-Qualification.                                  00250000
+      *                                                                 00260000
+             10  R115ICTS-In-Action             Pic  X(16).             00270000
+               88  R115ICTS-In-Count-Cursor          Value 'COUNT'.     00280000
+               88  R115ICTS-In-Open-Cursor           Value 'OPEN'.      00290000
+               88  R115ICTS-In-Fetch-Cursor          Value 'FETCH'.     00300000
+               88  R115ICTS-In-Close-Cursor          Value 'CLOSE'.     00310000
+               88  R115ICTS-In-Select                Value 'SELECT'.    00320000
+               88  R115ICTS-In-Insert                Value 'INSERT'.    00330000
+               88  R115ICTS-In-Update                Value 'UPDATE'.    00340000
+               88  R115ICTS-In-Delete                Value 'DELETE'.    00350000
+      *                                                                 00360000
+      *----------------------------------------------------------------*00370000
+      * For cursor use, we need some additional information.            00380000
+      *                                                                 00390000
+      * Switches used for selecting the correct cursor:                 00400000
+      *                                                                 00410000
+             10  R115ICTS-Cursor-Code           Pic  X(03).             00420003
+               88  R115ICTS-Use-Asc                  Value '   '.       00430003
+               88  R115ICTS-Use-Ty-Asc               Value ' T '.       00440003
+               88  R115ICTS-Use-Fi-Ty-Asc            Value 'FT '.       00441003
+               88  R115ICTS-Use-Fi-Ty-Re-Asc         Value 'FTR'.       00442003
+      *                                                                 00450000
+      * These fields are used for SQL qualification:                    00460000
+      *                                                                 00470000
+             10  R115ICTS-DB-Key.                                       00480000
+               15  R115ICTS-DB-Type             Pic  X(20).             00490000
+               15  R115ICTS-DB-Fin-Inst-Id      Pic  X(20).             00491001
+               15  R115ICTS-DB-Regno            Pic S9(04)      Comp.   00492003
+      *                                                                 00500000
+      * Here is the result of a Count request:                          00510000
+      *                                                                 00520000
+             10  R115ICTS-Out-Accumulators.                             00530000
+               15  R115ICTS-Out-Total-Rows      Pic S9(11)       Comp-3.00540000
+      *                                                                 00550000
+      *----------------------------------------------------------------*00560000
+      *                                                                 00570000

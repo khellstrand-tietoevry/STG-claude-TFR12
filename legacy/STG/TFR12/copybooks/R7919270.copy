@@ -1,0 +1,84 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * Copy-område R7919270.                                           00030000
+      * Generell submodul for å konvertere mellom timestamp-formater.   00040000
+      *                                                                 00050000
+      * Man leverer enten:                                              00060000
+      *   - Dato           (ååååmmdd)                                   00070000
+      *   - Tid                                                         00080000
+      *     enten:                                                      00090000
+      *       - Tid-TMS        (ttmmss)                                 00100000
+      *     eller:                                                      00110000
+      *       - Tid-TMSH       (ttmmsshh)                               00120000
+      *   - Mikro-sekunder (seks siffer, hvis ønskelig)                 00130000
+      * eller:                                                          00140000
+      *   - timestamp      (ååååmmddttmmsshh)                           00150000
+      * eller:                                                          00160000
+      *   - DB2 timestamp  (åååå-mm-dd-hh.mm.ss.nnnnnn)                 00170000
+      *                                                                 00180000
+      * I retur vil man få alle tilsvarende felter utfylt.              00190000
+      *                                                                 00200000
+      * Eksempel på anrop:                                              00210000
+      *    Initialize                          R7919270-Konv-Timestamp  00220001
+      *    Set   R7919270-Versjon        To    True                     00230001
+      *    Move  &ååååmmdd               To    R7919270-In-Dato         00240001
+      *    Move  &ttmmss                 To    R7919270-In-Tid-TMS      00250001
+      *    Call  'F7919270'              Using R7919270-Konv-Timestamp  00260001
+      *                                        R7919999-Error           00270000
+      *    End-Call                                                     00280001
+      *    If  R7919999-Retur-Abend                                     00290001
+      *        Move  '&&&&'              To    R7919999-Paragraf        00300001
+      *        Perform Z900-Abend                                       00310001
+      *    End-If                                                       00320001
+      *    Move  R7919270-Ut-Timestamp-DB2                              00330001
+      *                                  To    ...                      00340000
+      *                                                                 00350000
+      *################################################################*00360000
+      * DATO ! SI! ENDRINGENS ART                                ! 3A ! 00370000
+      *---------------------------------------------------------------- 00380000
+      *101296!HLR! Nytt copy-område                              !KC24! 00390000
+      *################################################################*00400000
+       01  R7919270-KONV-TIMESTAMP.                                     00410000
+      *                                                                 00420000
+           05  R7919270-VERSJONS-NR      PIC  X(08).                    00430000
+             88  R7919270-VERSJON                   VALUE '19990811'.   00440003
+      *                                                                 00450000
+      *----------------------------------------------------------------*00460000
+      * Eksempel på DB2 timestamp: 1996-09-11-10.31.04.841276           00470000
+      *                                                                 00480000
+           05  R7919270-KVALIFISERING.                                  00490000
+      *                                                                 00500000
+      * Man kan fylle ut enten -In-Dato og -In-Tid-TMS/-TMSH...         00510000
+      * (Mikro-sekunder kan fylles ut, men er ikke nødvendig.)          00520000
+      *                                                                 00530000
+             10  R7919270-IN-DATO        PIC S9(09)              COMP-3.00540000
+             10  R7919270-IN-TID-TMS     PIC S9(07)              COMP-3.00550000
+             10  R7919270-IN-TID-TMSH    PIC S9(09)              COMP-3.00560000
+             10  R7919270-IN-MIKRO-SEK   PIC S9(07)              COMP-3.00570000
+      *                                                                 00580000
+      * ...eller -In-Timestamp...                                       00590000
+      *                                                                 00600000
+             10  R7919270-IN-TIMESTAMP   PIC S9(16)              COMP.  00610000
+      *                                                                 00620000
+      * ...eller -In-Timestamp-DB2.                                     00630000
+      *                                                                 00640000
+             10  R7919270-IN-TIMESTAMP-DB2                              00650000
+                                         PIC  X(26).                    00660000
+      *                                                                 00670000
+      *----------------------------------------------------------------*00680000
+      *                                                                 00690000
+           05  R7919270-RESULTAT.                                       00700000
+      *                                                                 00710000
+      * Alle ut-felter vil være utfylt ved retur.                       00720000
+      * (Med forbehold om mikro-sekunder, det avhenger av input'en.)    00730000
+      *                                                                 00740000
+             10  R7919270-UT-DATO        PIC S9(09)              COMP-3.00750000
+             10  R7919270-UT-TID-TMS     PIC S9(07)              COMP-3.00760000
+             10  R7919270-UT-TID-TMSH    PIC S9(09)              COMP-3.00770002
+             10  R7919270-UT-MIKRO-SEK   PIC S9(07)              COMP-3.00780000
+      *                                                                 00790000
+             10  R7919270-UT-TIMESTAMP   PIC S9(16)              COMP.  00800000
+      *                                                                 00810000
+             10  R7919270-UT-TIMESTAMP-DB2                              00820000
+                                         PIC  X(26).                    00830000
+      *                                                                 00840000

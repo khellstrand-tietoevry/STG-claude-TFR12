@@ -1,0 +1,78 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD Trade Finance                                                00030000
+      *                                                                 00040000
+      * Copy-area R115IPCS.                                             00050000
+      *                                                                 00060000
+      * This copy-area is in use for module F115IPCR and F115IPCU,      00070000
+      * which are sub-modules to F115IPC0.                              00080000
+      *   - F115IPCR handles read-only SQL's.                           00090000
+      *   - F115IPCU handles updating SQL's.                            00100000
+      *                                                                 00110000
+      *################################################################*00120000
+      * Date ! Si! Change description                            ! 3A ! 00130000
+      *------+---+-----------------------------------------------+----+ 00140000
+      *190600!HLR! Removed cursors CO, RO, CT.                   !LO18! 00150003
+      *060599!HLR! New copy area                                 !LG10! 00160000
+      *################################################################*00170000
+      *                                                                 00180000
+         03  R115IPCS-SQL-Submodules.                                   00190000
+      *                                                                 00200000
+           05  R115IPCS-Version-No              Pic  X(08).             00210000
+             88  R115IPCS-Version                    Value '19990916'.  00220002
+      *                                                                 00230000
+      *----------------------------------------------------------------*00240000
+      *                                                                 00250000
+           05  R115IPCS-Qualification.                                  00260000
+      *                                                                 00270000
+             10  R115IPCS-In-Action             Pic  X(16).             00280000
+               88  R115IPCS-In-Count-Cursor          Value 'COUNT'.     00290000
+               88  R115IPCS-In-Open-Cursor           Value 'OPEN'.      00300000
+               88  R115IPCS-In-Fetch-Cursor          Value 'FETCH'.     00310000
+               88  R115IPCS-In-Close-Cursor          Value 'CLOSE'.     00320000
+               88  R115IPCS-In-Select                Value 'SELECT'.    00330000
+               88  R115IPCS-In-Insert                Value 'INSERT'.    00340000
+               88  R115IPCS-In-Update                Value 'UPDATE'.    00350000
+               88  R115IPCS-In-Delete                Value 'DELETE'.    00360000
+      *                                                                 00370000
+             10  R115IPCS-In-Table-Version      Pic  X(16).             00380001
+               88  R115IPCS-In-Actual                Value 'ACTUAL'.    00390001
+               88  R115IPCS-In-Work                  Value 'WORK'.      00400001
+      *                                                                 00410001
+      *----------------------------------------------------------------*00420000
+      * For cursor use, we need some additional information.            00430000
+      *                                                                 00440000
+      * Switches used for selecting the correct cursor:                 00450000
+      *                                                                 00460000
+             10  R115IPCS-Cursor-Code           Pic  X(08).             00470000
+               88  R115IPCS-Use-Fi-Asc               Value 'F     '.    00480000
+               88  R115IPCS-Use-Fi-Co-Asc            Value 'FN    '.    00490000
+               88  R115IPCS-Use-Fi-Ro-Asc            Value 'F  R  '.    00500000
+               88  R115IPCS-Use-Fi-CT-Asc            Value 'F   C '.    00510002
+               88  R115IPCS-Use-Fi-Co-PA-Asc         Value 'FNP   '.    00520000
+               88  R115IPCS-Use-Fi-Co-Ro-Asc         Value 'FN R  '.    00530000
+               88  R115IPCS-Use-Fi-Co-CT-Asc         Value 'FN  C '.    00540002
+               88  R115IPCS-Use-Fi-Co-Pa-Ro-Asc      Value 'FNPR  '.    00550000
+               88  R115IPCS-Use-Fi-Co-Pa-CT-Asc      Value 'FNP C '.    00560002
+               88  R115IPCS-Use-Everything-Asc       Value 'FNPRC '.    00570000
+      *                                                                 00580000
+      * These fields are used for SQL qualification:                    00590000
+      *                                                                 00600000
+             10  R115IPCS-DB-Key.                                       00610000
+               15  R115IPCS-DB-Fin-Inst-ID      Pic S9(18)       Comp-3.00620000
+               15  R115IPCS-DB-Contract-Type    Pic  X(03).             00630000
+               15  R115IPCS-DB-From-Contr-No    Pic S9(07)       Comp-3.00640000
+               15  R115IPCS-DB-To-Contr-No      Pic S9(07)       Comp-3.00650000
+               15  R115IPCS-DB-CA-Currency      Pic  X(03).             00660000
+               15  R115IPCS-DB-From-PA-Seq-No   Pic S9(04)       Comp.  00670000
+               15  R115IPCS-DB-To-PA-Seq-No     Pic S9(04)       Comp.  00680000
+               15  R115IPCS-DB-Role-Type        Pic  X(05).             00690000
+               15  R115IPCS-DB-CT-Type          Pic  X(20).             00700000
+      *                                                                 00710000
+      * Here is the result of a Count request:                          00720000
+      *                                                                 00730000
+             10  R115IPCS-Out-Accumulators.                             00740000
+               15  R115IPCS-Out-Total-Rows      Pic S9(11)       Comp-3.00750000
+      *                                                                 00760000
+      *----------------------------------------------------------------*00770000
+      *                                                                 00780000

@@ -1,0 +1,841 @@
+       Identification Division.                                         00010099
+       Program-ID. F7918030.                                            00020099
+       Author.     Rune Mesel.                                          00030099
+      *################################################################*00040099
+      *                                                                 00050099
+      * Interface for henting av korrekt feilmelding                    00060099
+      *                                                                 00070099
+      *                                                                 00080099
+      * Et typisk kall vil se slik ut :                                 00090099
+      *                                                                 00100099
+      *    Initialize                          R7918030-Feilmelding     00110099
+      *    Set   R7918030-Versjon        To    True                     00120099
+      *    Move  &Logonid#               To    R7918030-In-Logonid      00130099
+      *    Move  &Terminal#              To    R7918030-In-Terminal     00140099
+      *    Move  &Sysident#              To    R7918030-In-System       00150099
+      *                                                                 00160099
+      * eventuelt:                                                      00170099
+      *    Move  &konsern-nr#            To    R7918030-In-Konsern-Nr   00180099
+      *                                                                 00190099
+      * eventuelt: (NO er default)                                      00200099
+      *    Move  &språk - ISO-kode#      To    R7918030-In-Spraak       00210099
+      *                                                                 00220099
+      * eventuelt:                                                      00230099
+      *    Set   R7918030-In-Logging-Ja  To    True                     00240099
+      *                                                                 00250099
+      *    Move  &Meldingskode#          To    R7918030-In-Meldingskode 00260099
+      *    Move  &Meldingstekst#         To    R7918030-In-Meldingstekst00270099
+      *                                                                 00280099
+      *    Call  'F7918030'              Using R7918030-Feilmelding     00290099
+      *    End-Call                                                     00300099
+      *                                                                 00310099
+      *################################################################*00320099
+      * Dato ! Si! Endringens art                                ! 3A ! 00330099
+      *---------------------------------------------------------------- 00340099
+      *200125!SM ! Handle Low values in variable data field      !    ! 00350099
+      *230124!SM ! OptiMIPS - Search most frequent occuring error!CMAS! 00351099
+      *      !   ! codes from lighter version of copybook        !1551! 00360099
+      *      !   ! R791ERDL instead of R791ERDT                  !    ! 00370099
+      *      !   ! Access DB2 to fetch other error messages      !    ! 00380099
+      *      !   ! instead of the copy area R791ERDT.            !    ! 00390099
+      *090209!HLR! Switched from FD_Feilmelding to PO_Feilmelding!V09 ! 00400099
+      *181002!HLR! Laget Copy-versjon av DB2-tabellen.           !    ! 00410099
+      *      !   ! Gjør først oppslag i Copy. Hvis raden ikke    !    ! 00420099
+      *      !   ! finnes i Copy gjøres oppslag i DB2.           !    ! 00430099
+      *      !   ! REXX POGENMEX brukes for Copy-generering.     !    ! 00440099
+      *290802!HLR! NotFound på meldingstekst displayes nå også   !    ! 00450099
+      *      !   ! i batch, ikke bare i CICS.                    !    ! 00460099
+      *100198!HLR! Utvidet med tabell for symbolske variabler,   !JM93! 00470099
+      *      !   ! samt språk og konsern-nr.                     !    ! 00480099
+      *      !   ! Dette har betinget en del omskriving.         !    ! 00490099
+      *120695!RM ! Ny modul                                      !    ! 00500099
+      *################################################################*00510099
+       Environment Division.                                            00520099
+       Configuration Section.                                           00530099
+       Special-Names.                                                   00540099
+           Decimal-Point is comma.                                      00550099
+      *                                                                 00560099
+      *################################################################*00570099
+       Data Division.                                                   00580099
+       Working-Storage Section.                                         00590099
+      *                                                                 00600099
+       01  W-Felter.                                                    00610099
+      *                                                                 00620099
+           05  F7919220                  Pic  X(08) Value 'F7919220'.   00630099
+      *                                                                 00640099
+           05  W-IO-Length               Pic S9(04)              Comp.  00650099
+      *                                                                 00660099
+           05  W-Max-Occ-Var-Tab         Pic S9(04)              Comp.  00670099
+           05  Ind-Var                   Pic S9(04)              Comp.  00680099
+      * CMAS-1551-E772288-START                                         00690099
+           05  W-Max-Occ-Errl-Tab        Pic  S9(04)             Comp.  00700099
+           05  I-Err-Msg                 Pic  S9(04)             Comp.  00710099
+           05  Ind-Msg                   Pic  S9(04)             Comp.  00720099
+      * CMAS-1551-E772288-END                                           00730099
+      *                                                                 00740099
+           05  WD-SQLcode                Pic -999.                      00750099
+           05  WD-LoggTekst              Pic  X(100).                   00760099
+      *                                                                 00770099
+      *----------------------------------------------------------------*00780099
+      * Følgende felter benyttes for ekspandering av meldings-tekst:    00790099
+      *                                                                 00800099
+           05  W-Var-Felter.                                            00810099
+             10  W-Pos                   Pic S9(04)              Comp.  00820099
+             10  W-Pos-Fra               Pic S9(04)              Comp.  00830099
+             10  W-Pos-Til               Pic S9(04)              Comp.  00840099
+             10  W-Pos-Key               Pic S9(04)              Comp.  00850099
+             10  W-Pos-Var               Pic S9(04)              Comp.  00860099
+      *                                                                 00870099
+             10  W-Fra-Tekst             Pic  X(120).                   00880099
+             10  W-Til-Tekst             Pic  X(120).                   00890099
+             10  W-Var-Key               Pic  X(120).                   00900099
+             10  W-Var-Data              Pic  X(120).                   00910099
+      *                                                                 00920099
+             10  Filler                  Pic  X(01).                    00930099
+               88  Sw-Tekst                   Value 'T'.                00940099
+               88  Sw-Key                     Value 'K'.                00950099
+      *                                                                 00960099
+             10  Filler                  Pic  X(04).                    00970099
+               88  Sw-Var-OK                  Value 'OK'.               00980099
+               88  Sw-Var-Feil                Value 'Feil'.             00990099
+      *                                                                 01000099
+           05  W-Kvalifisering.                                         01010099
+             10  W-Konsern-Nr            Pic  9(04).                    01020099
+             10  W-Meldingskode          Pic  X(30).                    01030099
+             10  W-Spraak                Pic  X(02).                    01040099
+      *                                                                 01050099
+      *----------------------------------------------------------------*01060099
+      * Områder til bruk ved database-aksesser.                         01070099
+      *                                                                 01080099
+           Exec Sql Include R791POFM     End-exec.                      01090099
+           Exec Sql Include SQLCA        End-exec.                      01100099
+      *                                                                 01110099
+      *----------------------------------------------------------------*01120099
+      * Copy-område-versjon av FD_Feilmelding.                          01130099
+      *                                                                 01140099
+      * CMAS-1551-E772288-START                                         01150099
+      *Copy R791ERDT.                                                   01160099
+      *                                                                 01170099
+      * Copy-area light version of PO_Feilmelding.                      01180099
+       Copy R791ERDL.                                                   01190099
+      * CMAS-1551-E772288-END                                           01200099
+      *                                                                 01210099
+       01  W-R791ERDC-Key.                                              01220099
+           05  W-R791ERDC-FK-OAKO-ID     Pic  9(18).                    01230099
+           05  W-R791ERDC-Meldingskode   Pic  X(30).                    01240099
+WAIT  *    05  W-R791ERDC-System         Pic  X(02).                    01250099
+           05  W-R791ERDC-Spraak         Pic  X(02).                    01260099
+      *                                                                 01270099
+      *----------------------------------------------------------------*01280099
+      * Internt område:                                                 01290099
+      *                                                                 01300099
+       01  W-Int-IO-Area.                                               01310099
+           Copy R7918030.                                               01320099
+      *                                                                 01330099
+      *----------------------------------------------------------------*01340099
+      * Diverse copy-områder:                                           01350099
+      *                                                                 01360099
+       Copy R7919220.                                                   01370099
+       Copy R7919999.                                                   01380099
+      *                                                                 01390099
+      *################################################################.01400099
+       Linkage Section.                                                 01410099
+      *                                                                 01420099
+       01  L-Ext-IO-Area                 Pic  X(2048).                  01430099
+      *                                                                 01440099
+      *################################################################.01450099
+       Procedure Division                Using L-Ext-IO-Area.           01460099
+      *                                                                 01470099
+       A000-Main                         Section.                       01480099
+      *                                                                 01490099
+           Perform B000-Initialize                                      01500099
+      *                                                                 01510099
+           Perform ZI00-Konv-Input-Versjon                              01520099
+           Perform C000-Interface                                       01530099
+           Perform ZO00-Konv-Output-Versjon                             01540099
+      *                                                                 01550099
+           Goback.                                                      01560099
+      *################################################################*01570099
+       B000-Initialize                   Section.                       01580099
+      *                                                                 01590099
+           Initialize                          R7919999-Error           01600099
+      *                                                                 01620099
+           Compute  W-Max-Occ-Var-Tab                                   01630099
+               =    Length               Of R7918030-In-Variabel-Tabell 01640099
+               /    Length               Of R7918030-In-Variabel-Element01650099
+      *                                                                 01660099
+      * CMAS-1551-E772288-START                                         01670099
+           Compute  W-Max-Occ-Errl-Tab                                  01680099
+               =    Length of            T-R791ERDC                     01690099
+               /    Length of            T-R791ERDC-Tab                 01700099
+      * CMAS-1551-E772288-END                                           01710099
+                                                                        01720099
+           If  Not R7919220-Versjon                                     01730099
+               Initialize                      R7919220-Jobb-Informasjon01740099
+               Set   R7919220-Versjon    To    True                     01750099
+               Call  F7919220            Using R7919220-Jobb-Informasjon01760099
+                                               R7919999-Error           01770099
+               End-Call                                                 01780099
+               If  Not R7919999-Retur-OK                                01790099
+                   Move  'B001'          To    R7919999-Paragraf        01800099
+                   Perform Z900-Abend                                   01810099
+               End-If                                                   01820099
+           End-If                                                       01830099
+      *                                                                 01840099
+           .                                                            01850099
+      *################################################################.01860099
+       C000-Interface                    Section.                       01870099
+      *                                                                 01880099
+           Perform C100-Initier-Resultat                                01890099
+      *                                                                 01900099
+      *------------------------------------------------------------     01910099
+      *   1.  Dersom feilen skal logges, og den har FM i meldings-      01920099
+      *       kode betyr det meldingen ligger klar til logging.         01930099
+      *       Etter logging skal generell melding for systemfeil        01940099
+      *       hentes.                                                   01950099
+      *                                                                 01960099
+      *   2.  Dersom det skal logges, og meldingskoden ikke er FM       01970099
+      *       må vi først finne meldingen som skal logges               01980099
+      *       Deretter logger vi meldingen som er hentet fra tabell     01990099
+      *       før vi endelig henter generell feil melding til           02000099
+      *       bruker                                                    02010099
+      *------------------------------------------------------------     02020099
+      *                                                                 02030099
+      * Dersom ikke melding er ferdig preppet må den leses:             02040099
+      *                                                                 02050099
+           If  Not R7918030-In-Ferdig-Melding                           02060099
+               Perform D000-Hent-Feilmelding                            02070099
+           End-If                                                       02080099
+      *                                                                 02090099
+      * Melding legges klar til eventuell logging:                      02100099
+      *                                                                 02110099
+           Move  R7918030-Ut-Meldingstekst                              02120099
+                                         To    WD-LoggTekst             02130099
+      *                                                                 02140099
+      * Dersom vi skal logge feilmelding, og vi er i CICS, henter       02150099
+      * vi en generell systemfeil-melding etter å ha logget.            02160099
+      *                                                                 02170099
+           If  R7918030-In-Logging-Ja                                   02180099
+      *                                                                 02190099
+               Perform F000-Skriv-Logg                                  02200099
+      *                                                                 02210099
+               If  R7919220-Ut-CICS                                     02220099
+                   Move 'GL-SYSTEM-FEIL' To    R7918030-Ut-Meldingskode 02230099
+                   Move  Spaces          To    R7918030-Ut-Meldingstekst02240099
+                   Perform D000-Hent-Feilmelding                        02250099
+               End-If                                                   02260099
+      *                                                                 02270099
+           End-If                                                       02280099
+      *                                                                 02290099
+           .                                                            02300099
+      *################################################################.02310099
+       C100-Initier-Resultat             Section.                       02320099
+      *                                                                 02330099
+           Initialize                          R7918030-Resultat        02340099
+      *                                                                 02350099
+           Move  R7918030-In-Meldingskode                               02360099
+                                         To    R7918030-Ut-Meldingskode 02370099
+           Move  R7918030-In-Meldingstekst                              02380099
+                                         To    R7918030-Ut-Meldingstekst02390099
+      *                                                                 02400099
+           .                                                            02410099
+      *################################################################.02420099
+       D000-Hent-Feilmelding             Section.                       02430099
+      *                                                                 02440099
+           Perform D100-Les-Feilmelding                                 02450099
+      *                                                                 02460099
+           Evaluate True                                                02470099
+             When R7919999-Retur-Abend                                  02480099
+               Move  R7919999-Melding    To    WD-LoggTekst             02490099
+               Move  R7919999-Melding    To    R7918030-Ut-Meldingstekst02500099
+      *                                                                 02510099
+      * Ved en slik feil logger vi uansett:                             02520099
+               Perform F000-Skriv-Logg                                  02530099
+               Move  'En systemfeil har oppstått, kontakt FD. '         02540099
+                                         To    R7918030-Ut-Meldingstekst02550099
+      *                                                                 02560099
+             When R7919999-Retur-Feil                                   02570099
+               Move  R7919999-Melding    To    WD-LoggTekst             02580099
+               Move  R7919999-Melding    To    R7918030-Ut-Meldingstekst02590099
+      *                                                                 02600099
+               Perform F000-Skriv-Logg                                  02610099
+               If  R7919220-Ut-CICS                                     02620099
+                   Move  'En systemfeil har oppstått. kontakt FD. '     02630099
+                                         To    R7918030-Ut-Meldingstekst02640099
+               End-If                                                   02650099
+      *                                                                 02660099
+             When other                                                 02670099
+               Perform E000-Sy-Sammen-Tekst                             02680099
+      *                                                                 02690099
+           End-Evaluate                                                 02700099
+      *                                                                 02710099
+           .                                                            02720099
+      *################################################################.02730099
+       D100-Les-Feilmelding              Section.                       02740099
+      *                                                                 02750099
+      * I første omgang kvalifiserer vi ikke på system, siden det       02760099
+      * er såpass mange brukere allerede som ikke leverer dette feltet. 02770099
+      *                                                                 02780099
+           Move  R7918030-In-Konsern-Nr  To    W-Konsern-Nr             02790099
+           Move  R7918030-Ut-Meldingskode                               02800099
+                                         To    W-Meldingskode           02810099
+           If  R7918030-In-Spraak        =     Space                    02820099
+             Then                                                       02830099
+               Move  'NO'                To    W-Spraak                 02840099
+             Else                                                       02850099
+               Move  R7918030-In-Spraak  To    W-Spraak                 02860099
+           End-If                                                       02870099
+      *                                                                 02880099
+      * Vi forsøker først med les av copy-versjonen.                    02890099
+      *                                                                 02900099
+           Perform D200-Les-Copy                                        02910099
+      *                                                                 02920099
+      * Dersom vi ikke fant det vi skulle i copy-området,               02930099
+      * forsøker vi oss på DB2-versjonen.                               02940099
+      *                                                                 02950099
+           If  R7919999-Return-Error                                    02960099
+               Set   R7919999-Return-OK  To    True                     02970099
+               Perform D300-Les-DB2                                     02980099
+           End-If                                                       02990099
+      *                                                                 03000099
+           .                                                            03010099
+      *################################################################.03020099
+       D200-Les-Copy                     Section.                       03030099
+      *                                                                 03040099
+      * I første omgang kvalifiserer vi ikke på system, siden det       03050099
+      * er såpass mange brukere allerede som ikke leverer dette feltet. 03060099
+      *                                                                 03070099
+      *    Move  W-Konsern-Nr            To    W-R791ERDC-Konsern-Nr    03080099
+           Move  0                       To    W-R791ERDC-FK-OAKO-ID    03090099
+           Move  W-Meldingskode          To    W-R791ERDC-Meldingskode  03100099
+           Move  W-Spraak                To    W-R791ERDC-Spraak        03110099
+      *                                                                 03120099
+      * Vi prøver først å lese med full kvalifisering på konsern        03130099
+      * og språk.                                                       03140099
+      *                                                                 03150099
+           Perform D210-Search                                          03160099
+      *                                                                 03170099
+      * Dersom vi intet fant prøver vi med konsern-nr lik 0000.         03180099
+      *                                                                 03190099
+           If  R7919999-Return-Error                                    03200099
+           and W-R791ERDC-FK-OAKO-ID     Not = 0                        03210099
+               Move  0                   To    W-R791ERDC-FK-OAKO-ID    03220099
+               Perform D210-Search                                      03230099
+      *        Move  W-Konsern-Nr        To    W-R791ERDC-Konsern-Nr    03240099
+               Move  0                   To    W-R791ERDC-FK-OAKO-ID    03250099
+           End-If                                                       03260099
+      *                                                                 03270099
+      * Dersom vi fortsatt intet fant, prøver vi med default språk.     03280099
+      *                                                                 03290099
+           If  R7919999-Return-Error                                    03300099
+           and W-R791ERDC-Spraak         Not = 'NO'                     03310099
+               Move  'NO'                To    W-R791ERDC-Spraak        03320099
+               Perform D210-Search                                      03330099
+               Move  W-Spraak            To    W-R791ERDC-Spraak        03340099
+           End-If                                                       03350099
+      *                                                                 03360099
+      * Siste forsøk, med default konsern og default språk.             03370099
+      *                                                                 03380099
+           If  R7919999-Return-Error                                    03390099
+           and W-R791ERDC-FK-OAKO-ID     Not = 0                        03400099
+           and W-R791ERDC-Spraak         Not = 'NO'                     03410099
+               Move  0                   To    W-R791ERDC-FK-OAKO-ID    03420099
+               Move  'NO'                To    W-R791ERDC-Spraak        03430099
+               Perform D210-Search                                      03440099
+      *        Move  W-Konsern-Nr        To    W-R791ERDC-Konsern-Nr    03450099
+               Move  0                   To    W-R791ERDC-FK-OAKO-ID    03460099
+               Move  W-Spraak            To    W-R791ERDC-Spraak        03470099
+           End-If                                                       03480099
+      *                                                                 03490099
+      * Nå har vi brukt opp forsøkene våre, vi får se hvordan det gikk. 03500099
+      * Return-Abend vil egentlig ikke kunne forekomme i f.m. search.   03510099
+      *                                                                 03520099
+           Evaluate True                                                03530099
+             When R7919999-Return-Abend                                 03540099
+               Move  Space               To    R7919999-Melding         03550099
+               String 'F7918030 : Feil ved search av copy-område '      03560099
+                      'R791ERDT.'              Delimited by Size        03570099
+                                         Into  R7919999-Melding         03580099
+               End-String                                               03590099
+      *                                                                 03600099
+               Initialize                      DCLPO-Feilmelding        03610099
+      *                                                                 03620099
+             When R7919999-Return-Error                                 03630099
+               Move  Space               To    R7919999-Melding         03640099
+               String 'F7918030 : Meldingskode ikke funnet : '          03650099
+                      R7918030-Ut-Meldingskode Delimited by Size        03660099
+                                         Into  R7919999-Melding         03670099
+               End-String                                               03680099
+      *                                                                 03690099
+               Initialize                      DCLPO-Feilmelding        03700099
+      *                                                                 03710099
+             When other                                                 03720099
+               Move  Space               To    R7919999-Melding         03730099
+      *                                                                 03740099
+               Initialize                      DCLPO-Feilmelding        03750099
+      *        Move  T-R791ERDC-Konsern-Nr (T-R791ERDC-Indx)            03760099
+      *                                  To    FD-Konsern-Nr            03770099
+               Move  0                   To    FK-OAKO-ID               03780099
+      * CMAS-1551-E772288-START                                         03790099
+      *        Move  T-R791ERDC-Meldingskode (T-R791ERDC-Indx)          03800099
+      *                                  To    POFM-Meldingskode        03810099
+      *        Move  T-R791ERDC-Spraak (T-R791ERDC-Indx)                03820099
+      *                                  To    POFM-Spraak              03830099
+      *        Move  T-R791ERDC-System (T-R791ERDC-Indx)                03840099
+      *                                  To    POFM-System              03850099
+      *        Move  T-R791ERDC-Meldingstekst (T-R791ERDC-Indx)         03860099
+      *                                  To    POFM-Meldingstekst       03870099
+               Move  T-R791ERDC-Meldingskode (Ind-Msg)                  03880099
+                                         To    POFM-Meldingskode        03890099
+               Move  T-R791ERDC-Spraak (Ind-Msg)                        03900099
+                                         To    POFM-Spraak              03910099
+               Move  T-R791ERDC-System (Ind-Msg)                        03920099
+                                         To    POFM-System              03930099
+               Move  T-R791ERDC-Meldingstekst (Ind-Msg)                 03940099
+                                         To    POFM-Meldingstekst       03950099
+      * CMAS-1551-E772288-END                                           03960099
+      *                                                                 03970099
+           End-Evaluate                                                 03980099
+      *                                                                 03990099
+           .                                                            04000099
+      *################################################################.04010099
+       D210-Search                       Section.                       04020099
+      *                                                                 04030099
+      * CMAS-1551-E772288-START                                         04040099
+      *    Search All T-R791ERDC-Tab                                    04050099
+      *      At end                                                     04060099
+      *        Set   R7919999-Return-Error                              04070099
+      *                                  To    True                     04080099
+      *      When T-R791ERDC-Key (T-R791ERDC-Indx)                      04090099
+      *                                  =     W-R791ERDC-Key           04100099
+      *        Set   R7919999-Return-OK  To    True                     04110099
+      *    End-Search                                                   04120099
+      *                                                                 04130099
+           Set R7919999-Return-Error     To True                        04140099
+           Move 0                        To Ind-Msg                     04150099
+      *                                                                 04160099
+           Perform varying I-Err-Msg from 1 by 1                        04170099
+             until R7919999-Return-Ok                                   04180099
+                or  I-Err-Msg >  W-Max-Occ-Errl-Tab                     04190099
+                If T-R791ERDC-Key (I-Err-Msg) = W-R791ERDC-Key          04200099
+                  Set R7919999-Return-Ok To True                        04210099
+                  Move I-Err-Msg         To Ind-Msg                     04220099
+                End-If                                                  04230099
+           End-Perform                                                  04240099
+                                                                        04250099
+      * CMAS-1551-E772288-END                                           04260099
+           .                                                            04270099
+      *################################################################.04280099
+       D300-Les-DB2                      Section.                       04290099
+      *                                                                 04300099
+      * I første omgang kvalifiserer vi ikke på system, siden det       04310099
+      * er såpass mange brukere allerede som ikke leverer dette feltet. 04320099
+      *                                                                 04330099
+      *    Move  W-Konsern-Nr            To    FD-Konsern-Nr            04340099
+           Move  0                       To    FK-OAKO-ID               04350099
+           Move  W-Meldingskode          To    POFM-Meldingskode        04360099
+           Move  W-Spraak                To    POFM-Spraak              04370099
+      *                                                                 04380099
+      * Vi prøver først å lese med full kvalifisering på konsern        04390099
+      * og språk.                                                       04400099
+      *                                                                 04410099
+           Perform D310-SQL                                             04420099
+      *                                                                 04430099
+      * Dersom vi intet fant prøver vi med konsern-nr lik 0000.         04440099
+      *                                                                 04450099
+           If  R7919999-Return-Error                                    04460099
+           and FK-OAKO-ID                Not = 0                        04470099
+               Move  0                   To    FK-OAKO-ID               04480099
+               Perform D310-SQL                                         04490099
+      *        Move  W-Konsern-Nr        To    FD-Konsern-Nr            04500099
+               Move  0                   To    FK-OAKO-ID               04510099
+           End-If                                                       04520099
+      *                                                                 04530099
+      * Dersom vi fortsatt intet fant, prøver vi med default språk.     04540099
+      *                                                                 04550099
+           If  R7919999-Return-Error                                    04560099
+           and POFM-Spraak               Not = 'NO'                     04570099
+               Move  'NO'                To    POFM-Spraak              04580099
+               Perform D310-SQL                                         04590099
+               Move  W-Spraak            To    POFM-Spraak              04600099
+           End-If                                                       04610099
+      *                                                                 04620099
+      * Siste forsøk, med default konsern og default språk.             04630099
+      *                                                                 04640099
+           If  R7919999-Return-Error                                    04650099
+           and FK-OAKO-ID                Not = 0                        04660099
+           and POFM-Spraak               Not = 'NO'                     04670099
+               Move  0                   To    FK-OAKO-ID               04680099
+               Move  'NO'                To    POFM-Spraak              04690099
+               Perform D310-SQL                                         04700099
+      *        Move  W-Konsern-Nr        To    FD-Konsern-Nr            04710099
+               Move  0                   To    FK-OAKO-ID               04720099
+               Move  W-Spraak            To    POFM-Spraak              04730099
+           End-If                                                       04740099
+      *                                                                 04750099
+      * Nå har vi brukt opp forsøkene våre, vi får se hvordan det gikk. 04760099
+      *                                                                 04770099
+           Evaluate True                                                04780099
+             When R7919999-Return-Abend                                 04790099
+               Move  Space               To    R7919999-Melding         04800099
+               Move  SQLcode             To    WD-Sqlcode               04810099
+               String 'F7918030 : Feil ved les av tabell '              04820099
+                      'PO_Feilmelding, SQLcode: '                       04830099
+                      WD-SQLcode               Delimited by Size        04840099
+                                         Into  R7919999-Melding         04850099
+               End-String                                               04860099
+               Perform Z800-SQL-Abend                                   04870099
+      *                                                                 04880099
+             When R7919999-Return-Error                                 04890099
+               Move  Space               To    R7919999-Melding         04900099
+               String 'F7918030 : Meldingskode ikke funnet : '          04910099
+                      R7918030-Ut-Meldingskode Delimited by Size        04920099
+                                         Into  R7919999-Melding         04930099
+               End-String                                               04940099
+      *                                                                 04950099
+             When other                                                 04960099
+               Move  Space               To    R7919999-Melding         04970099
+      *                                                                 04980099
+           End-Evaluate                                                 04990099
+      *                                                                 05000099
+           .                                                            05010099
+      *################################################################.05020099
+       D310-SQL                          Section.                       05030099
+      *                                                                 05040099
+           Exec Sql                                                     05050099
+                Select POFM_Meldingstekst                               05060099
+                Into   :POFM-Meldingstekst                              05070099
+                From   PO_Feilmelding                                   05080099
+                Where  POFM_Meldingskode =     :POFM-Meldingskode       05090099
+                and    POFM_Spraak       =     :POFM-Spraak             05100099
+                and    FK_OAKO_ID        =     :FK-OAKO-ID              05110099
+           End-Exec                                                     05120099
+      *                                                                 05130099
+           Evaluate SQLcode                                             05140099
+             When +0                                                    05150099
+               Set   R7919999-Retur-OK   To    True                     05160099
+             When +100                                                  05170099
+               Set   R7919999-Return-Error                              05180099
+                                         To    True                     05190099
+             When Other                                                 05200099
+               Set   R7919999-Return-Abend                              05210099
+                                         To    True                     05220099
+           End-Evaluate                                                 05230099
+      *                                                                 05240099
+           .                                                            05250099
+      *################################################################*05260099
+       E000-Sy-Sammen-Tekst              Section.                       05270099
+      *                                                                 05280099
+           Perform E100-Bytt-Ut-Variabler                               05290099
+      *                                                                 05300099
+           If  R7918030-Ut-Meldingstekst =     Space                    05310099
+             Then                                                       05320099
+               Move  POFM-Meldingstekst  To    R7918030-Ut-Meldingstekst05330099
+      *                                                                 05340099
+             Else                                                       05350099
+               String R7918030-Ut-Meldingstekst                         05360099
+                                               Delimited by space       05370099
+                      ' : '                    Delimited by size        05380099
+                      POFM-Meldingstekst       Delimited by size        05390099
+                                         Into  R7918030-Ut-Meldingstekst05400099
+               End-String                                               05410099
+                                                                        05420099
+      *                                                                 05430099
+           End-If                                                       05440099
+      *                                                                 05450099
+           .                                                            05460099
+      *################################################################*05470099
+       E100-Bytt-Ut-Variabler            Section.                       05480099
+      *                                                                 05490099
+           Move  POFM-Meldingstekst      To    W-Fra-Tekst              05500099
+           Move  Space                   To    W-Til-Tekst              05510099
+           Move  Space                   To    W-Var-Key                05520099
+      *                                                                 05530099
+           Move  +0                      To    W-Pos-Fra                05540099
+           Move  +0                      To    W-Pos-Til                05550099
+           Move  +0                      To    W-Pos-Key                05560099
+      *                                                                 05570099
+           Set   Sw-Var-OK               To    True                     05580099
+           Set   Sw-Tekst                To    True                     05590099
+      *                                                                 05600099
+           Perform Varying W-Pos-Fra                                    05610099
+                   From  +1              By    +1                       05620099
+                   Until W-Pos-Fra       >     Length                   05630099
+                                         Of    W-Fra-Tekst              05640099
+      *                                                                 05650099
+               Evaluate True                                            05660099
+      *                                                                 05670099
+      * Start symbolsk variabel.                                        05680099
+                 When Sw-Tekst                                          05690099
+                 and  W-Fra-Tekst (W-Pos-Fra:1)                         05700099
+                                         =     '&'                      05710099
+                   Perform E110-Start-Key                               05720099
+      *                                                                 05730099
+      * Slutt symbolsk variabel.                                        05740099
+                 When Sw-Key                                            05750099
+                 and  W-Fra-Tekst (W-Pos-Fra:1)                         05760099
+                                         =     '#'                      05770099
+                   Perform E120-Slutt-Key                               05780099
+      *                                                                 05790099
+      * Forrige start symbolsk variabel var "falsk", grisehalen skulle  05800099
+      * vært med i teksten.                                             05810099
+      * Ny symbolsk variabel starter.                                   05820099
+                 When Sw-Key                                            05830099
+                 and  W-Fra-Tekst (W-Pos-Fra:1)                         05840099
+                                         =     '&'                      05850099
+                   Perform E130-Falsk-Key                               05860099
+                   Perform E110-Start-Key                               05870099
+      *                                                                 05880099
+      * Forrige start symbolsk variabel var "falsk", grisehalen skulle  05890099
+      * vært med i teksten.                                             05900099
+                 When Sw-Key                                            05910099
+                 and  W-Pos-Fra          =     Length                   05920099
+                                         Of    W-Fra-Tekst              05930099
+                   Perform E130-Falsk-Key                               05940099
+                   Perform E140-Tekst-Byte                              05950099
+      *                                                                 05960099
+      * Ordinær tekst, byte flyttes.                                    05970099
+                 When Sw-Tekst                                          05980099
+                   Perform E140-Tekst-Byte                              05990099
+      *                                                                 06000099
+      * Symbolsk variabel, byte flyttes.                                06010099
+                 When Sw-Key                                            06020099
+                   Perform E150-Key-Byte                                06030099
+      *                                                                 06040099
+               End-Evaluate                                             06050099
+      *                                                                 06060099
+           End-Perform                                                  06070099
+      *                                                                 06080099
+           Move  W-Til-Tekst             To    POFM-Meldingstekst       06090099
+      *                                                                 06100099
+      * Dersom vi har snublet over feil i variabler er det all grunn    06110099
+      * til å logge det:                                                06120099
+      *                                                                 06130099
+           If  Sw-Var-Feil                                              06140099
+               Perform E190-Feil-I-Variabler                            06150099
+           End-If                                                       06160099
+      *                                                                 06170099
+           .                                                            06180099
+      *################################################################*06190099
+       E110-Start-Key                    Section.                       06200099
+      *                                                                 06210099
+           Set   Sw-Key                  To    True                     06220099
+           Move  +0                      To    W-Pos-Key                06230099
+           Move  Space                   To    W-Var-Key                06240099
+      *                                                                 06250099
+           .                                                            06260099
+      *################################################################*06270099
+       E120-Slutt-Key                    Section.                       06280099
+      *                                                                 06290099
+      * Vi har nå samlet opp en key. Denne prøver vi å finne igjen      06300099
+      * i tabellen som er levert fra kallende program.                  06310099
+      *                                                                 06320099
+           Perform Varying Ind-Var                                      06330099
+                   From  +1              By    +1                       06340099
+                   Until Ind-Var         >     W-Max-Occ-Var-Tab        06350099
+                   or    R7918030-In-Variabel-Key (Ind-Var)             06360099
+                                         =     W-Var-Key                06370099
+                   or    R7918030-In-Variabel-Key (Ind-Var)             06380099
+                                         =     Space                    06390099
+           End-Perform                                                  06400099
+      *                                                                 06410099
+      * Dersom vi ikke fant key'en i variabel-tabellen, legges key'en   06420099
+      * ut i teksten "as is".                                           06430099
+      *                                                                 06440099
+           If  Ind-Var                   >     W-Max-Occ-Var-Tab        06450099
+           or  R7918030-In-Variabel-Key (Ind-Var)                       06460099
+                                         =     Space                    06470099
+             Then                                                       06480099
+               Perform E130-Falsk-Key                                   06490099
+               Add   +1                  To    W-Pos-Til                06500099
+               Move  '#'                 To    W-Til-Tekst (W-Pos-Til:1)06510099
+               Set   Sw-Var-Feil         To    True                     06520099
+      *                                                                 06530099
+      * Vi blar oss bakfra i var-data for å unngå å ta med oss          06540099
+      * etterfølgende blanke.                                           06550099
+      *                                                                 06560099
+             Else                                                       06570099
+               Move  R7918030-In-Variabel-Data (Ind-Var)                06580099
+                                         To    W-Var-Data               06590099
+               Move  Length              Of    R7918030-In-Variabel-Data06600099
+                                         To    W-Pos                    06610099
+               Perform Varying W-Pos                                    06620099
+                       From  W-Pos       By    -1                       06630099
+                       Until W-Pos       <     +1                       06640099
+200125*                or    W-Var-Data (W-Pos:1)                       06650099
+200125                 or (  W-Var-Data (W-Pos:1)                       06660099
+                                         Not = Space                    06670099
+200125                 And   W-Var-Data (W-Pos:1)                       06680099
+200125                                   Not = Low-values)              06690099
+               End-Perform                                              06700099
+      *                                                                 06710099
+      * Dersom var-data er tomt, anser vi det for å være en feil.       06720099
+      *                                                                 06730099
+               If  W-Pos                 <     +1                       06740099
+                 Then                                                   06750099
+                   Perform E130-Falsk-Key                               06760099
+                   Add   +1              To    W-Pos-Til                06770099
+                   Move  '#'             To    W-Til-Tekst (W-Pos-Til:1)06780099
+200125*            Set   Sw-Var-Feil     To    True                     06790099
+      *                                                                 06800099
+                 Else                                                   06810099
+                   Perform Varying W-Pos-Var                            06820099
+                           From  +1      By    +1                       06830099
+                           Until W-Pos-Var                              06840099
+                                         >     W-Pos                    06850099
+                       Add   +1          To    W-Pos-Til                06860099
+                       Move  W-Var-Data (W-Pos-Var:1)                   06870099
+                                         To    W-Til-Tekst (W-Pos-Til:1)06880099
+                   End-Perform                                          06890099
+      *                                                                 06900099
+               End-If                                                   06910099
+      *                                                                 06920099
+           End-If                                                       06930099
+      *                                                                 06940099
+           Set   Sw-Tekst                To    True                     06950099
+      *                                                                 06960099
+           .                                                            06970099
+      *################################################################*06980099
+       E130-Falsk-Key                    Section.                       06990099
+      *                                                                 07000099
+      * Dersom Sw-Key allerede er satt, skulle forrige grisehale        07010099
+      * vært med i teksten. Vi flytter de karakterene vi har samlet oss 07020099
+      * tilbake til teksten igjen.                                      07030099
+      *                                                                 07040099
+           Add   +1                      To    W-Pos-Til                07050099
+           Move  '&'                     To    W-Til-Tekst (W-Pos-Til:1)07060099
+           Perform Varying W-Pos                                        07070099
+                   From  +1              By    +1                       07080099
+                   Until W-Pos           >     W-Pos-Key                07090099
+               Add   +1                  To    W-Pos-Til                07100099
+               Move  W-Var-Key (W-Pos:1) To    W-Til-Tekst (W-Pos-Til:1)07110099
+           End-Perform                                                  07120099
+           Set   Sw-Tekst                To    True                     07130099
+      *                                                                 07140099
+           .                                                            07150099
+      *################################################################*07160099
+       E140-Tekst-Byte                   Section.                       07170099
+      *                                                                 07180099
+           Add   +1                      To    W-Pos-Til                07190099
+           Move  W-Fra-Tekst (W-Pos-Fra:1)                              07200099
+                                         To    W-Til-Tekst (W-Pos-Til:1)07210099
+      *                                                                 07220099
+           .                                                            07230099
+      *################################################################*07240099
+       E150-Key-Byte                     Section.                       07250099
+      *                                                                 07260099
+           Add   +1                      To    W-Pos-Key                07270099
+           Move  W-Fra-Tekst (W-Pos-Fra:1)                              07280099
+                                         To    W-Var-Key (W-Pos-Key:1)  07290099
+      *                                                                 07300099
+           .                                                            07310099
+      *################################################################*07320099
+       E190-Feil-I-Variabler             Section.                       07330099
+      *                                                                 07340099
+      * Variabler som ikke finnes - denslags logger vi:                 07350099
+      *                                                                 07360099
+           Move  Space                   To    WD-LoggTekst             07370099
+           String 'F7918030 - feil sym.var: '                           07380099
+                  POFM-Meldingstekst           Delimited by size        07390099
+                                         Into  WD-LoggTekst             07400099
+           End-String                                                   07410099
+           Perform F000-Skriv-Logg                                      07420099
+      *                                                                 07430099
+           .                                                            07440099
+      *################################################################*07450099
+       F000-Skriv-Logg                   Section.                       07460099
+      *                                                                 07470099
+           Call  'F7918031'              Using R7918030-Feilmelding     07480099
+                                               WD-LoggTekst             07490099
+                                               R7919999-Error           07500099
+           End-Call                                                     07510099
+      *                                                                 07520099
+           .                                                            07530099
+      *################################################################*07540099
+       ZI00-Konv-Input-Versjon           Section.                       07550099
+      *                                                                 07560099
+      * Versjons-håndtering - vi kaller opp for evt. konvertering       07570099
+      *                                                                 07580099
+           Set   R7918030-Versjon        To    True                     07590099
+           Move  Length                  Of    R7918030-Feilmelding     07600099
+                                         To    W-IO-Length              07610099
+      *                                                                 07620099
+           Evaluate True                                                07630099
+             When L-Ext-IO-Area (1:8)    =     R7918030-Versjons-Nr     07640099
+             and  Length                 Of    L-Ext-IO-Area            07650099
+                                         Not < W-IO-Length              07660099
+               Move  L-Ext-IO-Area (1:W-IO-Length)                      07670099
+                                         To    W-Int-IO-Area            07680099
+      *                                                                 07690099
+             When Other                                                 07700099
+               Call  'F7918990'                                         07710099
+                   Using By Content            'F7918030 '              07720099
+                                               'INPUT '                 07730099
+                         By Reference          L-Ext-IO-Area            07740099
+                                               W-Int-IO-Area            07750099
+                                               R7919999-Error           07760099
+               End-Call                                                 07770099
+      *                                                                 07780099
+               If  R7919999-Retur-Abend                                 07790099
+                   Move  'ZI01'          To    R7919999-Paragraf        07800099
+                   Perform Z900-Abend                                   07810099
+               End-If                                                   07820099
+      *                                                                 07830099
+           End-Evaluate                                                 07840099
+      *                                                                 07850099
+           .                                                            07860099
+      *################################################################*07870099
+       ZO00-Konv-Output-Versjon          Section.                       07880099
+      *                                                                 07890099
+      * Versjons-håndtering - vi kaller opp for evt. konvertering       07900099
+      *                                                                 07910099
+           Evaluate True                                                07920099
+             When L-Ext-IO-Area (1:8)    =     R7918030-Versjons-Nr     07930099
+             and  Length                 Of    L-Ext-IO-Area            07940099
+                                         Not < W-IO-Length              07950099
+               Move  W-Int-IO-Area       To    L-Ext-IO-Area            07960099
+                                                         (1:W-IO-Length)07970099
+      *                                                                 07980099
+             When Other                                                 07990099
+               Call  'F7918990'                                         08000099
+                   Using By Content            'F7918030 '              08010099
+                                               'OUTPUT '                08020099
+                         By Reference          L-Ext-IO-Area            08030099
+                                               W-Int-IO-Area            08040099
+                                               R7919999-Error           08050099
+               End-Call                                                 08060099
+      *                                                                 08070099
+               If  R7919999-Retur-Abend                                 08080099
+                   Move  'ZO01'          To    R7919999-Paragraf        08090099
+                   Perform Z900-Abend                                   08100099
+               End-If                                                   08110099
+      *                                                                 08120099
+           End-Evaluate                                                 08130099
+      *                                                                 08140099
+           .                                                            08150099
+      *################################################################*08160099
+       Z800-SQL-Abend                    Section.                       08170099
+      *                                                                 08180099
+      * Denne foretar ingen user-abend, men informasjonen blir skrevet  08190099
+      * enten på CICS-logg eller på Sysout.                             08200099
+      *                                                                 08210099
+           Call  'F7919980'              Using SQLCA                    08220099
+                                               R7919999-Error           08230099
+           End-Call                                                     08240099
+      *                                                                 08250099
+           .                                                            08260099
+      *################################################################*08270099
+       Z900-Abend                        Section.                       08280099
+      *                                                                 08290099
+      * Spesialvariant for å håndtere feil fra versjonshåndtering etc.  08300099
+      *                                                                 08310099
+           Move  'FM'                    To    R7918030-Ut-Meldingskode 08320099
+           Move  R7919999-Melding        To    R7918030-Ut-Meldingstekst08330099
+           Move  R7919999-Melding        To    WD-LoggTekst             08340099
+           Perform F000-Skriv-Logg                                      08350099
+      *                                                                 08360099
+           Move  'GL-SYSTEM-FEIL'        To    R7918030-Ut-Meldingskode 08370099
+           Move  Spaces                  To    R7918030-Ut-Meldingstekst08380099
+           Perform D000-Hent-Feilmelding                                08390099
+      *                                                                 08400099
+           Goback.                                                      08410099

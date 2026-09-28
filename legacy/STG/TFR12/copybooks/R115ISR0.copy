@@ -1,0 +1,131 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD Trade Finance                                                00030000
+      *                                                                 00040000
+      * Copy-area R115ISR0.                                             00050000
+      *                                                                 00060000
+      * Interface for all database access on table TF_Sys_Code_Rel.     00070000
+      *                                                                 00080000
+      * The interface kan read one spesific occurence,                  00090000
+      * or several occurences, fully or partly qualified with           00100000
+      * from- and to- values.                                           00110000
+      *                                                                 00120000
+      * When reading several occurences, one must always start with     00130000
+      * -In-Get-1st, and continue with -In-Get-Next.                    00140000
+      *                                                                 00150000
+      * NB!  There are several key-fields, which may be used            00160000
+      *      differently depending on the need.                         00170000
+      *      See seperate description below.                            00180000
+      *                                                                 00190000
+      *                                                                 00200000
+      * An ordinary Select call may look like this:                     00210000
+      *                                                                 00220000
+      *    Initialize                          R115ISR0-Sys-Code-Rel    00230000
+      *    Set   R115ISR0-Version        To    True                     00240000
+      *    Set   R115ISR0-In-Select      To    True                     00250000
+      *    Move  &from sys-type          To    R115ISR0-In-From-ST-Type 00260000
+      *    Move  &from sys-code          To    R115ISR0-In-From-SC-Code 00270000
+      *    Move  &to sys-type            To    R115ISR0-In-To-ST-Type   00280000
+      *    Move  &to sys-code            To    R115ISR0-In-To-SC-Code   00290000
+      *    Move  &relation-type          To    R115ISR0-In-Rel-Type     00300000
+      *                                                                 00310000
+      *    Call  'F115ISR0'              Using R115ISR0-Sys-Code-Rel    00320000
+      *                                        R7919999-Error-Area      00330001
+      *    End-Call                                                     00340000
+      *                                                                 00350000
+      *    Evaluate True                                                00360000
+      *      When R7919999-Return-Abend                                 00370001
+      *        Move  '&&&&'              To    R7919999-Paragraph       00380001
+      *        Perform Z900-Abend                                       00390000
+      *                                                                 00400000
+      *      When R7919999-Return-Error                                 00410001
+      *        ...not found...                                          00420000
+      *                                                                 00430000
+      *      When R7919999-Return-OK                                    00440001
+      *        ...found...                                              00450000
+      *                                                                 00460000
+      *    End-Evaluate                                                 00470000
+      *                                                                 00480000
+      *################################################################*00490000
+      * Date ! Si! Change description                            ! 3A ! 00500000
+      *------+---+-----------------------------------------------+----+ 00510000
+      *170399!HLR! New copy area                                 !LG10! 00520000
+      *################################################################*00530000
+      *                                                                 00540000
+         03  R115ISR0-Sys-Code-Rel.                                     00550000
+      *                                                                 00560000
+           05  R115ISR0-Version-No              Pic  X(08).             00570000
+             88  R115ISR0-Version                    Value '19990317'.  00580000
+      *                                                                 00590000
+      *----------------------------------------------------------------*00600000
+      *                                                                 00610000
+           05  R115ISR0-Qualification.                                  00620000
+      *                                                                 00630000
+             10  R115ISR0-In-Action             Pic  X(16).             00640000
+               88  R115ISR0-In-Get-1st               Value 'GET-1ST'.   00650000
+               88  R115ISR0-In-Get-Next              Value 'GET-NEXT'.  00660000
+               88  R115ISR0-In-Select                Value 'SELECT'.    00670000
+               88  R115ISR0-In-Insert                Value 'INSERT'.    00680000
+      *        88  R115ISR0-In-Update                Value 'UPDATE'.    00690000
+               88  R115ISR0-In-Delete                Value 'DELETE'.    00700000
+      *                                                                 00710000
+      * For cursor (Get-1st / Get-Next), you may mask any key field,    00720000
+      * e.g. like this: 'ABC*'.                                         00730000
+      * This will give you all rows with the field starting with 'ABC'. 00740000
+      *                                                                 00750000
+             10  R115ISR0-In-Key.                                       00760000
+               15  R115ISR0-In-F-I-No            Pic  X(18).            00770003
+               15  R115ISR0-In-F-I-Id            Pic S9(18)      Comp-3.00780003
+      *                                                                 00790003
+               15  R115ISR0-In-From.                                    00800000
+                 20  R115ISR0-In-From-ST-Type    Pic  X(20).            00810002
+                 20  R115ISR0-In-From-Contr-Type Pic  X(03).            00820002
+                 20  R115ISR0-In-From-SC-Code    Pic  X(20).            00830002
+      *                                                                 00840000
+               15  R115ISR0-In-To.                                      00850000
+                 20  R115ISR0-In-To-ST-Type      Pic  X(20).            00860002
+                 20  R115ISR0-In-To-Contr-Type   Pic  X(03).            00870002
+                 20  R115ISR0-In-To-SC-Code      Pic  X(20).            00880002
+      *                                                                 00890000
+               15  R115ISR0-In-Relation-Type     Pic  X(20).            00900002
+      *                                                                 00910000
+      * When performing a Get-1st-call one may ask for the total        00920000
+      * number of rows complying with the qualifISRtion.                00930000
+      *                                                                 00940000
+             10  R115ISR0-In-Code-Count          Pic  X(10).            00950002
+               88  R115ISR0-In-CC-Count               Value 'COUNT'.    00960002
+      *                                                                 00970000
+      *----------------------------------------------------------------*00980000
+      *                                                                 00990000
+           05  R115ISR0-Data.                                           01000000
+      *                                                                 01010000
+             10  R115ISR0-Key.                                          01020000
+               15  R115ISR0-F-I-Id               Pic S9(18)      Comp-3.01030003
+      *                                                                 01040003
+               15  R115ISR0-From.                                       01050003
+                 20  R115ISR0-From-ST-Type       Pic  X(20).            01060002
+                 20  R115ISR0-From-Contr-Type    Pic  X(03).            01070003
+                 20  R115ISR0-From-SC-Code       Pic  X(20).            01080003
+      *                                                                 01090000
+               15  R115ISR0-To.                                         01100000
+                 20  R115ISR0-To-ST-Type         Pic  X(20).            01110002
+                 20  R115ISR0-To-Contr-Type      Pic  X(03).            01120002
+                 20  R115ISR0-To-SC-Code         Pic  X(20).            01130006
+      *                                                                 01140000
+               15  R115ISR0-Relation-Type        Pic  X(20).            01150002
+      *                                                                 01160000
+             10  R115ISR0-Filler.                                       01170002
+               15  R115ISR0-F-I-No               Pic  X(18).            01180003
+      *                                                                 01190002
+      * The following accumulators are only relevant when performing    01200000
+      * Get-1st or Get-Next.                                            01210000
+      * Row-No starts on 1 when doing Get-1st, and increases by 1 for   01220000
+      * each Get-Next.                                                  01230000
+      * Total-Rows is set when doing Get-1st, but ONLY if the           01240000
+      * In-CC-Count is set. The field will tell you how many rows       01250000
+      * that complies with your qualifISRtion.                          01260000
+      *                                                                 01270000
+             10  R115ISR0-Out-Accumulators.                             01280000
+               15  R115ISR0-Out-Row-No           Pic S9(11)      Comp-3.01290002
+               15  R115ISR0-Out-Total-Rows       Pic S9(11)      Comp-3.01300002
+      *                                                                 01310000

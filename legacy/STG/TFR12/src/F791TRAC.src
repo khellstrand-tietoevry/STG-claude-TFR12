@@ -1,0 +1,525 @@
+       Identification Division.                                         00010000
+       Program-Id. F791TRAC.                                            00020000
+       Author. Kruger,Jan-Petter.                                       00030000
+      *################################################################*00040000
+      *                                                                *00050000
+      * GSM Modul for å skrive trace informasjon                       *00060000
+      *                                                                *00070000
+      *################################################################*00080000
+      * Dato ! Si! Endringens art                                ! 3A !*00090000
+      *------+---+-----------------------------------------------+----+*00100000
+      *091197!jpk! Ny Modul                                      !    !*00110000
+      *################################################################*00120000
+       Environment Division.                                            00130000
+       Configuration                     Section.                       00140000
+      *                                                                 00150000
+       Special-Names.                                                   00160000
+      *                                                                 00170000
+           Decimal-Point Is Comma.                                      00180000
+      *                                                                 00190000
+      *################################################################*00200000
+       Data Division.                                                   00210000
+      *                                                                 00220000
+       Working-Storage                   Section.                       00230000
+      *                                                                 00240000
+       01  W-Felter.                                                    00250000
+           05  W-Trace-Area              Pic  x(40000).                 00260000
+      *                                                                 00270000
+           05  W-I-Len                   Pic s9(08)              Binary.00280001
+      *                                                                 00290001
+           05  W-Timestamp               Pic  9(16).                    00300000
+      *                                                                 00310000
+      *----------------------------------------------------------------*00320000
+      * Trace info header                                               00330000
+      *                                                                 00340000
+       Copy R791DBGH.                                                   00350000
+      *                                                                 00360000
+      *----------------------------------------------------------------*00370000
+      * MQ områder                                                      00380000
+      *                                                                 00390000
+       Copy R791MQS0.                                                   00400000
+       Copy R791MQSH.                                                   00410000
+      *                                                                 00420000
+      *----------------------------------------------------------------*00430000
+      * Int-IO-Area:                                                    00440000
+      *                                                                 00450000
+       Copy R791TRAC.                                                   00460000
+      *                                                                 00470000
+      *----------------------------------------------------------------*00480000
+      * Spesielle GSM modul copyområder                                 00490000
+      *                                                                 00500000
+       Copy  R7919070.                                                  00510000
+       Copy  R7919220.                                                  00520000
+       Copy  R7919310.                                                  00530000
+       Copy  R7919330.                                                  00540001
+       Copy  R791CICS.                                                  00550000
+       Copy  R7919999.                                                  00560005
+      *                                                                 00570000
+       Linkage                           Section.                       00580000
+      *                                                                 00590000
+       Copy R791TRAC                     Replacing                      00600000
+                                               R791TRAC-Interface       00610000
+                                         By    F791TRAC-Ext-IO-Area.    00620000
+      *                                                                 00630000
+      *----------------------------------------------------------------*00640000
+      * Her ligger gamle versjoner av copy-området, på grunn av         00650000
+      * versjonshåndtering.                                             00660000
+      * Vi skal konvertere til og fra ny layout.                        00670000
+      *                                                                 00680000
+       Copy R791TRAG.                                                   00690000
+      *                                                                 00700000
+      *################################################################*00710000
+       Procedure Division                Using F791TRAC-Ext-Io-Area.    00720005
+      *                                                                 00730000
+       A000-Main                         Section.                       00740000
+      *                                                                 00750000
+           Initialize                    R7919999-Error                 00760005
+      *                                                                 00770000
+           Perform ZI00-Konv-Input-Versjon                              00780000
+           Perform F791TRAC-Interface                                   00790000
+           Perform ZO00-Konv-Output-Versjon                             00800000
+      *                                                                 00810000
+           Goback.                                                      00820000
+      *################################################################*00830000
+      *                                                                *00840000
+      * Interface. Styrer behandlingen                                 *00850000
+      *                                                                *00860000
+      *----------------------------------------------------------------*00870000
+       F791TRAC-Interface                Section.                       00880000
+      *                                                                 00890000
+           Perform  B000-Initialize                                     00900000
+           Perform  B100-Kontroll                                       00910000
+           Perform  C000-Behandling                                     00920000
+           .                                                            00930000
+      *                                                                 00940000
+       F791TRAC-Interface-Ex.                                           00950000
+           Exit.                                                        00960000
+                                                                        00970000
+      *################################################################*00980000
+      *                                                                *00990000
+      * Utfører initiell initialisering av variabler som skal          *01000000
+      * initialiseres hver gang modulen kalles.                        *01010000
+      *                                                                *01020000
+      *----------------------------------------------------------------*01030000
+       B000-Initialize                   Section.                       01040000
+      *                                                                 01050000
+      *    Initierer diverse                                            01060000
+      *                                                                 01070000
+           Move  Spaces                  To    W-Trace-Area             01080000
+      *                                                                 01090000
+      *    Vi må finne ut hvilket miljø vi kjører i                     01100000
+      *                                                                 01110000
+           If  Not R7919220-Versjon                                     01120000
+               Initialize                      R791DBGH-Trace-Info-Hdr  01130000
+               Set  R791DBGH-Eyecatcher-Val                             01140003
+                                         To    True                     01150003
+               Initialize                      R7919220-Jobb-Informasjon01160000
+               Set   R7919220-Versjon    To    True                     01170000
+               Call  'F7919220'          Using R7919220-Jobb-Informasjon01180000
+                                               R7919999-Error           01190000
+               End-Call                                                 01200000
+               If  R7919999-Retur-Abend                                 01210000
+                   Move  'B001'          To    R7919999-Paragraf        01220000
+                   Perform Z900-Abend                                   01230000
+               End-If                                                   01240000
+                                                                        01250000
+               Evaluate True                                            01260000
+      *                                                                 01270000
+                 When  R7919220-Ut-Cics                                 01280000
+                   Move  'CICS'          To    R791DBGH-Miljo           01290000
+                   Move  R7919220-Ut-Cics-Id                            01300000
+                                         To    R791DBGH-Jobbnavn        01310000
+                   Initialize                  R791CICS-Dfheiblk        01320000
+                   Set  R791CICS-Versjon To    True                     01330000
+                                                                        01340000
+                   Call  'F791CICS'                                     01350000
+                        Using By Reference     R791CICS-Dfheiblk        01360000
+                              By Reference     R7919999-Error           01370000
+                   End-Call                                             01380000
+                   Move  R791CICS-Ut-Eibtrnid                           01390000
+                                         To    R791DBGH-Transid         01400000
+                   Move  R791CICS-Ut-Eibtaskn                           01410000
+                                         To    R791DBGH-Taskno          01420000
+      *                                                                 01430000
+                 When  R7919220-Ut-Ims                                  01440000
+                   Move  'BATCH'         To    R791DBGH-Miljo           01450000
+                   Move  R7919220-Ut-Jobb-Navn                          01460001
+                                         To    R791DBGH-Jobbnavn        01470000
+      *                                                                 01480000
+                 When  R7919220-Ut-Batch                                01490000
+                   Move  'BATCH'         To    R791DBGH-Miljo           01500000
+                   Move  R7919220-Ut-Jobb-Navn                          01510001
+                                         To    R791DBGH-Jobbnavn        01520000
+      *                                                                 01530000
+               End-Evaluate                                             01540000
+      *                                                                 01550000
+               Move  01                  To    R791DBGH-Versjon         01560000
+           End-If                                                       01570000
+      *                                                                 01580000
+           If  Not R7919070-Versjon                                     01590000
+               Initialize                R7919070-Timestamp             01600000
+               Set   R7919070-Versjon    To    True                     01610000
+               Call  'F7919070'          Using R7919070-Timestamp       01620000
+                                               R7919999-Error           01630000
+               End-Call                                                 01640000
+               If  R7919999-Retur-Abend                                 01650000
+                   Move  'E201'          To    R7919999-Paragraf        01660000
+                   Perform Z900-Abend                                   01670000
+               End-If                                                   01680000
+               Move  R7919070-Ut-Timestamp                              01690000
+                                         To    W-Timestamp              01700000
+           End-If                                                       01710000
+      *                                                                 01720000
+           .                                                            01730000
+      *                                                                 01740000
+       B000-Initialize-Ex.                                              01750000
+           Exit.                                                        01760000
+                                                                        01770000
+      *################################################################*01780000
+      *                                                                *01790000
+      * Utfører kontroll av input parameterene                         *01800000
+      *                                                                *01810000
+      *----------------------------------------------------------------*01820000
+       B100-Kontroll                     Section.                       01830000
+      *                                                                 01840000
+      ******************************************************************01850000
+      *    Kontroll av input data                                       01860000
+      *                                                                 01870000
+           If  R791TRAC-In-Program       In    R791TRAC-Interface       01880000
+                                         =     Spaces                   01890000
+               Move  Space               To    R7919999-Melding         01900000
+               String 'In-Program må fylles ut for å kunne '            01910000
+                                               Delimited By Size        01920000
+                      'utføre trace.'          Delimited By Size        01930000
+                                         Into  R7919999-Melding         01940000
+               End-String                                               01950000
+               Move  'B101'              To    R7919999-Paragraf        01960000
+               Perform Z900-Abend                                       01970000
+           End-If                                                       01980000
+      *                                                                 01990000
+           If  R791TRAC-In-Sysid         In    R791TRAC-Interface       02000000
+                                         =     Spaces                   02010000
+               Move  Space               To    R7919999-Melding         02020000
+               String 'In-Sysid må fylles ut for å kunne '              02030000
+                                               Delimited By Size        02040000
+                      'utføre trace.'          Delimited By Size        02050000
+                                         Into  R7919999-Melding         02060000
+               End-String                                               02070000
+               Move  'B102'              To    R7919999-Paragraf        02080000
+               Perform Z900-Abend                                       02090000
+           End-If                                                       02100000
+      *                                                                 02110000
+           If  R791TRAC-In-Trace-Point   In    R791TRAC-Interface       02120000
+                                         =     Spaces                   02130000
+               Move  Space               To    R7919999-Melding         02140000
+               String 'In-Trace-Point må fylles ut for å kunne '        02150000
+                                               Delimited By Size        02160000
+                      'utføre trace.'          Delimited By Size        02170000
+                                         Into  R7919999-Melding         02180000
+               End-String                                               02190000
+               Move  'B103'              To    R7919999-Paragraf        02200000
+               Perform Z900-Abend                                       02210000
+           End-If                                                       02220000
+      *                                                                 02230000
+           If  R791TRAC-In-Trace-Area    In    R791TRAC-Interface       02240000
+                                         =     Spaces                   02250000
+               Move  Space               To    R7919999-Melding         02260000
+               String 'In-Trace-Area må fylles ut for å kunne '         02270000
+                                               Delimited By Size        02280000
+                      'utføre trace.'          Delimited By Size        02290000
+                                         Into  R7919999-Melding         02300000
+               End-String                                               02310000
+               Move  'B104'              To    R7919999-Paragraf        02320000
+               Perform Z900-Abend                                       02330000
+           End-If                                                       02340000
+      *                                                                 02350000
+           .                                                            02360000
+      *                                                                 02370000
+       B100-Kontroll-Ex.                                                02380000
+           Exit.                                                        02390000
+                                                                        02400000
+      *################################################################*02410000
+      *                                                                *02420000
+      * Styrer behandlingen av mailen                                  *02430000
+      *                                                                *02440000
+      *----------------------------------------------------------------*02450000
+       C000-Behandling                   Section.                       02460000
+      *                                                                 02470000
+           Perform  D000-Prepare-Data                                   02480001
+           Perform  E000-Trace-Logg                                     02490000
+           .                                                            02500000
+      *                                                                 02510000
+       C000-Behandling-Ex.                                              02520000
+           Exit.                                                        02530000
+                                                                        02540000
+      *################################################################*02550000
+      *                                                                *02560000
+      * Prep av data som skal logges                                   *02570000
+      *                                                                *02580000
+      *----------------------------------------------------------------*02590000
+       D000-Prepare-Data                 Section.                       02600000
+      *                                                                 02610000
+      *    Vi flytter over input feltene                                02620000
+      *                                                                 02630000
+           Move  R791TRAC-In-Program     In    R791TRAC-Interface       02640000
+                                         To    R791DBGH-Program         02650000
+           Move  R791TRAC-In-Sysid       In    R791TRAC-Interface       02660000
+                                         To    R791DBGH-Sysid           02670000
+           Move  R791TRAC-In-Trace-Point In    R791TRAC-Interface       02680000
+                                         To    R791DBGH-Trace-Point     02690000
+           Move  R791TRAC-In-Trace-Area  In    R791TRAC-Interface       02700000
+                                         To    R791DBGH-Trace-Area      02710000
+      *                                                                 02720000
+      *    Vi finner lengden på fritekst dataområdet                    02730000
+      *                                                                 02740000
+           Initialize                          R7919310-Streng          02750000
+           Set   R7919310-Versjon        To    True                     02760000
+           Set   R7919310-In-Length      To    True                     02770000
+           Move  R791TRAC-In-Trace-Data  In    R791TRAC-Interface       02780000
+                                         To    R7919310-In-Streng       02790000
+           Move  Length                  Of    R791TRAC-In-Trace-Data   02800000
+                                         In    R791TRAC-Interface       02810000
+                                         To    R7919310-In-Lengde       02820000
+           Call  'F7919310'              Using R7919310-Streng          02830000
+                                               R7919999-Error           02840000
+           End-Call                                                     02850000
+                                                                        02860000
+           If  R7919999-Retur-Abend                                     02870000
+               Move  'C001'              To    R7919999-Paragraf        02880000
+               Perform Z900-Abend                                       02890000
+           End-If                                                       02900000
+      *                                                                 02910000
+      *    Vi bygger dataområdet som skal logges                        02920000
+      *                                                                 02930000
+           Move  R791DBGH-Trace-Info-Hdr To    W-Trace-Area             02940000
+           Move  R791TRAC-In-Trace-Data  In    R791TRAC-interface       02950001
+                                         To    W-Trace-Area ( Length    02960001
+                                         Of    R791DBGH-Trace-Info-Hdr  02970000
+                                         +     1 : R7919310-Ut-Lengde)  02980000
+           Compute  W-I-Len              =     R7919310-Ut-Lengde       02990001
+                                         +     Length                   03000001
+                                         Of    R791DBGH-Trace-Info-Hdr  03010001
+           End-Compute                                                  03020001
+           .                                                            03030000
+      *                                                                 03040000
+       D000-Prepare-Data-Ex.                                            03050000
+           Exit.                                                        03060000
+                                                                        03070000
+      *################################################################*03080000
+      *                                                                *03090000
+      *                                                                *03100000
+      *                                                                *03110000
+      *----------------------------------------------------------------*03120000
+       E000-Trace-Logg                   Section.                       03130000
+      *                                                                 03140000
+      *    Initialiserer faste felter i MQ headeren                     03150000
+      *                                                                 03160000
+           Initialize                    R791MQSH-Interface             03170000
+           Set  R791MQSH-Versjon         To    True                     03180000
+           Set  R791MQSH-In-Bruk-Header  To    True                     03190000
+           Move  01                      To    R791MQSH-Melding-Ver     03200000
+           Move  W-Timestamp             To    R791MQSH-Sendt-Timestamp 03210000
+           Move  'FDPO-TRACE'            To    R791MQSH-Mottaker-Appl   03220000
+           Move  'FDPO-TRACE'            To    R791MQSH-Avsender-Appl   03230000
+           Move  Zeroes                  To    R791MQSH-Bank            03240000
+           Move  R7919220-Ut-Jobb-Navn   To    R791MQSH-Arbeidsstasjon  03250000
+           Move  R7919220-Ut-Load-Navn   To    R791MQSH-Brukerid        03260000
+           Initialize                          R7919330-Token           03270000
+           Set   R7919330-Versjon        To    True                     03280000
+           Move  R791MQSH-Brukerid       To    R7919330-In-Brukerid     03290000
+           Move  R791MQSH-Arbeidsstasjon To    R7919330-In-Terminal     03300000
+                                                                        03310000
+           If  Not R7919330-Versjon                                     03320000
+               Initialize                      R7919330-Token           03330000
+               Set   R7919330-Versjon    To    True                     03340000
+               Move  R791MQSH-Brukerid   To    R7919330-In-Brukerid     03350000
+               Move  R791MQSH-Arbeidsstasjon                            03360000
+                                         To    R7919330-In-Terminal     03370000
+               Call  'F7919330'          Using R7919330-Token           03380000
+                                               R7919999-Error           03390000
+               End-Call                                                 03400000
+               If  Not R7919999-Retur-OK                                03410000
+                   Move  'E201'              To    R7919999-Paragraf    03420000
+                   Perform Z900-Abend                                   03430000
+               End-If                                                   03440000
+           End-If                                                       03450000
+           Move  R7919330-Ut-Token       To    R791MQSH-Verifikasjon    03460000
+      *                                                                 03470000
+      *    Initialiser MQ området                                       03480000
+      *                                                                 03490000
+           Initialize                    R791MQS0-Interface             03500000
+           Set  R791MQS0-Versjon         To    True                     03510000
+      *                                                                 03520000
+      *    Sett kø det skal skrives til                                 03530000
+      *                                                                 03540000
+           If R791TRAC-In-Trace-Queue    In    R791TRAC-Interface       03541012
+                                         =     SPaces                   03542012
+              Move  'FDPO.TRACELOG'      To    R791MQS0-In-QueueName    03550012
+           Else                                                         03551012
+              Move R791TRAC-In-Trace-Queue                              03551112
+                                         In    R791TRAC-Interface       03551212
+                                         To    R791MQS0-In-QueueName    03551312
+           End-If                                                       03552012
+      *                                                                 03560000
+      *    Vi åpner køen som output                                     03570000
+      *                                                                 03580000
+           Set   R791MQS0-In-O-F-Output  To    True                     03590000
+      *                                                                 03600008
+      *    Vi logger utenfor syncpoint                                  03610008
+      *                                                                 03620008
+           Set   R791MQS0-In-No-Syncpoint                               03630008
+                                         To    True                     03640008
+      *                                                                 03650000
+      *    Setter correlation ID                                        03660004
+      *                                                                 03670000
+           Move  W-Timestamp             To    R791MQS0-In-Correlid     03680004
+           Move  R791DBGH-JobbNavn       To    R791MQS0-In-Correlid     03690007
+                                               (17 : 8)                 03700007
+      *                                                                 03710004
+      *    Set lengden på meldingen                                     03720004
+      *                                                                 03730004
+           Move  W-I-Len                 To    R791MQS0-In-Put-LL       03740004
+      *                                                                 03750000
+      *    Utfør PUT1 kallet                                            03760000
+      *                                                                 03770000
+           Perform M100-MQ-Put1                                         03780000
+           .                                                            03790000
+      *                                                                 03800000
+       E000-Trace-Logg-Ex.                                              03810000
+           Exit.                                                        03820000
+                                                                        03830000
+      *################################################################*03840000
+      *                                                                *03850000
+      * Styring av PUT1 kallet til MQSeries                            *03860000
+      *                                                                *03870000
+      *----------------------------------------------------------------*03880000
+       M100-MQ-Put1                      Section.                       03890000
+      *                                                                 03900000
+           Set  R791MQS0-In-Put1         To    True                     03910000
+           Call  'F791MQS0'                                             03920000
+                 Using By Reference      R791MQS0-Interface             03930000
+                       By Reference      R791MQSH-Interface             03940000
+                       By Reference      W-Trace-Area(1:32768)          03950000
+                       By Reference      R7919999-Error                 03960000
+           End-Call                                                     03970000
+      *                                                                 03980000
+      *    Sjekker status etter put1 kallet                             03990000
+      *                                                                 04000000
+           If  Not R7919999-Retur-Ok                                    04010000
+               Move  'M101'              To    R7919999-Paragraf        04020000
+               Perform Z900-Abend                                       04030000
+           End-If                                                       04040000
+           .                                                            04050000
+      *                                                                 04060000
+       M100-MQ-Put1-Ex.                                                 04070000
+           Exit.                                                        04080000
+                                                                        04090000
+      *################################################################*04100000
+      *                                                                *04110000
+      * Konverter data før vi begynner behandlingen                    *04120000
+      *                                                                *04130000
+      *----------------------------------------------------------------*04140000
+       ZI00-Konv-Input-Versjon           Section.                       04150000
+      *                                                                 04160000
+           Evaluate True                                                04170000
+             When R791TRAC-Versjon       In    F791TRAC-Ext-IO-Area     04180000
+               Move  F791TRAC-Ext-IO-Area                               04190000
+                                         To    R791TRAC-Interface       04200000
+      *                                                                 04200109
+             When R791TRAC-Versjons-Nr   In    F791TRAC-Ext-IO-Area     04201011
+                                          =    '19971109'               04201109
+               Move Corresponding              F791TRAC-Ext-IO-Area     04202009
+                                         To    R791TRAC-Interface       04203009
+               Move Space                To    R791TRAC-In-Trace-Queue  04204009
+                                         In    R791TRAC-Interface       04205010
+      *                                                                 04210000
+             When Other                                                 04220000
+               Move  Space               To    R7919999-Melding         04230000
+               String 'Beklager, vi håndterer ikke versjon "'           04240000
+                                               Delimited by size        04250000
+                      R791TRAC-Versjons-Nr                              04260000
+                                         In    F791TRAC-Ext-IO-Area     04270000
+                                               Delimited by size        04280000
+                      '". Ta i bruk ny versjon.'                        04290000
+                                               Delimited by size        04300000
+                                         Into  R7919999-Melding         04310000
+               End-String                                               04320000
+               Move  'ZI01'              To    R7919999-Paragraf        04330000
+               Perform Z900-Abend                                       04340000
+      *                                                                 04350000
+           End-Evaluate                                                 04360000
+           .                                                            04370000
+      *                                                                 04380000
+       ZI00-Konv-Input-Versjon-Ex.                                      04390000
+           Exit.                                                        04400000
+                                                                        04410000
+      *################################################################*04420000
+      *                                                                *04430000
+      * Konverter data før retur til kallende program                  *04440000
+      *                                                                *04450000
+      *----------------------------------------------------------------*04460000
+       ZO00-Konv-Output-Versjon          Section.                       04470000
+      *                                                                 04480000
+           Evaluate True                                                04490000
+             When R791TRAC-Versjon       In    F791TRAC-Ext-IO-Area     04500000
+               Move  R791TRAC-Interface                                 04510000
+                                         To    F791TRAC-Ext-IO-Area     04520000
+      *                                                                 04521009
+             When R791TRAC-Versjons-Nr   In    F791TRAC-Ext-IO-Area     04523011
+                                         =     '19971109'               04523109
+               Move Corresponding              R791TRAC-Interface       04524009
+                                         To    F791TRAC-Ext-IO-Area     04525009
+      *                                                                 04530000
+             When Other                                                 04540000
+               Move  Space               To    R7919999-Melding         04550000
+               String 'Systemfeil, vi håndterte versjon "'              04560000
+                                               Delimited by size        04570000
+                      R791TRAC-Versjons-Nr                              04580000
+                                         In    F791TRAC-Ext-IO-Area     04590000
+                                               Delimited by size        04600000
+                      '" inn, skulle også gjort det ut.'                04610000
+                                               Delimited by size        04620000
+                                         Into  R7919999-Melding         04630000
+               End-String                                               04640000
+               Move  'ZO01'              To    R7919999-Paragraf        04650000
+               Perform Z900-Abend                                       04660000
+      *                                                                 04670000
+           End-Evaluate                                                 04680000
+           .                                                            04690000
+      *                                                                 04700000
+       ZO00-Konv-Output-Versjon-Ex.                                     04710000
+           Exit.                                                        04720000
+                                                                        04730000
+      *################################################################*04740000
+      *                                                                *04750000
+      * Utfør feil logging og avslutt                                  *04760000
+      *                                                                *04770000
+      *----------------------------------------------------------------*04780000
+       Z900-Abend                        Section.                       04790000
+      *                                                                 04800000
+           If  Not R7919999-Retur-Abend                                 04810000
+               Move  +0                  To    R7919999-Modul-Ind       04820000
+           End-If                                                       04830000
+      *                                                                 04840000
+           Add   +1                      To    R7919999-Modul-Ind       04850000
+      *                                                                 04860000
+           If  R7919999-Modul-Ind        Not >                          04870000
+                             ( Length    Of    R7919999-Modul-Tab       04880000
+                             / Length    Of    R7919999-Modul-Element ) 04890000
+               Move  'F791TRAC'          To    R7919999-Modul-Navn      04900000
+                                                    (R7919999-Modul-Ind)04910000
+               Move  R7919999-Paragraf   To    R7919999-Modul-Para      04920000
+                                                    (R7919999-Modul-Ind)04930000
+           End-If                                                       04940000
+      *                                                                 04950000
+           Set   R7919999-Retur-Abend    To    True                     04960000
+           Move  +0                      To    Return-Code              04970000
+      *                                                                 04980000
+           Call  'F7919990'              Using R7919999-Error           04990005
+           End-Call                                                     05000005
+      *                                                                 05010005
+           .                                                            05020000
+       Z999-Goback.                                                     05030000
+           Goback.                                                      05040000
+      *                                                                 05050000
+       End Program F791TRAC.                                            05060000

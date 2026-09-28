@@ -1,0 +1,1287 @@
+000100 Identification Division.                                         00010039
+000200 Program-ID. F7919100.                                            00020040
+000300 Author.  Henning Langfeldt Rødland.                              00030040
+000400*################################################################*00040040
+000500*                                                                 00050040
+000600* Generell submodul.                                              00060040
+000700* Benyttes for å konvertere mellom dato-formater.                 00070040
+000800*                                                                 00080040
+000900* Man leverer dato på ett eller annet format inn.                 00090040
+001000* Dersom kun en input-dato er utfylt er det ikke nødvendig å      00100040
+001100* fortelle hva slags type det er, ellers må man sette bryter      00110040
+001200* for typen også.                                                 00120040
+001300* I retur vil man få datoen i ymse formater, bare å velge.        00130040
+001400*                                                                 00140040
+001500* Eksempel på anrop:                                              00150040
+001600*   Initialize                           R7919100-Konverter-Dato  00160040
+001700*   Set   R7919100-Versjon         To    True                     00170040
+001800*   Move  ååååmmdd                 To    R7919100-In-Dato-AMD9    00180040
+001900*   Call  'F7919100'               Using R7919100-Konverter-Dato  00190040
+002000*                                        R7919999-Error           00200040
+002100*   End-Call                                                      00210040
+002200*   If  R7919999-Retur-Abend                                      00220040
+002300*       abend                                                     00230040
+002400*   End-If                                                        00240040
+002500*   Move  R7919100-Ut-Dato-DB2     To    ...                      00250040
+002600*                                                                 00260040
+002700*################################################################*00270040
+002800* Dato ! Si! Endringens art                                ! 3A ! 00280040
+002900*---------------------------------------------------------------- 00290040
+      *110924!SM ! Recompile to Cobol 6.3                   !CMAS-1883!*00290142
+MIPS  *280521!OBJ! Recompiled to version 6.3 (OptiMIPS)          !    ! 00291041
+003000*030100!HLR! D000: Konvertering fra A2D3 - aksepterer nå   !    ! 00300040
+003100*      !   ! år 00.                                        !    ! 00310040
+003200*060498!GM ! Godtar 'null-dato' dersom input datoformat    !    ! 00320040
+003300*      !   ! er angitt.                                    !    ! 00330040
+003400*230697!HLR! Endret "default" - A4D3 og A2D3 dannes kun    !    ! 00340040
+003500*      !   ! dersom det er bedt om det.                    !    ! 00350040
+003600*120697!HLR! Lagt inn -In-Til-Formater (tuning)            !    ! 00360040
+003700*      !   ! Konverterer kun til ønskede formater.         !    ! 00370040
+003800*      !   ! Hvis ingen ønskede formater er angitt,        !    ! 00380040
+003900*      !   ! konverteres til "default".                    !    ! 00390040
+004000*210297!HLR! Lagt inn -Dato-AAAADDD og -Dato-AADDD         !    ! 00400040
+004100*151196!HLR! Lagt inn numerisk kontroll på input DB2-dato. !EK78! 00410040
+004200*301096!HLR! Lagt inn -In-Glidende-Vindu.                  !JV12! 00420040
+004300*140296!HLR! Lagt inn -In-DB2-Format                       !JV60! 00430040
+004400*150295!HLR! Ny modul                                      !JR68! 00440040
+004500*################################################################*00450040
+004600 Environment Division.                                            00460040
+004700 Configuration Section.                                           00470040
+004800 Special-Names.                                                   00480040
+004900     Decimal-Point is comma.                                      00490040
+005000*################################################################*00500040
+005100 Data Division.                                                   00510040
+005200 Working-Storage Section.                                         00520040
+005300*                                                                 00530040
+005400 Copy R7919100.                                                   00540040
+005500*                                                                 00550040
+005600*----------------------------------------------------------------*00560040
+005700*                                                                 00570040
+005800 01  W-Arbeids-Felter.                                            00580040
+005900*                                                                 00590040
+006000     05  W-Splitt-Vindus-Dato      Pic  9(08).                    00600040
+006100     05  Filler                    Redefines W-Splitt-Vindus-Dato.00610040
+006200         10  W-SVD-Aar             Pic  9(04).                    00620040
+006300     05  Filler                    Redefines W-Splitt-Vindus-Dato.00630040
+006400         10  W-SVD-Aar-Hundre      Pic  9(02).                    00640040
+006500         10  W-SVD-Aar-2           Pic  9(02).                    00650040
+006600*                                                                 00660040
+006700     05  W-Dato-AMD9               Pic S9(09)              Comp-3.00670040
+006800     05  W-Dato-DMA9               Pic S9(09)              Comp-3.00680040
+006900     05  W-Dato-AMD7               Pic S9(09)              Comp-3.00690040
+007000     05  W-Dato-DMA7               Pic S9(09)              Comp-3.00700040
+007100     05  W-Dato-Jul                Pic S9(09)              Comp-3.00710040
+007200     05  W-Dato-DB2                Pic  X(10).                    00720040
+007300     05  W-Dato-A4D3               Pic S9(09)              Comp-3.00730040
+007400     05  W-Dato-A2D3               Pic S9(09)              Comp-3.00740040
+007500*                                                                 00750040
+007600     05  W-Splitt-AMD9             Pic  9(08).                    00760040
+007700     05  Filler                    Redefines W-Splitt-AMD9.       00770040
+007800         10  W-S-AMD9-Aar          Pic  9(04).                    00780040
+007900         10  W-S-AMD9-Mnd          Pic  9(02).                    00790040
+008000         10  W-S-AMD9-Dag          Pic  9(02).                    00800040
+008100     05  Filler                    Redefines W-Splitt-AMD9.       00810040
+008200         10  W-S-AMD9-Aar-Hundre   Pic  9(02).                    00820040
+008300         10  W-S-AMD9-Aar-2        Pic  9(02).                    00830040
+008400*                                                                 00840040
+008500     05  W-Splitt-DMA9             Pic  9(08).                    00850040
+008600     05  Filler                    Redefines W-Splitt-DMA9.       00860040
+008700         10  W-S-DMA9-Dag          Pic  9(02).                    00870040
+008800         10  W-S-DMA9-Mnd          Pic  9(02).                    00880040
+008900         10  W-S-DMA9-Aar          Pic  9(04).                    00890040
+009000*                                                                 00900040
+009100     05  W-Splitt-AMD7             Pic  9(06).                    00910040
+009200     05  Filler                    Redefines W-Splitt-AMD7.       00920040
+009300         10  W-S-AMD7-Aar          Pic  9(02).                    00930040
+009400         10  W-S-AMD7-Mnd          Pic  9(02).                    00940040
+009500         10  W-S-AMD7-Dag          Pic  9(02).                    00950040
+009600*                                                                 00960040
+009700     05  W-Splitt-DMA7             Pic  9(06).                    00970040
+009800     05  Filler                    Redefines W-Splitt-DMA7.       00980040
+009900         10  W-S-DMA7-Dag          Pic  9(02).                    00990040
+010000         10  W-S-DMA7-Mnd          Pic  9(02).                    01000040
+010100         10  W-S-DMA7-Aar          Pic  9(02).                    01010040
+010200*                                                                 01020040
+010300     05  W-Splitt-A4D3             Pic  9(07).                    01030040
+010400     05  Filler                    Redefines W-Splitt-A4D3.       01040040
+010500         10  W-S-A4D3-Aar          Pic  9(04).                    01050040
+010600         10  W-S-A4D3-Dag          Pic  9(03).                    01060040
+010700*                                                                 01070040
+010800     05  W-Splitt-A2D3             Pic  9(05).                    01080040
+010900     05  Filler                    Redefines W-Splitt-A2D3.       01090040
+011000         10  W-S-A2D3-Aar          Pic  9(02).                    01100040
+011100         10  W-S-A2D3-Dag          Pic  9(03).                    01110040
+011200*                                                                 01120040
+011300     05  W-Temp-Jul                Pic S9(05)              Comp-3.01130040
+011400     05  W-Temp-Dag-Nr             Pic S9(03)              Comp-3.01140040
+011500*                                                                 01150040
+011600     05  W-Splitt-DB2              Pic  X(10).                    01160040
+011700*                                                                 01170040
+011800     05  W-Splitt-DB2-ISO          Redefines W-Splitt-DB2.        01180040
+011900         10  W-S-DB2-ISO-Aar       Pic  9(04).                    01190040
+012000         10  Filler                Pic  X(01).                    01200040
+012100           88  W-S-DB2-ISO-Format             Value '-'.          01210040
+012200         10  W-S-DB2-ISO-Mnd       Pic  9(02).                    01220040
+012300         10  Filler                Pic  X(01).                    01230040
+012400         10  W-S-DB2-ISO-Dag       Pic  9(02).                    01240040
+012500*                                                                 01250040
+012600     05  W-Splitt-DB2-EUR          Redefines W-Splitt-DB2.        01260040
+012700         10  W-S-DB2-EUR-Dag       Pic  9(02).                    01270040
+012800         10  Filler                Pic  X(01).                    01280040
+012900           88  W-S-DB2-EUR-Format             Value '.'.          01290040
+013000         10  W-S-DB2-EUR-Mnd       Pic  9(02).                    01300040
+013100         10  Filler                Pic  X(01).                    01310040
+013200         10  W-S-DB2-EUR-Aar       Pic  9(04).                    01320040
+013300*                                                                 01330040
+013400     05  W-Splitt-DB2-USA          Redefines W-Splitt-DB2.        01340040
+013500         10  W-S-DB2-USA-Mnd       Pic  9(02).                    01350040
+013600         10  Filler                Pic  X(01).                    01360040
+013700           88  W-S-DB2-USA-Format             Value '/'.          01370040
+013800         10  W-S-DB2-USA-Dag       Pic  9(02).                    01380040
+013900         10  Filler                Pic  X(01).                    01390040
+014000         10  W-S-DB2-USA-Aar       Pic  9(04).                    01400040
+014100*                                                                 01410040
+014200*----------------------------------------------------------------*01420040
+014300*                                                                 01430040
+014400     05  SW-Til-Formater.                                         01440040
+014500         10  Filler                Pic  X(01).                    01450040
+014600           88  Sw-Konv-Til-AMD9               Value 'J'.          01460040
+014700         10  Filler                Pic  X(01).                    01470040
+014800           88  Sw-Konv-Til-DMA9               Value 'J'.          01480040
+014900         10  Filler                Pic  X(01).                    01490040
+015000           88  Sw-Konv-Til-AMD7               Value 'J'.          01500040
+015100         10  Filler                Pic  X(01).                    01510040
+015200           88  Sw-Konv-Til-DMA7               Value 'J'.          01520040
+015300         10  Filler                Pic  X(01).                    01530040
+015400           88  Sw-Konv-Til-Jul                Value 'J'.          01540040
+015500         10  Filler                Pic  X(01).                    01550040
+015600           88  Sw-Konv-Til-DB2                Value 'J'.          01560040
+015700         10  Filler                Pic  X(01).                    01570040
+015800           88  Sw-Konv-Til-A4D3               Value 'J'.          01580040
+015900         10  Filler                Pic  X(01).                    01590040
+016000           88  Sw-Konv-Til-A2D3               Value 'J'.          01600040
+016100*                                                                 01610040
+016200*----------------------------------------------------------------*01620040
+016300*                                                                 01630040
+016400 Copy R7919040.                                                   01640040
+016500 Copy R791904W.                                                   01650040
+016600*                                                                 01660040
+016700 Copy R7919050.                                                   01670040
+016800 Copy R791905W.                                                   01680040
+016900*                                                                 01690040
+017000 Copy R7919060.                                                   01700040
+017100 Copy R791906W.                                                   01710040
+017200*                                                                 01720040
+017300 Copy R7919070.                                                   01730040
+017400*                                                                 01740040
+017500*################################################################*01750040
+017600 Linkage Section.                                                 01760040
+017700*                                                                 01770040
+017800 Copy R7919100                     Replacing                      01780040
+017900                                         R7919100-Konverter-Dato  01790040
+018000                                   By    F7919100-Ext-IO-Area.    01800040
+018100 Copy R7919999.                                                   01810040
+018200*                                                                 01820040
+018300*----------------------------------------------------------------*01830040
+018400* Her ligger gamle versjoner av copy-området, på grunn av         01840040
+018500* versjonshåndtering.                                             01850040
+018600* Vi skal konvertere til og fra ny layout.                        01860040
+018700*                                                                 01870040
+018800 Copy R791910G.                                                   01880040
+018900*                                                                 01890040
+019000*################################################################*01900040
+019100 Procedure Division                Using F7919100-Ext-IO-Area     01910040
+019200                                         R7919999-Error.          01920040
+019300                                                                  01930040
+019400 A000-Main                         Section.                       01940040
+019500*                                                                 01950040
+019510*    display '#¤# F7919100 start '                                01951040
+019520     Set   R7919999-Retur-Ok       To    True                     01952040
+019530*                                                                 01953040
+019540     Perform ZI00-Konv-Input-Versjon                              01954040
+019550*    display '#¤# F7919100 konv input ferdig'                     01955040
+019560     Perform F7919100-Konverter-Dato                              01956040
+019570*    display '#¤# F7919100 konv ferdig'                           01957040
+019580     Perform ZO00-Konv-Output-Versjon                             01958040
+019590*    display '#¤# F7919100 konv output ferdig'                    01959040
+019600*                                                                 01960040
+019700     Goback.                                                      01970040
+019800*################################################################*01980040
+019900 F7919100-Konverter-Dato           Section.                       01990040
+020000*                                                                 02000040
+020100     Perform B000-Initialize                                      02010040
+020200*    display '#¤# F7919100 b000 konv ferdig'                      02020040
+020300     Perform C000-Beregning                                       02030040
+020400*    display '#¤# F7919100 c000 konv ferdig'                      02040040
+020500*                                                                 02050040
+020600     .                                                            02060040
+020700*################################################################*02070040
+020800 B000-Initialize                   Section.                       02080040
+020900*                                                                 02090040
+021000     Set   R7919999-Retur-Ok       To    True                     02100040
+021100     Initialize                          R7919100-Resultat        02110040
+021200                                   In    R7919100-Konverter-Dato  02120040
+021300*                                                                 02130040
+021400     Initialize                          W-Arbeids-Felter         02140040
+021500*                                                                 02150040
+021600* Sjekker ønske om "til-formater", setter evt. default-verdier.   02160040
+021700*                                                                 02170040
+021800     Move  R7919100-In-Til-Formater                               02180040
+021900                                   In    R7919100-Konverter-Dato  02190040
+022000                                   To    SW-Til-Formater          02200040
+022100*                                                                 02210040
+022200     If  ( Not Sw-Konv-Til-AMD9 )                                 02220040
+022300     and ( Not Sw-Konv-Til-DMA9 )                                 02230040
+022400     and ( Not Sw-Konv-Til-AMD7 )                                 02240040
+022500     and ( Not Sw-Konv-Til-DMA7 )                                 02250040
+022600     and ( Not Sw-Konv-Til-Jul  )                                 02260040
+022700     and ( Not Sw-Konv-Til-DB2  )                                 02270040
+022800     and ( Not Sw-Konv-Til-A4D3 )                                 02280040
+022900     and ( Not Sw-Konv-Til-A2D3 )                                 02290040
+023000       Then                                                       02300040
+023100         Set   Sw-Konv-Til-AMD9    To    True                     02310040
+023200         Set   Sw-Konv-Til-DMA9    To    True                     02320040
+023300         Set   Sw-Konv-Til-AMD7    To    True                     02330040
+023400         Set   Sw-Konv-Til-DMA7    To    True                     02340040
+023500         Set   Sw-Konv-Til-Jul     To    True                     02350040
+023600         Set   Sw-Konv-Til-DB2     To    True                     02360040
+023700*                                                                 02370040
+023800* Følgende formater inngår ikke i "default". HLR 23.06.1997.      02380040
+023900*        Set   Sw-Konv-Til-A4D3    To    True                     02390040
+024000*        Set   Sw-Konv-Til-A2D3    To    True                     02400040
+024100     End-If                                                       02410040
+024200*                                                                 02420040
+024300     .                                                            02430040
+024400*################################################################*02440040
+024500 C000-Beregning                    Section.                       02450040
+024600*                                                                 02460040
+024700* Først konverterer vi (om nødvendig) input-dato til AMD9.        02470040
+024800*                                                                 02480040
+024900     Perform D000-Konv-Fra-Input                                  02490040
+025000     If  R7919999-Retur-Abend                                     02500040
+025100         Move  'C001'              To    R7919999-Paragraf        02510040
+025200         Perform Z900-Abend                                       02520040
+025300     End-If                                                       02530040
+025400*                                                                 02540040
+025500* Validerer AMD9-dato:                                            02550040
+025600*                                                                 02560040
+025700     Initialize                          R7919040-Valider-Dato    02570040
+025800     Set   R7919040-Versjon        To    True                     02580040
+025900     Move  W-Dato-AMD9             To    R7919040-In-Dato         02590040
+026000     Perform F7919040-Valider-Dato                                02600040
+026100     If  R7919999-Retur-Feil                                      02610040
+026200     or  R7919999-Retur-Abend                                     02620040
+026300         Move  'C002'              To    R7919999-Paragraf        02630040
+026400         Perform Z900-Abend                                       02640040
+026500     End-If                                                       02650040
+026600*                                                                 02660040
+026700* Deretter benytter vi AMD9 til å danne alle output-datoene.      02670040
+026800*                                                                 02680040
+026900     Perform E000-Konv-Til-Output                                 02690040
+027000     If  R7919999-Retur-Abend                                     02700040
+027100         Move  'C003'              To    R7919999-Paragraf        02710040
+027200         Perform Z900-Abend                                       02720040
+027300     End-If                                                       02730040
+027400*                                                                 02740040
+027500     .                                                            02750040
+027600*################################################################*02760040
+027700 D000-Konv-Fra-Input               Section.                       02770040
+027800*    display "f7919100 D000-Konv-Fra-Input"                       02780040
+027900*                                                                 02790040
+028000     Evaluate True                                                02800040
+028100       When R7919100-In-Konv-Fra-AMD9                             02810040
+028200                                   In    R7919100-Konverter-Dato  02820040
+028300         Move  R7919100-In-Dato-AMD9                              02830040
+028400                                   In    R7919100-Konverter-Dato  02840040
+028500                                   To    W-Dato-AMD9              02850040
+028600         If  W-Dato-AMD9           <     00010101                 02860040
+028700           Then                                                   02870040
+028800             Move  00010101        To    W-Dato-AMD9              02880040
+028900         End-If                                                   02890040
+029000*                                                                 02900040
+029100       When R7919100-In-Konv-Fra-DMA9                             02910040
+029200                                   In    R7919100-Konverter-Dato  02920040
+029300         Move  R7919100-In-Dato-DMA9                              02930040
+029400                                   In    R7919100-Konverter-Dato  02940040
+029500                                   To    W-Dato-DMA9              02950040
+029600         If  W-Dato-DMA9           <     01010001                 02960040
+029700           Then                                                   02970040
+029800             Move  00010101        To    W-Dato-AMD9              02980040
+029900           Else                                                   02990040
+030000             Perform D100-Konv-Fra-DMA9                           03000040
+030100         End-If                                                   03010040
+030200*                                                                 03020040
+030300       When R7919100-In-Konv-Fra-AMD7                             03030040
+030400                                   In    R7919100-Konverter-Dato  03040040
+030500         Move  R7919100-In-Dato-AMD7                              03050040
+030600                                   In    R7919100-Konverter-Dato  03060040
+030700                                   To    W-Dato-AMD7              03070040
+030800         If  W-Dato-AMD7           <     000101                   03080040
+030900           Then                                                   03090040
+031000             Move  00010101        To    W-Dato-AMD9              03100040
+031100           Else                                                   03110040
+031200             Perform D200-Konv-Fra-AMD7                           03120040
+031300         End-If                                                   03130040
+031400*                                                                 03140040
+031500       When R7919100-In-Konv-Fra-DMA7                             03150040
+031600                                   In    R7919100-Konverter-Dato  03160040
+031700         Move  R7919100-In-Dato-DMA7                              03170040
+031800                                   In    R7919100-Konverter-Dato  03180040
+031900                                   To    W-Dato-DMA7              03190040
+032000         If  W-Dato-DMA7           <     010100                   03200040
+032100           Then                                                   03210040
+032200             Move  00010101        To    W-Dato-AMD9              03220040
+032300           Else                                                   03230040
+032400             Perform D300-Konv-Fra-DMA7                           03240040
+032500         End-If                                                   03250040
+032600*                                                                 03260040
+032700       When R7919100-In-Konv-Fra-Jul                              03270040
+032800                                   In    R7919100-Konverter-Dato  03280040
+032900         Move  R7919100-In-Dato-Jul                               03290040
+033000                                   In    R7919100-Konverter-Dato  03300040
+033100                                   To    W-Dato-Jul               03310040
+033200         Perform D400-Konv-Fra-Jul                                03320040
+033300*                                                                 03330040
+033400       When R7919100-In-Konv-Fra-DB2                              03340040
+033500                                   In    R7919100-Konverter-Dato  03350040
+033600         Move  R7919100-In-Dato-DB2                               03360040
+033700                                   In    R7919100-Konverter-Dato  03370040
+033800                                   To    W-Dato-DB2               03380040
+033900         If  W-Dato-DB2            =     Space                    03390040
+034000           Then                                                   03400040
+034100             Move  00010101        To    W-Dato-AMD9              03410040
+034200           Else                                                   03420040
+034300             Perform D500-Konv-Fra-DB2                            03430040
+034400         End-If                                                   03440040
+034500*                                                                 03450040
+034600       When R7919100-In-Konv-Fra-A4D3                             03460040
+034700                                   In    R7919100-Konverter-Dato  03470040
+034800         Move  R7919100-In-Dato-A4D3                              03480040
+034900                                   In    R7919100-Konverter-Dato  03490040
+035000                                   To    W-Dato-A4D3              03500040
+035100         If  W-Dato-A4D3           <     0001001                  03510040
+035200           Then                                                   03520040
+035300             Move  00010101        To    W-Dato-AMD9              03530040
+035400           Else                                                   03540040
+035500             Perform D600-Konv-Fra-A4D3                           03550040
+035600         End-If                                                   03560040
+035700*                                                                 03570040
+035800       When R7919100-In-Konv-Fra-A2D3                             03580040
+035900                                   In    R7919100-Konverter-Dato  03590040
+036000         Move  R7919100-In-Dato-A2D3                              03600040
+036100                                   In    R7919100-Konverter-Dato  03610040
+036200                                   To    W-Dato-A2D3              03620040
+036300         If  W-Dato-A2D3           <     00001                    03630040
+036400**       If  W-Dato-A2D3           <     01001                    03640040
+036500           Then                                                   03650040
+036600             Move  00010101        To    W-Dato-AMD9              03660040
+036700           Else                                                   03670040
+036800             Perform D700-Konv-Fra-A2D3                           03680040
+036900         End-If                                                   03690040
+037000*                                                                 03700040
+037100       When Other                                                 03710040
+037200*                                                                 03720040
+037300* Type input-dato er ikke satt, og vi må se hva som er utfylt.    03730040
+037400*                                                                 03740040
+037500         Evaluate R7919100-In-Dato-AMD9 In R7919100-Konverter-Dato03750040
+037600         also     R7919100-In-Dato-DMA9 In R7919100-Konverter-Dato03760040
+037700         also     R7919100-In-Dato-AMD7 In R7919100-Konverter-Dato03770040
+037800         also     R7919100-In-Dato-DMA7 In R7919100-Konverter-Dato03780040
+037900         also     R7919100-In-Dato-Jul  In R7919100-Konverter-Dato03790040
+038000         also     R7919100-In-Dato-DB2  In R7919100-Konverter-Dato03800040
+038100         also     R7919100-In-Dato-A4D3 In R7919100-Konverter-Dato03810040
+038200         also     R7919100-In-Dato-A2D3 In R7919100-Konverter-Dato03820040
+038300*                                                                 03830040
+038400           When +00010101 thru +99991231                          03840040
+038500           also +0                                                03850040
+038600           also +0                                                03860040
+038700           also +0                                                03870040
+038800           also +0                                                03880040
+038900           also space                                             03890040
+039000           also +0                                                03900040
+039100           also +0                                                03910040
+039200             Move  R7919100-In-Dato-AMD9                          03920040
+039300                                   In    R7919100-Konverter-Dato  03930040
+039400                                   To    W-Dato-AMD9              03940040
+039500*                                                                 03950040
+039600           When +0                                                03960040
+039700           also +01010001 thru +31129999                          03970040
+039800           also +0                                                03980040
+039900           also +0                                                03990040
+040000           also +0                                                04000040
+040100           also space                                             04010040
+040200           also +0                                                04020040
+040300           also +0                                                04030040
+040400             Move  R7919100-In-Dato-DMA9                          04040040
+040500                                   In    R7919100-Konverter-Dato  04050040
+040600                                   To    W-Dato-DMA9              04060040
+040700             Perform D100-Konv-Fra-DMA9                           04070040
+040800*                                                                 04080040
+040900           When +0                                                04090040
+041000           also +0                                                04100040
+041100           also +000101 thru +991231                              04110040
+041200           also +0                                                04120040
+041300           also +0                                                04130040
+041400           also space                                             04140040
+041500           also +0                                                04150040
+041600           also +0                                                04160040
+041700             Move  R7919100-In-Dato-AMD7                          04170040
+041800                                   In    R7919100-Konverter-Dato  04180040
+041900                                   To    W-Dato-AMD7              04190040
+042000             Perform D200-Konv-Fra-AMD7                           04200040
+042100*                                                                 04210040
+042200           When +0                                                04220040
+042300           also +0                                                04230040
+042400           also +0                                                04240040
+042500           also +010100 thru +311299                              04250040
+042600           also +0                                                04260040
+042700           also space                                             04270040
+042800           also +0                                                04280040
+042900           also +0                                                04290040
+043000             Move  R7919100-In-Dato-DMA7                          04300040
+043100                                   In    R7919100-Konverter-Dato  04310040
+043200                                   To    W-Dato-DMA7              04320040
+043300             Perform D300-Konv-Fra-DMA7                           04330040
+043400*                                                                 04340040
+043500           When +0                                                04350040
+043600           also +0                                                04360040
+043700           also +0                                                04370040
+043800           also +0                                                04380040
+043900           also +00001 thru +99999                                04390040
+044000           also space                                             04400040
+044100           also +0                                                04410040
+044200           also +0                                                04420040
+044300             Move  R7919100-In-Dato-Jul                           04430040
+044400                                   In    R7919100-Konverter-Dato  04440040
+044500                                   To    W-Dato-Jul               04450040
+044600             Perform D400-Konv-Fra-Jul                            04460040
+044700*                                                                 04470040
+044800           When +0                                                04480040
+044900           also +0                                                04490040
+045000           also +0                                                04500040
+045100           also +0                                                04510040
+045200           also +0                                                04520040
+045300           also not space                                         04530040
+045400           also +0                                                04540040
+045500           also +0                                                04550040
+045600             Move  R7919100-In-Dato-DB2                           04560040
+045700                                   In    R7919100-Konverter-Dato  04570040
+045800                                   To    W-Dato-DB2               04580040
+045900             Perform D500-Konv-Fra-DB2                            04590040
+046000*                                                                 04600040
+046100           When +0                                                04610040
+046200           also +0                                                04620040
+046300           also +0                                                04630040
+046400           also +0                                                04640040
+046500           also +0                                                04650040
+046600           also space                                             04660040
+046700           also +0000001 thru +9999999                            04670040
+046800           also +0                                                04680040
+046900             Move  R7919100-In-Dato-A4D3                          04690040
+047000                                   In    R7919100-Konverter-Dato  04700040
+047100                                   To    W-Dato-A4D3              04710040
+047200             Perform D600-Konv-Fra-A4D3                           04720040
+047300*                                                                 04730040
+047400           When +0                                                04740040
+047500           also +0                                                04750040
+047600           also +0                                                04760040
+047700           also +0                                                04770040
+047800           also +0                                                04780040
+047900           also space                                             04790040
+048000           also +0                                                04800040
+048100           also +00001 thru +99999                                04810040
+048200             Move  R7919100-In-Dato-A2D3                          04820040
+048300                                   In    R7919100-Konverter-Dato  04830040
+048400                                   To    W-Dato-A2D3              04840040
+048500             Perform D700-Konv-Fra-A2D3                           04850040
+048600*                                                                 04860040
+048700           When +0                                                04870040
+048800           also +0                                                04880040
+048900           also +0                                                04890040
+049000           also +0                                                04900040
+049100           also +0                                                04910040
+049200           also space                                             04920040
+049300           also +0                                                04930040
+049400           also +0                                                04940040
+049500*----------------------------------------------------------------*04950040
+049600* GMjr 19980408 : Slipper nå igjennom null-dato, selv om         *04960040
+049700*                 format-flagg ikke er satt.                     *04970040
+049800*----------------------------------------------------------------*04980040
+049900*            Move  'Alle input-datoer er lik 0.'                  04990040
+050000*                                  To    R7919999-Melding         05000040
+050100*            Move  'D001'          To    R7919999-Paragraf        05010040
+050200             Move 000010101        To    W-Dato-AMD9              05020040
+050300*----------------------------------------------------------------*05030040
+050400* GMjr 19980408 : Ergo abender man heller ikke!                  *05040040
+050500*----------------------------------------------------------------*05050040
+050600*            Perform Z900-Abend                                   05060040
+050700*                                                                 05070040
+050800           When Other                                             05080040
+050900             Move  'Input datoformat må angis.'                   05090040
+051000                                   To    R7919999-Melding         05100040
+051100             Move  'D002'          To    R7919999-Paragraf        05110040
+051200             Perform Z900-Abend                                   05120040
+051300*                                                                 05130040
+051400         End-Evaluate                                             05140040
+051500*                                                                 05150040
+051600     End-Evaluate                                                 05160040
+051700*                                                                 05170040
+051800     .                                                            05180040
+051900*################################################################*05190040
+052000 D100-Konv-Fra-DMA9                Section.                       05200040
+052100*                                                                 05210040
+052200     Move  W-Dato-DMA9             To    W-Splitt-DMA9            05220040
+052300     Move  W-S-DMA9-Dag            To    W-S-AMD9-Dag             05230040
+052400     Move  W-S-DMA9-Mnd            To    W-S-AMD9-Mnd             05240040
+052500     Move  W-S-DMA9-Aar            To    W-S-AMD9-Aar             05250040
+052600     Move  W-Splitt-AMD9           To    W-Dato-AMD9              05260040
+052700*                                                                 05270040
+052800     .                                                            05280040
+052900*################################################################*05290040
+053000 D200-Konv-Fra-AMD7                Section.                       05300040
+053100*                                                                 05310040
+053200     Move  W-Dato-AMD7             To    W-Splitt-AMD7            05320040
+053300     Move  W-S-AMD7-Dag            To    W-S-AMD9-Dag             05330040
+053400     Move  W-S-AMD7-Mnd            To    W-S-AMD9-Mnd             05340040
+053500     Move  W-S-AMD7-Aar            To    W-S-AMD9-Aar             05350040
+053600*                                                                 05360040
+053700     Perform F000-Glidende-Vindu                                  05370040
+053800*                                                                 05380040
+053900     Move  W-Splitt-AMD9           To    W-Dato-AMD9              05390040
+054000*                                                                 05400040
+054100     .                                                            05410040
+054200*################################################################*05420040
+054300 D300-Konv-Fra-DMA7                Section.                       05430040
+054400*                                                                 05440040
+054500     Move  W-Dato-DMA7             To    W-Splitt-DMA7            05450040
+054600     Move  W-S-DMA7-Dag            To    W-S-AMD9-Dag             05460040
+054700     Move  W-S-DMA7-Mnd            To    W-S-AMD9-Mnd             05470040
+054800     Move  W-S-DMA7-Aar            To    W-S-AMD9-Aar             05480040
+054900*                                                                 05490040
+055000     Perform F000-Glidende-Vindu                                  05500040
+055100*                                                                 05510040
+055200     Move  W-Splitt-AMD9           To    W-Dato-AMD9              05520040
+055300*                                                                 05530040
+055400     .                                                            05540040
+055500*################################################################*05550040
+055600 D400-Konv-Fra-Jul                 Section.                       05560040
+055700*                                                                 05570040
+055800     Move  W-Dato-Jul              To    W-Temp-Jul               05580040
+055900*                                                                 05590040
+056000     Evaluate True                                                05600040
+056100       When W-Temp-Jul             <     +0                       05610040
+056200         Move  0                   To    W-Dato-AMD9              05620040
+056300*                                                                 05630040
+056400       When W-Temp-Jul             =     +0                       05640040
+056500         Move  00010101            To    W-Dato-AMD9              05650040
+056600*                                                                 05660040
+056700       When W-Temp-Jul             =     +99999                   05670040
+056800         Move  99991231            To    W-Dato-AMD9              05680040
+056900*                                                                 05690040
+057000       When Other                                                 05700040
+057100         Compute  W-S-AMD9-Aar                                    05710040
+057200             =  ( W-Temp-Jul - 1 ) / 360                          05720040
+057300         Compute  W-Temp-Jul                                      05730040
+057400             =    W-Temp-Jul                                      05740040
+057500             -  ( W-S-AMD9-Aar * 360 )                            05750040
+057600         Add   1900                To    W-S-AMD9-Aar             05760040
+057700*                                                                 05770040
+057800         Compute  W-S-AMD9-Mnd                                    05780040
+057900             =  ( W-Temp-Jul - 1 ) / 30                           05790040
+058000         Compute  W-Temp-Jul                                      05800040
+058100             =    W-Temp-Jul                                      05810040
+058200             -  ( W-S-AMD9-Mnd * 30 )                             05820040
+058300         Add   01                  To    W-S-AMD9-Mnd             05830040
+058400*                                                                 05840040
+058500         Move  W-Temp-Jul          To    W-S-AMD9-Dag             05850040
+058600*                                                                 05860040
+058700* Vi må kontrollere at dagen ikke er større enn siste dag i       05870040
+058800* måneden, noe som kan skje i februar.                            05880040
+058900*                                                                 05890040
+059000         If  W-S-AMD9-Mnd          =     02                       05900040
+059100         and W-S-AMD9-Dag          >     28                       05910040
+059200*                                                                 05920040
+059300             Initialize                  R7919050-Dager-I-Periode 05930040
+059400             Set   R7919050-Versjon                               05940040
+059500                                   To    True                     05950040
+059600             Move  W-Splitt-AMD9   To    R7919050-In-Dato         05960040
+059700             Set   R7919050-In-Mnd To    True                     05970040
+059800             Perform F7919050-Dager-I-Periode                     05980040
+059900             If  R7919999-Retur-Abend                             05990040
+060000                 Move  'D401'      To    R7919999-Paragraf        06000040
+060100                 Perform Z900-Abend                               06010040
+060200             End-If                                               06020040
+060300*                                                                 06030040
+060400             If  W-S-AMD9-Dag      >     R7919050-Ut-Dgr-I-Per    06040040
+060500                 Move  R7919050-Ut-Dgr-I-Per                      06050040
+060600                                   To    W-S-AMD9-Dag             06060040
+060700             End-If                                               06070040
+060800*                                                                 06080040
+060900         End-If                                                   06090040
+061000*                                                                 06100040
+061100         Move  W-Splitt-AMD9       To    W-Dato-AMD9              06110040
+061200*                                                                 06120040
+061300     End-Evaluate                                                 06130040
+061400*                                                                 06140040
+061500     .                                                            06150040
+061600*################################################################*06160040
+061700 D500-Konv-Fra-DB2                 Section.                       06170040
+061800*                                                                 06180040
+061900     Move  W-Dato-DB2              To    W-Splitt-DB2             06190040
+062000*                                                                 06200040
+062100     Evaluate True                                                06210040
+062200       When W-S-DB2-ISO-Format                                    06220040
+062300       and  W-S-DB2-ISO-Dag              Numeric                  06230040
+062400       and  W-S-DB2-ISO-Mnd              Numeric                  06240040
+062500       and  W-S-DB2-ISO-Aar              Numeric                  06250040
+062600         Move  W-S-DB2-ISO-Dag     To    W-S-AMD9-Dag             06260040
+062700         Move  W-S-DB2-ISO-Mnd     To    W-S-AMD9-Mnd             06270040
+062800         Move  W-S-DB2-ISO-Aar     To    W-S-AMD9-Aar             06280040
+062900*                                                                 06290040
+063000       When W-S-DB2-EUR-Format                                    06300040
+063100       and  W-S-DB2-EUR-Dag              Numeric                  06310040
+063200       and  W-S-DB2-EUR-Mnd              Numeric                  06320040
+063300       and  W-S-DB2-EUR-Aar              Numeric                  06330040
+063400         Move  W-S-DB2-EUR-Dag     To    W-S-AMD9-Dag             06340040
+063500         Move  W-S-DB2-EUR-Mnd     To    W-S-AMD9-Mnd             06350040
+063600         Move  W-S-DB2-EUR-Aar     To    W-S-AMD9-Aar             06360040
+063700*                                                                 06370040
+063800       When W-S-DB2-USA-Format                                    06380040
+063900       and  W-S-DB2-USA-Dag              Numeric                  06390040
+064000       and  W-S-DB2-USA-Mnd              Numeric                  06400040
+064100       and  W-S-DB2-USA-Aar              Numeric                  06410040
+064200         Move  W-S-DB2-USA-Dag     To    W-S-AMD9-Dag             06420040
+064300         Move  W-S-DB2-USA-Mnd     To    W-S-AMD9-Mnd             06430040
+064400         Move  W-S-DB2-USA-Aar     To    W-S-AMD9-Aar             06440040
+064500*                                                                 06450040
+064600       When Other                                                 06460040
+064700         Move  Space               To    R7919999-Melding         06470040
+064800         String 'Input DB2-dato er ugyldig ('                     06480040
+064900                                         Delimited by size        06490040
+065000                W-Dato-DB2               Delimited by size        06500040
+065100                ').'                     Delimited by size        06510040
+065200                                   Into  R7919999-Melding         06520040
+065300         End-String                                               06530040
+065400         Move  'D501'              To    R7919999-Paragraf        06540040
+065500         Perform Z900-Abend                                       06550040
+065600*                                                                 06560040
+065700     End-Evaluate                                                 06570040
+065800*                                                                 06580040
+065900     Move  W-Splitt-AMD9           To    W-Dato-AMD9              06590040
+066000*                                                                 06600040
+066100     .                                                            06610040
+066200*################################################################*06620040
+066300 D600-Konv-Fra-A4D3                Section.                       06630040
+066400*                                                                 06640040
+066500     Move  W-Dato-A4D3             To    W-Splitt-A4D3            06650040
+066600     Move  W-S-A4D3-Aar            To    W-S-AMD9-Aar             06660040
+066700*                                                                 06670040
+066800     Move  W-S-A4D3-Dag            To    W-Temp-Dag-Nr            06680040
+066900     Perform D710-Dag-Nummer                                      06690040
+067000*                                                                 06700040
+067100     Move  W-Splitt-AMD9           To    W-Dato-AMD9              06710040
+067200*                                                                 06720040
+067300     .                                                            06730040
+067400*################################################################*06740040
+067500 D700-Konv-Fra-A2D3                Section.                       06750040
+067600*                                                                 06760040
+067700     Move  W-Dato-A2D3             To    W-Splitt-A2D3            06770040
+067800     Move  W-S-A2D3-Aar            To    W-S-AMD9-Aar             06780040
+067900*                                                                 06790040
+068000     Perform F000-Glidende-Vindu                                  06800040
+068100*                                                                 06810040
+068200     Move  W-S-A2D3-Dag            To    W-Temp-Dag-Nr            06820040
+068300     Perform D710-Dag-Nummer                                      06830040
+068400*                                                                 06840040
+068500* Vi kjører Glidende Vindu en gang til, i tilfelle vi har beveget 06850040
+068600* oss over en grense etter manipulering med måneder og dager.     06860040
+068700     Perform F000-Glidende-Vindu                                  06870040
+068800*                                                                 06880040
+068900     Move  W-Splitt-AMD9           To    W-Dato-AMD9              06890040
+069000*                                                                 06900040
+069100     .                                                            06910040
+069200*################################################################*06920040
+069300 D710-Dag-Nummer                   Section.                       06930040
+069400*                                                                 06940040
+069500     Move  00                      To    W-S-AMD9-Mnd             06950040
+069600*                                                                 06960040
+069700     Perform Until W-Temp-Dag-Nr   <     +1                       06970040
+069800*                                                                 06980040
+069900         Add   01                  To    W-S-AMD9-Mnd             06990040
+070000*                                                                 07000040
+070100         Evaluate True                                            07010040
+070200           When W-S-AMD9-Mnd       =     01 or 03 or 05 or 07     07020040
+070300                                            or 08 or 10 or 12     07030040
+070400             Move  31              To    W-S-AMD9-Dag             07040040
+070500*                                                                 07050040
+070600           When W-S-AMD9-Mnd       =     04 or 06 or 09 or 11     07060040
+070700             Move  30              To    W-S-AMD9-Dag             07070040
+070800*                                                                 07080040
+070900           When other                                             07090040
+071000             Initialize                  R7919050-Dager-I-Periode 07100040
+071100             Set   R7919050-Versjon                               07110040
+071200                                   To    True                     07120040
+071300             Move  W-Splitt-AMD9   To    R7919050-In-Dato         07130040
+071400             Set   R7919050-In-Mnd To    True                     07140040
+071500             Perform F7919050-Dager-I-Periode                     07150040
+071600             If  R7919999-Retur-Abend                             07160040
+071700                 Move  'D711'      To    R7919999-Paragraf        07170040
+071800                 Perform Z900-Abend                               07180040
+071900             End-If                                               07190040
+072000             Move  R7919050-Ut-Dgr-I-Per                          07200040
+072100                                   To    W-S-AMD9-Dag             07210040
+072200*                                                                 07220040
+072300         End-Evaluate                                             07230040
+072400*                                                                 07240040
+072500         If  W-Temp-Dag-Nr         <     W-S-AMD9-Dag             07250040
+072600             Move  W-Temp-Dag-Nr   To    W-S-AMD9-Dag             07260040
+072700         End-If                                                   07270040
+072800*                                                                 07280040
+072900         Subtract W-S-AMD9-Dag     From  W-Temp-Dag-Nr            07290040
+073000*                                                                 07300040
+073100     End-Perform                                                  07310040
+073200*                                                                 07320040
+073300     .                                                            07330040
+073400*################################################################*07340040
+073500 E000-Konv-Til-Output              Section.                       07350040
+073600*                                                                 07360040
+073700     Move  W-Dato-AMD9             To    R7919100-Ut-Dato-AMD9    07370040
+073800                                   In    R7919100-Konverter-Dato  07380040
+073900*                                                                 07390040
+074000     If  Sw-Konv-Til-DMA9                                         07400040
+074100         Perform E100-Konv-Til-DMA9                               07410040
+074200         Move  W-Dato-DMA9         To    R7919100-Ut-Dato-DMA9    07420040
+074300                                   In    R7919100-Konverter-Dato  07430040
+074400     End-If                                                       07440040
+074500*                                                                 07450040
+074600     If  Sw-Konv-Til-AMD7                                         07460040
+074700         Perform E200-Konv-Til-AMD7                               07470040
+074800         Move  W-Dato-AMD7         To    R7919100-Ut-Dato-AMD7    07480040
+074900                                   In    R7919100-Konverter-Dato  07490040
+075000     End-If                                                       07500040
+075100*                                                                 07510040
+075200     If  Sw-Konv-Til-DMA7                                         07520040
+075300         Perform E300-Konv-Til-DMA7                               07530040
+075400         Move  W-Dato-DMA7         To    R7919100-Ut-Dato-DMA7    07540040
+075500                                   In    R7919100-Konverter-Dato  07550040
+075600     End-If                                                       07560040
+075700*                                                                 07570040
+075800     If  Sw-Konv-Til-Jul                                          07580040
+075900         Perform E400-Konv-Til-Jul                                07590040
+076000         Move  W-Dato-Jul          To    R7919100-Ut-Dato-Jul     07600040
+076100                                   In    R7919100-Konverter-Dato  07610040
+076200     End-If                                                       07620040
+076300*                                                                 07630040
+076400     If  Sw-Konv-Til-DB2                                          07640040
+076500         Perform E500-Konv-Til-DB2                                07650040
+076600         Move  W-Dato-DB2          To    R7919100-Ut-Dato-DB2     07660040
+076700                                   In    R7919100-Konverter-Dato  07670040
+076800     End-If                                                       07680040
+076900*                                                                 07690040
+077000     If  Sw-Konv-Til-A4D3                                         07700040
+077100         Perform E600-Konv-Til-A4D3                               07710040
+077200         Move  W-Dato-A4D3         To    R7919100-Ut-Dato-A4D3    07720040
+077300                                   In    R7919100-Konverter-Dato  07730040
+077400     End-If                                                       07740040
+077500*                                                                 07750040
+077600     If  Sw-Konv-Til-A2D3                                         07760040
+077700         Perform E700-Konv-Til-A2D3                               07770040
+077800         Move  W-Dato-A2D3         To    R7919100-Ut-Dato-A2D3    07780040
+077900                                   In    R7919100-Konverter-Dato  07790040
+078000     End-If                                                       07800040
+078100*                                                                 07810040
+078200     .                                                            07820040
+078300*################################################################*07830040
+078400 E100-Konv-Til-DMA9                Section.                       07840040
+078500*                                                                 07850040
+078600     Move  W-Dato-AMD9             To    W-Splitt-AMD9            07860040
+078700*                                                                 07870040
+078800     Move  W-S-AMD9-Dag            To    W-S-DMA9-Dag             07880040
+078900     Move  W-S-AMD9-Mnd            To    W-S-DMA9-Mnd             07890040
+079000     Move  W-S-AMD9-Aar            To    W-S-DMA9-Aar             07900040
+079100*                                                                 07910040
+079200     Move  W-Splitt-DMA9           To    W-Dato-DMA9              07920040
+079300*                                                                 07930040
+079400     .                                                            07940040
+079500*################################################################*07950040
+079600 E200-Konv-Til-AMD7                Section.                       07960040
+079700*                                                                 07970040
+079800     Move  W-Dato-AMD9             To    W-Splitt-AMD9            07980040
+079900*                                                                 07990040
+080000     Move  W-S-AMD9-Dag            To    W-S-AMD7-Dag             08000040
+080100     Move  W-S-AMD9-Mnd            To    W-S-AMD7-Mnd             08010040
+080200     Move  W-S-AMD9-Aar-2          To    W-S-AMD7-Aar             08020040
+080300*                                                                 08030040
+080400     Move  W-Splitt-AMD7           To    W-Dato-AMD7              08040040
+080500*                                                                 08050040
+080600     .                                                            08060040
+080700*################################################################*08070040
+080800 E300-Konv-Til-DMA7                Section.                       08080040
+080900*                                                                 08090040
+081000     Move  W-Dato-AMD9             To    W-Splitt-AMD9            08100040
+081100*                                                                 08110040
+081200     Move  W-S-AMD9-Dag            To    W-S-DMA7-Dag             08120040
+081300     Move  W-S-AMD9-Mnd            To    W-S-DMA7-Mnd             08130040
+081400     Move  W-S-AMD9-Aar-2          To    W-S-DMA7-Aar             08140040
+081500*                                                                 08150040
+081600     Move  W-Splitt-DMA7           To    W-Dato-DMA7              08160040
+081700*                                                                 08170040
+081800     .                                                            08180040
+081900*################################################################*08190040
+082000 E400-Konv-Til-Jul                 Section.                       08200040
+082100*                                                                 08210040
+082200     Move  W-Dato-AMD9             To    W-Splitt-AMD9            08220040
+082300*                                                                 08230040
+082400     If    W-S-AMD9-Dag            >     30                       08240040
+082500           Move  30                To    W-S-AMD9-Dag             08250040
+082600     End-If                                                       08260040
+082700*                                                                 08270040
+082800     If  W-S-AMD9-Aar              <     1900                     08280040
+082900     or  W-S-AMD9-Aar              >     2176                     08290040
+083000         Move  +0                  To    W-Dato-Jul               08300040
+083100*                                                                 08310040
+083200     Else                                                         08320040
+083300*                                                                 08330040
+083400         Compute  W-Dato-Jul                                      08340040
+083500             =  ( ( W-S-AMD9-Aar - 1900 ) * 360 )                 08350040
+083600             +  ( ( W-S-AMD9-Mnd -   01 ) *  30 )                 08360040
+083700             +      W-S-AMD9-Dag                                  08370040
+083800*                                                                 08380040
+083900         If  W-Dato-Jul            <     +1                       08390040
+084000             Move  +0              To    W-Dato-Jul               08400040
+084100         End-If                                                   08410040
+084200*                                                                 08420040
+084300     End-If                                                       08430040
+084400*                                                                 08440040
+084500     .                                                            08450040
+084600*################################################################*08460040
+084700 E500-Konv-Til-DB2                 Section.                       08470040
+084800*                                                                 08480040
+084900     Move  W-Dato-AMD9             To    W-Splitt-AMD9            08490040
+085000*                                                                 08500040
+085100     Evaluate True                                                08510040
+085200       When R7919100-In-DB2-USA    In    R7919100-Konverter-Dato  08520040
+085300         Move  '01/01/0001'        To    W-Splitt-DB2             08530040
+085400         Move  W-S-AMD9-Dag        To    W-S-DB2-USA-Dag          08540040
+085500         Move  W-S-AMD9-Mnd        To    W-S-DB2-USA-Mnd          08550040
+085600         Move  W-S-AMD9-Aar        To    W-S-DB2-USA-Aar          08560040
+085700*                                                                 08570040
+085800       When R7919100-In-DB2-EUR    In    R7919100-Konverter-Dato  08580040
+085900         Move  '01.01.0001'        To    W-Splitt-DB2             08590040
+086000         Move  W-S-AMD9-Dag        To    W-S-DB2-EUR-Dag          08600040
+086100         Move  W-S-AMD9-Mnd        To    W-S-DB2-EUR-Mnd          08610040
+086200         Move  W-S-AMD9-Aar        To    W-S-DB2-EUR-Aar          08620040
+086300*                                                                 08630040
+086400       When other                                                 08640040
+086500         Move  '0001-01-01'        To    W-Splitt-DB2             08650040
+086600         Move  W-S-AMD9-Dag        To    W-S-DB2-ISO-Dag          08660040
+086700         Move  W-S-AMD9-Mnd        To    W-S-DB2-ISO-Mnd          08670040
+086800         Move  W-S-AMD9-Aar        To    W-S-DB2-ISO-Aar          08680040
+086900*                                                                 08690040
+087000     End-Evaluate                                                 08700040
+087100*                                                                 08710040
+087200     Move  W-Splitt-DB2            To    W-Dato-DB2               08720040
+087300*                                                                 08730040
+087400     .                                                            08740040
+087500*################################################################*08750040
+087600 E600-Konv-Til-A4D3                Section.                       08760040
+087700*                                                                 08770040
+087800     Move  W-Dato-AMD9             To    W-Splitt-AMD9            08780040
+087900     Move  W-S-AMD9-Aar            To    W-S-A4D3-Aar             08790040
+088000*                                                                 08800040
+088100     Perform E710-Dag-Nummer                                      08810040
+088200     Move  W-Temp-Dag-Nr           To    W-S-A4D3-Dag             08820040
+088300*                                                                 08830040
+088400     Move  W-Splitt-A4D3           To    W-Dato-A4D3              08840040
+088500*                                                                 08850040
+088600     .                                                            08860040
+088700*################################################################*08870040
+088800 E700-Konv-Til-A2D3                Section.                       08880040
+088900*                                                                 08890040
+089000     Move  W-Dato-AMD9             To    W-Splitt-AMD9            08900040
+089100     Move  W-S-AMD9-Aar-2          To    W-S-A2D3-Aar             08910040
+089200*                                                                 08920040
+089300     Perform E710-Dag-Nummer                                      08930040
+089400     Move  W-Temp-Dag-Nr           To    W-S-A2D3-Dag             08940040
+089500*                                                                 08950040
+089600     Move  W-Splitt-A2D3           To    W-Dato-A2D3              08960040
+089700*                                                                 08970040
+089800     .                                                            08980040
+089900*################################################################*08990040
+090000 E710-Dag-Nummer                   Section.                       09000040
+090100*                                                                 09010040
+090200     Move  +0                      To    W-Temp-Dag-Nr            09020040
+090300*                                                                 09030040
+090400     Perform Until W-S-AMD9-Mnd    <     01                       09040040
+090500*                                                                 09050040
+090600         Add   W-S-AMD9-Dag        To    W-Temp-Dag-Nr            09060040
+090700         Subtract 01               From  W-S-Amd9-Mnd             09070040
+090800*                                                                 09080040
+090900         Evaluate True                                            09090040
+091000           When W-S-AMD9-Mnd       =     01 or 03 or 05 or 07     09100040
+091100                                            or 08 or 10 or 12     09110040
+091200             Move  31              To    W-S-AMD9-Dag             09120040
+091300*                                                                 09130040
+091400           When W-S-AMD9-Mnd       =     04 or 06 or 09 or 11     09140040
+091500             Move  30              To    W-S-AMD9-Dag             09150040
+091600*                                                                 09160040
+091700           When W-S-AMD9-Mnd       =     02                       09170040
+091800             Initialize                  R7919050-Dager-I-Periode 09180040
+091900             Set   R7919050-Versjon                               09190040
+092000                                   To    True                     09200040
+092100             Move  W-Splitt-AMD9   To    R7919050-In-Dato         09210040
+092200             Set   R7919050-In-Mnd To    True                     09220040
+092300             Perform F7919050-Dager-I-Periode                     09230040
+092400             If  R7919999-Retur-Abend                             09240040
+092500                 Move  'E711'      To    R7919999-Paragraf        09250040
+092600                 Perform Z900-Abend                               09260040
+092700             End-If                                               09270040
+092800             Move  R7919050-Ut-Dgr-I-Per                          09280040
+092900                                   To    W-S-AMD9-Dag             09290040
+093000*                                                                 09300040
+093100           When other                                             09310040
+093200             Move  00              To    W-S-AMD9-Dag             09320040
+093300*                                                                 09330040
+093400         End-Evaluate                                             09340040
+093500*                                                                 09350040
+093600     End-Perform                                                  09360040
+093700*                                                                 09370040
+093800     .                                                            09380040
+093900*################################################################*09390040
+094000 F000-Glidende-Vindu               Section.                       09400040
+094100*                                                                 09410040
+094200* Vi skal benytte "glidende vindu" for å avgjøre hvilket århundre 09420040
+094300* datoen befinner seg i.                                          09430040
+094400*                                                                 09440040
+094500* For å spare litt CPU kaller vi ikke opp F7919070 dersom vi      09450040
+094600* har gjort det tidligere.                                        09460040
+094700*                                                                 09470040
+094800     If  Not R7919070-Versjon                                     09480040
+094900         Initialize                      R7919070-Timestamp       09490040
+095000         Set   R7919070-Versjon    To    True                     09500040
+095100         Call  'F7919070'          Using R7919070-Timestamp       09510040
+095200                                         R7919999-Error           09520040
+095300         End-Call                                                 09530040
+095400         If  R7919999-Retur-Abend                                 09540040
+095500             Move  'F001'          To    R7919999-Paragraf        09550040
+095600             Perform Z900-Abend                                   09560040
+095700         End-If                                                   09570040
+095800     End-If                                                       09580040
+095900*                                                                 09590040
+096000     Move  R7919070-Ut-Dato        To    W-Splitt-Vindus-Dato     09600040
+096100*                                                                 09610040
+096200* Dersom intet er angitt benyttes +/- 50 år fra dagens dato.      09620040
+096300*                                                                 09630040
+096400     Evaluate R7919100-In-Aar-Frem-I-Tid                          09640040
+096500                                   In    R7919100-Konverter-Dato  09650040
+096600       When 01 Thru 99                                            09660040
+096700         Add   R7919100-In-Aar-Frem-I-Tid                         09670040
+096800                                   In    R7919100-Konverter-Dato  09680040
+096900                                   To    W-SVD-Aar                09690040
+097000       When other                                                 09700040
+097100         Add   50                  To    W-SVD-Aar                09710040
+097200     End-Evaluate                                                 09720040
+097300*                                                                 09730040
+097400* W-SVD-Aar inneholder nå øvre grense for vinduet vårt.           09740040
+097500* Vi flytter inn århundre fra denne grensen til datoen vår.       09750040
+097600*                                                                 09760040
+097700     Move  W-SVD-Aar-Hundre        To    W-S-AMD9-Aar-Hundre      09770040
+097800*                                                                 09780040
+097900* Dersom datoen da blir større enn øvre grense, trekker vi fra    09790040
+098000* ett århundre, slik at vi kommer innenfor øvre grense.           09800040
+098100*                                                                 09810040
+098200     If  W-Splitt-AMD9             >     W-Splitt-Vindus-Dato     09820040
+098300         Subtract 1                From  W-S-AMD9-Aar-Hundre      09830040
+098400     End-If                                                       09840040
+098500*                                                                 09850040
+098600     .                                                            09860040
+098700*################################################################*09870040
+098800 Z900-Abend                        Section.                       09880040
+098900*    Display " f7919100 Z900-Abend"                               09890040
+099000*                                                                 09900040
+099100     If  Not R7919999-Retur-Abend                                 09910040
+099200         Move  +0                  To    R7919999-Modul-Ind       09920040
+099300     End-If                                                       09930040
+099400*                                                                 09940040
+099500     Add   +1                      To    R7919999-Modul-Ind       09950040
+099600*                                                                 09960040
+099700     If  R7919999-Modul-Ind        Not >                          09970040
+099800                       ( Length    Of    R7919999-Modul-Tab       09980040
+099900                       / Length    Of    R7919999-Modul-Element ) 09990040
+100000         Move  'F7919100'          To    R7919999-Modul-Navn      10000040
+100100                                              (R7919999-Modul-Ind)10010040
+100200         Move  R7919999-Paragraf   To    R7919999-Modul-Para      10020040
+100300                                              (R7919999-Modul-Ind)10030040
+100400     End-If                                                       10040040
+100500*                                                                 10050040
+100600     Set   R7919999-Retur-Abend    To    True                     10060040
+100700*                                                                 10070040
+100800     Goback.                                                      10080040
+100900*################################################################*10090040
+101000     Copy R791904P.                                               10100040
+101100     Copy R791905P.                                               10110040
+101200     Copy R791906P.                                               10120040
+101300*################################################################*10130040
+101400 ZI00-Konv-Input-Versjon           Section.                       10140040
+101500*                                                                 10150040
+101600     Evaluate True                                                10160040
+101700       When R7919100-Versjon       In    F7919100-Ext-IO-Area     10170040
+101800         Move  F7919100-Ext-IO-Area                               10180040
+101900                                   To    R7919100-Konverter-Dato  10190040
+102000*                                                                 10200040
+102100*----------------------------------------------------------------*10210040
+102200*                                                                 10220040
+102300       When R7919100-Versjons-Nr   In    F7919100-Ext-IO-Area     10230040
+102400                                   =     '19970221'               10240040
+102500*                                                                 10250040
+102600         Set   Address             Of    F7919100-Versjon-1997022110260040
+102700           To  Address             Of    F7919100-Ext-IO-Area     10270040
+102800*                                                                 10280040
+102900         Initialize                      R7919100-Konverter-Dato  10290040
+103000         Set   R7919100-Versjon    In    R7919100-Konverter-Dato  10300040
+103100                                   To    True                     10310040
+103200*                                                                 10320040
+103300         Move  R7919100-In-Datoer                                 10330040
+103400                                   In    F7919100-Versjon-1997022110340040
+103500           To  R7919100-In-Datoer                                 10350040
+103600                                   In    R7919100-Konverter-Dato  10360040
+103700         Move  R7919100-In-Konv-Type                              10370040
+103800                                   In    F7919100-Versjon-1997022110380040
+103900           To  R7919100-In-Konv-Type                              10390040
+104000                                   In    R7919100-Konverter-Dato  10400040
+104100         Move  R7919100-In-DB2-Format                             10410040
+104200                                   In    F7919100-Versjon-1997022110420040
+104300           To  R7919100-In-DB2-Format                             10430040
+104400                                   In    R7919100-Konverter-Dato  10440040
+104500         Move  R7919100-In-Glidende-Vindu                         10450040
+104600                                   In    F7919100-Versjon-1997022110460040
+104700           To  R7919100-In-Glidende-Vindu                         10470040
+104800                                   In    R7919100-Konverter-Dato  10480040
+104900*                                                                 10490040
+105000*----------------------------------------------------------------*10500040
+105100*                                                                 10510040
+105200       When R7919100-Versjons-Nr   In    F7919100-Ext-IO-Area     10520040
+105300                                   =     '19961030'               10530040
+105400*                                                                 10540040
+105500         Set   Address             Of    F7919100-Versjon-1996103010550040
+105600           To  Address             Of    F7919100-Ext-IO-Area     10560040
+105700*                                                                 10570040
+105800         Initialize                      R7919100-Konverter-Dato  10580040
+105900         Set   R7919100-Versjon    In    R7919100-Konverter-Dato  10590040
+106000                                   To    True                     10600040
+106100*                                                                 10610040
+106200         Move  R7919100-In-Dato-AMD9                              10620040
+106300                                   In    F7919100-Versjon-1996103010630040
+106400           To  R7919100-In-Dato-AMD9                              10640040
+106500                                   In    R7919100-Konverter-Dato  10650040
+106600         Move  R7919100-In-Dato-DMA9                              10660040
+106700                                   In    F7919100-Versjon-1996103010670040
+106800           To  R7919100-In-Dato-DMA9                              10680040
+106900                                   In    R7919100-Konverter-Dato  10690040
+107000         Move  R7919100-In-Dato-AMD7                              10700040
+107100                                   In    F7919100-Versjon-1996103010710040
+107200           To  R7919100-In-Dato-AMD7                              10720040
+107300                                   In    R7919100-Konverter-Dato  10730040
+107400         Move  R7919100-In-Dato-DMA7                              10740040
+107500                                   In    F7919100-Versjon-1996103010750040
+107600           To  R7919100-In-Dato-DMA7                              10760040
+107700                                   In    R7919100-Konverter-Dato  10770040
+107800         Move  R7919100-In-Dato-Jul                               10780040
+107900                                   In    F7919100-Versjon-1996103010790040
+108000           To  R7919100-In-Dato-Jul                               10800040
+108100                                   In    R7919100-Konverter-Dato  10810040
+108200         Move  R7919100-In-Dato-DB2                               10820040
+108300                                   In    F7919100-Versjon-1996103010830040
+108400           To  R7919100-In-Dato-DB2                               10840040
+108500                                   In    R7919100-Konverter-Dato  10850040
+108600         Move  R7919100-In-Konv-Type                              10860040
+108700                                   In    F7919100-Versjon-1996103010870040
+108800           To  R7919100-In-Konv-Type                              10880040
+108900                                   In    R7919100-Konverter-Dato  10890040
+109000         Move  R7919100-In-DB2-Format                             10900040
+109100                                   In    F7919100-Versjon-1996103010910040
+109200           To  R7919100-In-DB2-Format                             10920040
+109300                                   In    R7919100-Konverter-Dato  10930040
+109400         Move  R7919100-In-Glidende-Vindu                         10940040
+109500                                   In    F7919100-Versjon-1996103010950040
+109600           To  R7919100-In-Glidende-Vindu                         10960040
+109700                                   In    R7919100-Konverter-Dato  10970040
+109800*                                                                 10980040
+109900*----------------------------------------------------------------*10990040
+110000*                                                                 11000040
+110100       When R7919100-Versjons-Nr   In    F7919100-Ext-IO-Area     11010040
+110200                                   =     '19960214'               11020040
+110300*                                                                 11030040
+110400         Set   Address             Of    F7919100-Versjon-1996021411040040
+110500           To  Address             Of    F7919100-Ext-IO-Area     11050040
+110600*                                                                 11060040
+110700         Initialize                      R7919100-Konverter-Dato  11070040
+110800         Set   R7919100-Versjon    In    R7919100-Konverter-Dato  11080040
+110900                                   To    True                     11090040
+111000*                                                                 11100040
+111100         Move  R7919100-In-Dato-AMD9                              11110040
+111200                                   In    F7919100-Versjon-1996021411120040
+111300           To  R7919100-In-Dato-AMD9                              11130040
+111400                                   In    R7919100-Konverter-Dato  11140040
+111500         Move  R7919100-In-Dato-DMA9                              11150040
+111600                                   In    F7919100-Versjon-1996021411160040
+111700           To  R7919100-In-Dato-DMA9                              11170040
+111800                                   In    R7919100-Konverter-Dato  11180040
+111900         Move  R7919100-In-Dato-AMD7                              11190040
+112000                                   In    F7919100-Versjon-1996021411200040
+112100           To  R7919100-In-Dato-AMD7                              11210040
+112200                                   In    R7919100-Konverter-Dato  11220040
+112300         Move  R7919100-In-Dato-DMA7                              11230040
+112400                                   In    F7919100-Versjon-1996021411240040
+112500           To  R7919100-In-Dato-DMA7                              11250040
+112600                                   In    R7919100-Konverter-Dato  11260040
+112700         Move  R7919100-In-Dato-Jul                               11270040
+112800                                   In    F7919100-Versjon-1996021411280040
+112900           To  R7919100-In-Dato-Jul                               11290040
+113000                                   In    R7919100-Konverter-Dato  11300040
+113100         Move  R7919100-In-Dato-DB2                               11310040
+113200                                   In    F7919100-Versjon-1996021411320040
+113300           To  R7919100-In-Dato-DB2                               11330040
+113400                                   In    R7919100-Konverter-Dato  11340040
+113500         Move  R7919100-In-Konv-Type                              11350040
+113600                                   In    F7919100-Versjon-1996021411360040
+113700           To  R7919100-In-Konv-Type                              11370040
+113800                                   In    R7919100-Konverter-Dato  11380040
+113900         Move  R7919100-In-DB2-Format                             11390040
+114000                                   In    F7919100-Versjon-1996021411400040
+114100           To  R7919100-In-DB2-Format                             11410040
+114200                                   In    R7919100-Konverter-Dato  11420040
+114300*                                                                 11430040
+114400*----------------------------------------------------------------*11440040
+114500*                                                                 11450040
+114600       When Other                                                 11460040
+114700         Move  Space               To    R7919999-Melding         11470040
+114800         String 'Beklager, vi håndterer ikke versjon "'           11480040
+114900                                         Delimited by size        11490040
+115000                R7919100-Versjons-Nr                              11500040
+115100                                   In    F7919100-Ext-IO-Area     11510040
+115200                                         Delimited by size        11520040
+115300                '". Ta i bruk ny versjon.'                        11530040
+115400                                         Delimited by size        11540040
+115500                                   Into  R7919999-Melding         11550040
+115600         End-String                                               11560040
+115700         Move  'ZI01'              To    R7919999-Paragraf        11570040
+115800         Perform Z900-Abend                                       11580040
+115900*                                                                 11590040
+116000     End-Evaluate                                                 11600040
+116100*                                                                 11610040
+116200     .                                                            11620040
+116300 ZI99-Ex.                                                         11630040
+116400     Exit.                                                        11640040
+116500*################################################################*11650040
+116600 ZO00-Konv-Output-Versjon          Section.                       11660040
+116700*                                                                 11670040
+116800     Evaluate True                                                11680040
+116900       When R7919100-Versjon       In    F7919100-Ext-IO-Area     11690040
+117000         Move  R7919100-Konverter-Dato                            11700040
+117100                                   To    F7919100-Ext-IO-Area     11710040
+117200*                                                                 11720040
+117300*----------------------------------------------------------------*11730040
+117400*                                                                 11740040
+117500       When R7919100-Versjons-Nr   In    F7919100-Ext-IO-Area     11750040
+117600                                   =     '19970221'               11760040
+117700*                                                                 11770040
+117800         Set   Address             Of    F7919100-Versjon-1997022111780040
+117900           To  Address             Of    F7919100-Ext-IO-Area     11790040
+118000*                                                                 11800040
+118100         Initialize                                               11810040
+118200               R7919100-Resultat   In    F7919100-Versjon-1997022111820040
+118300         Move  R7919100-Resultat   In    R7919100-Konverter-Dato  11830040
+118400           To  R7919100-Resultat   In    F7919100-Versjon-1997022111840040
+118500*                                                                 11850040
+118600*----------------------------------------------------------------*11860040
+118700*                                                                 11870040
+118800       When R7919100-Versjons-Nr   In    F7919100-Ext-IO-Area     11880040
+118900                                   =     '19961030'               11890040
+119000*                                                                 11900040
+119100         Set   Address             Of    F7919100-Versjon-1996103011910040
+119200           To  Address             Of    F7919100-Ext-IO-Area     11920040
+119300*                                                                 11930040
+119400         Initialize                                               11940040
+119500               R7919100-Resultat   In    F7919100-Versjon-1996103011950040
+119600         Move  R7919100-Ut-Dato-AMD9                              11960040
+119700                                   In    R7919100-Konverter-Dato  11970040
+119800           To  R7919100-Ut-Dato-AMD9                              11980040
+119900                                   In    F7919100-Versjon-1996103011990040
+120000         Move  R7919100-Ut-Dato-DMA9                              12000040
+120100                                   In    R7919100-Konverter-Dato  12010040
+120200           To  R7919100-Ut-Dato-DMA9                              12020040
+120300                                   In    F7919100-Versjon-1996103012030040
+120400         Move  R7919100-Ut-Dato-AMD7                              12040040
+120500                                   In    R7919100-Konverter-Dato  12050040
+120600           To  R7919100-Ut-Dato-AMD7                              12060040
+120700                                   In    F7919100-Versjon-1996103012070040
+120800         Move  R7919100-Ut-Dato-DMA7                              12080040
+120900                                   In    R7919100-Konverter-Dato  12090040
+121000           To  R7919100-Ut-Dato-DMA7                              12100040
+121100                                   In    F7919100-Versjon-1996103012110040
+121200         Move  R7919100-Ut-Dato-Jul                               12120040
+121300                                   In    R7919100-Konverter-Dato  12130040
+121400           To  R7919100-Ut-Dato-Jul                               12140040
+121500                                   In    F7919100-Versjon-1996103012150040
+121600         Move  R7919100-Ut-Dato-DB2                               12160040
+121700                                   In    R7919100-Konverter-Dato  12170040
+121800           To  R7919100-Ut-Dato-DB2                               12180040
+121900                                   In    F7919100-Versjon-1996103012190040
+122000*                                                                 12200040
+122100*----------------------------------------------------------------*12210040
+122200*                                                                 12220040
+122300       When R7919100-Versjons-Nr   In    F7919100-Ext-IO-Area     12230040
+122400                                   =     '19960214'               12240040
+122500*                                                                 12250040
+122600         Set   Address             Of    F7919100-Versjon-1996021412260040
+122700           To  Address             Of    F7919100-Ext-IO-Area     12270040
+122800*                                                                 12280040
+122900         Initialize                                               12290040
+123000               R7919100-Resultat   In    F7919100-Versjon-1996021412300040
+123100         Move  R7919100-Ut-Dato-AMD9                              12310040
+123200                                   In    R7919100-Konverter-Dato  12320040
+123300           To  R7919100-Ut-Dato-AMD9                              12330040
+123400                                   In    F7919100-Versjon-1996021412340040
+123500         Move  R7919100-Ut-Dato-DMA9                              12350040
+123600                                   In    R7919100-Konverter-Dato  12360040
+123700           To  R7919100-Ut-Dato-DMA9                              12370040
+123800                                   In    F7919100-Versjon-1996021412380040
+123900         Move  R7919100-Ut-Dato-AMD7                              12390040
+124000                                   In    R7919100-Konverter-Dato  12400040
+124100           To  R7919100-Ut-Dato-AMD7                              12410040
+124200                                   In    F7919100-Versjon-1996021412420040
+124300         Move  R7919100-Ut-Dato-DMA7                              12430040
+124400                                   In    R7919100-Konverter-Dato  12440040
+124500           To  R7919100-Ut-Dato-DMA7                              12450040
+124600                                   In    F7919100-Versjon-1996021412460040
+124700         Move  R7919100-Ut-Dato-Jul                               12470040
+124800                                   In    R7919100-Konverter-Dato  12480040
+124900           To  R7919100-Ut-Dato-Jul                               12490040
+125000                                   In    F7919100-Versjon-1996021412500040
+125100         Move  R7919100-Ut-Dato-DB2                               12510040
+125200                                   In    R7919100-Konverter-Dato  12520040
+125300           To  R7919100-Ut-Dato-DB2                               12530040
+125400                                   In    F7919100-Versjon-1996021412540040
+125500*                                                                 12550040
+125600*----------------------------------------------------------------*12560040
+125700*                                                                 12570040
+125800       When Other                                                 12580040
+125900         Move  Space               To    R7919999-Melding         12590040
+126000         String 'Systemfeil, vi håndterte versjon "'              12600040
+126100                                         Delimited by size        12610040
+126200                R7919100-Versjons-Nr                              12620040
+126300                                   In    F7919100-Ext-IO-Area     12630040
+126400                                         Delimited by size        12640040
+126500                '" inn, skulle også gjort det ut.'                12650040
+126600                                         Delimited by size        12660040
+126700                                   Into  R7919999-Melding         12670040
+126800         End-String                                               12680040
+126900         Move  'ZO01'              To    R7919999-Paragraf        12690040
+127000         Perform Z900-Abend                                       12700040
+127100*                                                                 12710040
+127200     End-Evaluate                                                 12720040
+127300*                                                                 12730040
+127400     .                                                            12740040
+127500 ZO99-Ex.                                                         12750040
+127600     Exit.                                                        12760040

@@ -1,0 +1,41 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * Copy-område R7919060.                                           00030000
+      * Generell submodul for å avgjøre om det er skuddår eller ikke.   00040000
+      *                                                                 00050000
+      * Man leverer dato.                                               00060000
+      * I retur vil man få en bryter som sier om det er skuddår.        00070000
+      *                                                                 00080000
+      * Eksempel på anrop:                                              00090000
+      *   Initialize                           R7919060-Skudd-Aar       00100000
+      *   Set   R7919060-Versjon         To    True                     00110000
+      *   Move  ååååmmdd                 To    R7919060-In-Dato         00120000
+      *   Call  'F7919060'               Using R7919060-Skudd-Aar       00130000
+      *                                        R7919999-Error           00140000
+      *   End-Call                                                      00150000
+      *   If  R7919999-Retur-Abend                                      00160000
+      *       abend                                                     00170000
+      *   End-If                                                        00180000
+      *   If  R7919060-Ut-Skudd-Aar                                     00190000
+      *       ...                                                       00200000
+      *   End-If                                                        00210000
+      *                                                                 00220000
+      *################################################################*00230000
+      * DATO ! SI! ENDRINGENS ART                                ! 3A ! 00240000
+      *---------------------------------------------------------------- 00250000
+      *130195!HLR! Nytt copy-område                              !JR68! 00260000
+      *################################################################*00270000
+       01  R7919060-SKUDD-AAR.                                          00280001
+      *                                                                 00290000
+           05  R7919060-VERSJONS-NR      PIC  X(08).                    00300001
+             88  R7919060-VERSJON                   VALUE '19950113'.   00310001
+      *                                                                 00320000
+           05  R7919060-KVALIFISERING.                                  00330001
+               10  R7919060-IN-DATO      PIC S9(09)              COMP-3.00340001
+      *                                                                 00350000
+           05  R7919060-RESULTAT.                                       00360001
+               10  R7919060-UT-DAGER-PER-AAR                            00370001
+                                         PIC S9(03)              COMP-3.00380001
+                 88  R7919060-UT-IKKE-SKUDD-AAR     VALUE +365.         00390001
+                 88  R7919060-UT-SKUDD-AAR          VALUE +366.         00400001
+      *                                                                 00410000

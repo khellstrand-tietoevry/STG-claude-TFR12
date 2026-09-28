@@ -1,0 +1,91 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * Copy-område R791MQSH.                                           00030000
+      * Generell interface for å kommunisere med MQSeries.              00040000
+      *                                                                 00050000
+      * FD Header record for MQ meldinger                               00060000
+      *                                                                 00070000
+      *                                                                 00080000
+      *################################################################*00090000
+      * DATO ! SI! ENDRINGENS ART                                ! 3A ! 00100000
+      *---------------------------------------------------------------- 00110000
+      *250497!JPK! Nytt copy-område                              !    ! 00120000
+      *################################################################*00130000
+       01  R791MQSH-Interface.                                          00140000
+      *                                                                 00150000
+           05  R791MQSH-Versjons-Nr        Pic  X(08).                  00160000
+             88  R791MQSH-Versjon                     Value '19970425'. 00170000
+      *---------------------------------------------------------------  00180000
+      *                                                                 00190000
+      *                                                                 00200000
+           05  R791MQSH-In-Aksjon          Pic  9(01).                  00210001
+             88  R791MQSH-In-Bruk-Header              Value 0.          00220002
+             88  R791MQSH-In-Ikke-Header              Value 1.          00230002
+             88  R791MQSH-In-Bruk-Header-Ut           Value 2.          00240007
+             88  R791MQSH-In-Ikke-Header-Ut           Value 3.          00250007
+      *---------------------------------------------------------------  00260001
+      *                                                                 00270001
+      *                                                                 00280001
+           05  R791MQSH-Header-Data.                                    00290000
+      *---------------------------------------------------------------  00300000
+      *    Eyecatcher                                                   00310000
+      *                                                                 00320000
+             10  R791MQSH-Struktur         Pic  X(08) Value 'R791MQSH'. 00330000
+               88  R791MQSH-Struktur-Def              Value 'R791MQSH'. 00340000
+      *---------------------------------------------------------------  00350000
+      *    Krypteringsflagg                                             00360005
+      *                                                                 00370000
+             10  R791MQSH-Kryptering       Pic  X(01) Value Spaces.     00380005
+               88  R791MQSH-Krypteres                 Value 'J'.        00390005
+      *---------------------------------------------------------------  00400005
+      *    Versjon for header strukturen                                00410005
+      *                                                                 00420005
+             10  R791MQSH-Struktur-Ver     Pic  9(02) Value 0.          00430005
+      *---------------------------------------------------------------  00440000
+      *    Lengde på header strukturen                                  00450000
+      *                                                                 00460000
+             10  R791MQSH-Struktur-Len     Pic  9(04) Value 0.          00470000
+      *---------------------------------------------------------------  00480004
+      *    Versjon for melding som følger header strukturen             00490004
+      *                                                                 00500004
+             10  R791MQSH-Melding-Ver      Pic  9(02) Value 0.          00510004
+      *---------------------------------------------------------------  00520000
+      *    Mottakende applikasjon                                       00530000
+      *                                                                 00540000
+             10  R791MQSH-Mottaker-Appl    Pic  x(20) Value Spaces.     00550000
+      *---------------------------------------------------------------  00560000
+      *    Avvsendende applikasjon                                      00570000
+      *                                                                 00580000
+             10  R791MQSH-Avsender-Appl    Pic  x(20) Value Spaces.     00590000
+      *---------------------------------------------------------------  00600000
+      *    Timestamp for når meldingen ble sendt                        00610000
+      *                                                                 00620000
+             10  R791MQSH-Sendt-Timestamp  Pic  x(16) Value Spaces.     00630000
+      *---------------------------------------------------------------  00640000
+      *    Timestamp for når meldingen ble sist hentet fra kø           00650000
+      *                                                                 00660000
+             10  R791MQSH-Lest-Timestamp   Pic  x(16) Value Spaces.     00670000
+      *---------------------------------------------------------------  00680006
+      *    Konsern/Regnr for banken meldingen kommer fra                00690006
+      *                                                                 00700006
+             10  R791MQSH-Bank             Pic  9(04) Value 0.          00710006
+      *---------------------------------------------------------------  00720006
+      *    Brukerident til den person/system som er opphavet            00730006
+      *                                                                 00740006
+             10  R791MQSH-Brukerid         Pic  x(08) Value Spaces.     00750006
+      *---------------------------------------------------------------  00760006
+      *    Passord knyttet til brukerid'en                              00770006
+      *                                                                 00780006
+             10  R791MQSH-Verifikasjon     Pic  x(08) Value Spaces.     00790008
+      *---------------------------------------------------------------  00800008
+      *    Arbeidsstasjons identitet                                    00810008
+      *                                                                 00820008
+             10  R791MQSH-Arbeidsstasjon   Pic  x(08) Value Spaces.     00830008
+      *---------------------------------------------------------------  00840006
+      *    Statuskode for behandling av meldingen                       00850006
+      *                                                                 00860006
+             10  R791MQSH-Status-Kode      Pic  x(02) Value Spaces.     00870006
+      *---------------------------------------------------------------  00880006
+      *    Ident som beskriver feilsituasjonen som har oppstått         00890006
+      *                                                                 00900006
+             10  R791MQSH-Feil-ID          Pic  x(30) Value Spaces.     00910006

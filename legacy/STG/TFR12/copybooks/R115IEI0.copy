@@ -1,0 +1,213 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD Trade Finance                                                00030000
+      *                                                                 00040000
+      * Copy-area R115IEI0.                                             00050002
+      *                                                                 00060000
+      * Interface for all database access on table TF_Event_Info.       00070002
+      *                                                                 00080000
+      * The interface kan read one spesific occurence,                  00090000
+      * or several occurences, fully or partly qualified with           00100000
+      * from- and to- values.                                           00110000
+      *                                                                 00120000
+      * When reading several occurences, one must always start with     00130000
+      * -In-Get-1st, and continue with -In-Get-Next.                    00140000
+      *                                                                 00150000
+      * NB!  There are several key-fields, which may be used            00160000
+      *      differently depending on the need.                         00170000
+      *      See seperate description below.                            00180000
+      *                                                                 00190000
+      *                                                                 00200000
+      * An ordinary Select call may look like this:                     00210000
+      *                                                                 00220000
+      *    Initialize                          R115IEI0-Event-Info      00230002
+      *    Set   R115IEI0-Version        To    True                     00240002
+      *    Set   R115IEI0-In-Select      To    True                     00250002
+      *                                                                 00260014
+      * One of these:                                                   00270014
+      * 1) Set   R115IEI0-In-Actual      To    True                     00280014
+      * 2) Set   R115IEI0-In-Work        To    True                     00290014
+      * 3) Set   R115IEI0-In-Hist        To    True                     00291020
+      *                                                                 00300014
+      *    Move  &fin-inst-id            To    R115IEI0-In-Fin-Inst-ID  00310002
+      *    Move  &contract-type          To    R115IEI0-In-Contract-Type00320002
+      *    Move  &contract-no            To    R115IEI0-In-Contract-No  00330002
+      *    Move  &event-type             To    R115IEI0-In-Event-Type   00340010
+      *                                                                 00350001
+      * To specify relation to Main_Contract or Part_Amount:            00360001
+      * One of these: (3rd only for cursors)                            00370001
+      * 1) Set   R115IEI0-In-Rel-MC      To    True                     00380002
+      * 2) Set   R115IEI0-In-Rel-PA      To    True                     00390002
+      * 3) Set   R115IEI0-In-Rel-All     To    True                     00400002
+      *                                                                 00410000
+      * If you want Event_Info for a Part_Amount, fill in these:        00420002
+      *    Move  &currency (ISO 4217)    To    R115IEI0-In-CA-Currency  00430002
+      *    Move  &part-amount seq.no     To    R115IEI0-In-PA-Seq-No    00440002
+      *                                                                 00450000
+      *    Call  'F115IEI0'              Using R115IEI0-Event-Info      00460002
+      *                                        R7919999-Error-Area      00470009
+      *    End-Call                                                     00480000
+      *                                                                 00490000
+      *    Evaluate True                                                00500000
+      *      When R7919999-Return-Abend                                 00510009
+      *        Move  '&&&&'              To    R7919999-Paragraph       00520009
+      *        Perform Z900-Abend                                       00530000
+      *                                                                 00540000
+      *      When R7919999-Return-Error                                 00550009
+      *        ...not found...                                          00560000
+      *                                                                 00570000
+      *      When R7919999-Return-OK                                    00580009
+      *        ...found...                                              00590000
+      *                                                                 00600000
+      *    End-Evaluate                                                 00610000
+      *                                                                 00620000
+      *################################################################*00630000
+      * Date ! Si! Change description                            ! 3A ! 00640000
+      *------+---+-----------------------------------------------+----+ 00650000
+      *281100!NDL! Added Hist table version                      !LT12! 00660020
+      *190600!HLR! Changed cursor-qual. on FK_TFMC_Contr_Type    !LO18! 00661020
+      *      !   ! from "Like" to "=".                           !    ! 00670018
+      *270899!HLR! Added From- and To-Date                       !LG10! 00680017
+      *280499!HLR! Work-Status removed                           !LG10! 00690017
+      *190399!HLR! New copy area                                 !LG10! 00700012
+      *################################################################*00710000
+      *                                                                 00720000
+         03  R115IEI0-Event-Info.                                       00730002
+      *                                                                 00740000
+           05  R115IEI0-Version-No              Pic  X(08).             00750002
+             88  R115IEI0-Version                    Value '19990827'.  00760017
+      *                                                                 00770000
+      *----------------------------------------------------------------*00780000
+      *                                                                 00790000
+           05  R115IEI0-Qualification.                                  00800002
+      *                                                                 00810000
+             10  R115IEI0-In-Action             Pic  X(16).             00820002
+               88  R115IEI0-In-Get-1st               Value 'GET-1ST'.   00830002
+               88  R115IEI0-In-Get-Next              Value 'GET-NEXT'.  00840002
+               88  R115IEI0-In-Select                Value 'SELECT'.    00850002
+               88  R115IEI0-In-Insert                Value 'INSERT'.    00860002
+               88  R115IEI0-In-Update                Value 'UPDATE'.    00870002
+               88  R115IEI0-In-Delete                Value 'DELETE'.    00880002
+      *                                                                 00890000
+      * There are several key-fields, which may be used differently     00900000
+      * depending on the need.                                          00910000
+      *                                                                 00920000
+      * In-Table must be set whatever the desired action is.            00930014
+      *                                                                 00940014
+      * For Insert, use the Data area for all fields.                   00950013
+      *                                                                 00960013
+      * For Select, Update and Delete, use:                             00970013
+      *     - Fin-Inst-No or Fin-Inst-ID                                00980000
+      *     - Contract-Type                                             00990000
+      *     - Contract-No                                               01000000
+      *     - Relation (Rel-MC or Rel-PA)                               01010001
+      *     - If Rel-PA is specified:                                   01020001
+      *       - Currency                                                01030000
+      *       - Part Amount Sequence Number                             01040000
+      *     - Event-Type                                                01050010
+      *                                                                 01060000
+      * For cursor (Get-1st / Get-Next), use:                           01070000
+      *     - Optional: Fin-Inst-No or Fin-Inst-ID                      01080000
+      *     - Optional: Contract-Type                                   01090000
+      *     - Optional: From-Contr-No and To-Contr-No                   01100000
+      *     - Optional: Relation                                        01110001
+      *     - If Rel-PA is specified:                                   01120001
+      *       - Optional: Currency and Part Amount Seq.no               01130004
+      *     - Optional: Event-Type                                      01140010
+      *             or: Event-Type with mask (e.g. 'I* ')               01150010
+      *     - Optional: From-Date and/or To-Date                        01160017
+      *                                                                 01170000
+             10  R115IEI0-In-Key.                                       01180002
+      *                                                                 01190000
+               15  R115IEI0-In-Table-Version    Pic  X(16).             01200016
+                 88  R115IEI0-In-Actual              Value 'ACTUAL'.    01210014
+                 88  R115IEI0-In-Work                Value 'WORK'.      01220014
+                 88  R115IEI0-In-Hist                Value 'HIST'.      01221020
+      *                                                                 01230014
+      *        It is optional wether you use Fin-Inst-No or Fin-Inst-ID.01240000
+               15  R115IEI0-In-Fin-Inst.                                01250002
+                 20  R115IEI0-In-Fin-Inst-No    Pic  X(18).             01260006
+                 20  R115IEI0-In-Fin-Inst-ID    Pic S9(18)       Comp-3.01270002
+      *                                                                 01280000
+      *        Contract-Type and -No is mandatory for                   01290000
+      *        Select/Update/Delete.                                    01300013
+               15  R115IEI0-In-Contract.                                01310002
+                 20  R115IEI0-In-Contract-Type  Pic  X(03).             01320002
+                 20  R115IEI0-In-Contract-No    Pic S9(07)       Comp-3.01330002
+      *                                                                 01340000
+                 20  R115IEI0-In-From-Contr-No  Pic S9(07)       Comp-3.01350002
+                 20  R115IEI0-In-To-Contr-No    Pic S9(07)       Comp-3.01360002
+      *                                                                 01370000
+               15  R115IEI0-In-Event-Type       Pic  X(10).             01380010
+      *                                                                 01390010
+      *        You need to specify wether you want Event_Info           01400002
+      *        related to Main_Contract, Part_Amount or any.            01410001
+      *        Rel-MC or Rel-PA must be specified for                   01420001
+      *        Select/Update/Delete.                                    01430013
+               15  R115IEI0-In-Relation         Pic  X(02).             01440002
+                 88  R115IEI0-In-Rel-MC              Value 'MC'.        01450002
+                 88  R115IEI0-In-Rel-PA              Value 'PA'.        01460002
+                 88  R115IEI0-In-Rel-Any             Value '* ', '  '.  01470002
+      *                                                                 01480000
+      *        These fields are only relevant if Rel-PA is specified.   01490001
+      *        They are both mandatory for Select/Update/Delete.        01500013
+               15  R115IEI0-In-Part-Amount.                             01510002
+                 20  R115IEI0-In-CA-Currency    Pic  X(03).             01520002
+                 20  R115IEI0-In-PA-Seq-No      Pic S9(04)       Comp.  01530002
+      *                                                                 01540000
+      *        Default from-date is 0001.01.01.                         01550017
+      *        Default to-date is 1999.12.31.                           01560017
+      *        If you want to shrink the date interval,                 01570017
+      *        fill in from-date, to-date or both.                      01580017
+               15  R115IEI0-In-Date-Interval.                           01590017
+                 20  R115IEI0-In-From-Date      Pic S9(08)       Comp-3.01600017
+                 20  R115IEI0-In-To-Date        Pic S9(08)       Comp-3.01610017
+      *                                                                 01620017
+      * When performing a Get-1st-call one may ask for the total        01630000
+      * number of rows complying with the qualification.                01640013
+      *                                                                 01650000
+             10  R115IEI0-In-Code-Count         Pic  X(10).             01660002
+               88  R115IEI0-In-CC-Count              Value 'COUNT'.     01670002
+      *                                                                 01680000
+      *----------------------------------------------------------------*01690000
+      *                                                                 01700000
+           05  R115IEI0-Data.                                           01710002
+      *                                                                 01720000
+             10  R115IEI0-Key.                                          01730002
+               15  R115IEI0-Fin-Inst-ID         Pic S9(18)       Comp-3.01740002
+               15  R115IEI0-Contract-ID.                                01750002
+                 20  R115IEI0-Contract-Type     Pic  X(03).             01760002
+                 20  R115IEI0-Contract-No       Pic S9(07)       Comp-3.01770002
+      *                                                                 01780000
+      *      These fields are only relevant if Rel-PA is specified.     01790006
+               15  R115IEI0-Part-Amount.                                01800006
+                 20  R115IEI0-CA-Currency       Pic  X(03).             01810006
+                 20  R115IEI0-PA-Seq-No         Pic S9(04)       Comp.  01820006
+      *                                                                 01830006
+               15  R115IEI0-Event-Type          Pic  X(10).             01840010
+      *                                                                 01850010
+             10  Filler.                                                01860006
+               15  R115IEI0-Fin-Inst-No         Pic  X(18).             01870006
+      *                                                                 01880006
+      *      This code defines wether the event-info is related to      01890002
+      *      the main contract or a part amount.                        01900002
+             10  R115IEI0-Relation              Pic  X(02).             01910005
+               88  R115IEI0-Rel-MC                   Value 'MC'.        01920002
+               88  R115IEI0-Rel-PA                   Value 'PA'.        01930002
+      *                                                                 01940002
+             10  R115IEI0-Event-Date            Pic S9(08)       Comp-3.01950002
+             10  R115IEI0-Tenor                 Pic  X(06).             01960002
+             10  R115IEI0-Place-Expiry          Pic  X(30).             01970002
+      *                                                                 01980000
+      * The following accumulators are only relevant when performing    01990000
+      * Get-1st or Get-Next.                                            02000000
+      * Row-No starts on 1 when doing Get-1st, and increases by 1 for   02010000
+      * each Get-Next.                                                  02020000
+      * Total-Rows is set when doing Get-1st, but ONLY if the           02030000
+      * In-CC-Count is set. The field will tell you how many rows       02040000
+      * that complies with your qualification.                          02050008
+      *                                                                 02060000
+             10  R115IEI0-Out-Accumulators.                             02070002
+               15  R115IEI0-Out-Row-No          Pic S9(11)       Comp-3.02080002
+               15  R115IEI0-Out-Total-Rows      Pic S9(11)       Comp-3.02090002
+      *                                                                 02100000

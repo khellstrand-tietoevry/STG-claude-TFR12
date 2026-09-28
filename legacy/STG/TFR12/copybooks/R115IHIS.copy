@@ -1,0 +1,69 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD Trade Finance                                                00030000
+      *                                                                 00040000
+      * Copy-area R115IHIS.                                             00050000
+      *                                                                 00060000
+      * This copy-area is in use for module F115IHIR and F115IHIU,      00070000
+      * which are sub-modules to F115ITR0.                              00080000
+      *   - F115IHIR handles read-only SQL's.                           00090000
+      *   - F115IHIU handles updating SQL's.                            00100000
+      *                                                                 00110000
+      *################################################################*00120000
+      * Date ! Si! Change description                            ! 3A ! 00130000
+      *------+---+-----------------------------------------------+----+ 00140000
+      *080300!LG ! New copy area                                 !LG10! 00150000
+      *################################################################*00160000
+      *                                                                 00170000
+         03  R115IHIS-SQL-Submodules.                                   00180000
+      *                                                                 00190000
+           05  R115IHIS-Version-No              Pic  X(08).             00200000
+             88  R115IHIS-Version                    Value '20000103'.  00210001
+      *                                                                 00220000
+      *----------------------------------------------------------------*00230000
+      *                                                                 00240000
+           05  R115IHIS-Qualification.                                  00250000
+      *                                                                 00260000
+             10  R115IHIS-In-Action             Pic  X(16).             00270000
+               88  R115IHIS-In-Count-Cursor          Value 'COUNT'.     00280000
+               88  R115IHIS-In-Open-Cursor           Value 'OPEN'.      00290000
+               88  R115IHIS-In-Fetch-Cursor          Value 'FETCH'.     00300000
+               88  R115IHIS-In-Close-Cursor          Value 'CLOSE'.     00310000
+               88  R115IHIS-In-Select                Value 'SELECT'.    00320000
+               88  R115IHIS-In-Insert                Value 'INSERT'.    00330000
+               88  R115IHIS-In-Update                Value 'UPDATE'.    00340000
+               88  R115IHIS-In-Delete                Value 'DELETE'.    00350000
+      *                                                                 00360000
+      *----------------------------------------------------------------*00370000
+      * For cursor use, we need some additional information.            00380000
+      *                                                                 00390000
+      * Switches used for selecting the correct cursor:                 00400000
+      *                                                                 00410000
+             10  R115IHIS-Cursor-Code           Pic  X(08).             00420000
+               88  R115IHIS-Use-Fi-Asc               Value 'F     '.    00430000
+               88  R115IHIS-Use-Co-Asc               Value ' N    '.    00440000
+               88  R115IHIS-Use-Fi-Co-Asc            Value 'FN    '.    00450000
+               88  R115IHIS-Use-Fi-Co-PA-Asc         Value 'FNP   '.    00460000
+               88  R115IHIS-Use-Fi-Co-Hi-Asc         Value 'FN T  '.    00470000
+               88  R115IHIS-Use-Fi-Co-PA-Hi-Asc      Value 'FNPT  '.    00480000
+      *                                                                 00490000
+      * These fields are used for SQL qualification:                    00500000
+      *                                                                 00510000
+             10  R115IHIS-DB-Key.                                       00520000
+               15  R115IHIS-DB-Fin-Inst-ID      Pic S9(18)       Comp-3.00530000
+               15  R115IHIS-DB-Contract-Type    Pic  X(03).             00540000
+               15  R115IHIS-DB-From-Contr-No    Pic S9(07)       Comp-3.00550000
+               15  R115IHIS-DB-To-Contr-No      Pic S9(07)       Comp-3.00560000
+               15  R115IHIS-DB-CA-Currency      Pic  X(03).             00570000
+               15  R115IHIS-DB-From-PA-Seq-No   Pic S9(04)       Comp.  00580000
+               15  R115IHIS-DB-To-PA-Seq-No     Pic S9(04)       Comp.  00590000
+               15  R115IHIS-DB-From-HI-Seq-No   Pic S9(04)       Comp.  00600000
+               15  R115IHIS-DB-To-HI-Seq-No     Pic S9(04)       Comp.  00610000
+      *                                                                 00620000
+      * Here is the result of a Count request:                          00630000
+      *                                                                 00640000
+             10  R115IHIS-Out-Accumulators.                             00650000
+               15  R115IHIS-Out-Total-Rows      Pic S9(11)       Comp-3.00660000
+      *                                                                 00670000
+      *----------------------------------------------------------------*00680000
+      *                                                                 00690000

@@ -1,0 +1,66 @@
+      *################################################################*00010004
+      *                                                                 00020004
+      * Copy-område R7919070.                                           00030004
+      * Generell submodul for å hente timestamp - maskindato og klokke. 00040004
+      *                                                                 00050004
+      * Ingen input.                                                    00060004
+      * Timestamp leveres tilbake, som:                                 00070004
+      *   - Timestamp      Format : X(26).                              00071004
+      *                    Innhold: 'YYYY-MM-DD-HH.MM.SS.MMMMMM'        00072004
+      *   - Timestamp-16   Format : 9(16).                              00073004
+      *                    Innhold: åååå - Årstall                      00074004
+      *                             mm   - Måned                        00075004
+      *                             dd   - Dag                          00076004
+      *                             tt   - Timer                        00077004
+      *                             mm   - Minutter                     00078004
+      *                             ss   - Sekunder                     00079004
+      *                             hh   - Hundredels sekund            00080004
+      *   - Timestamp-20   Format : 9(20).                              00090004
+      *                    Innhold: åååå - Årstall                      00100004
+      *                             mm   - Måned                        00110004
+      *                             dd   - Dag                          00120004
+      *                             tt   - Timer                        00130004
+      *                             mm   - Minutter                     00140004
+      *                             ss   - Sekunder                     00150004
+      *                         mmmmmm   - mikrosekunder                00160004
+      *   - Maskin-dato    Innhold: ååååmmdd                            00170004
+      *   - Maskin-tid     Innhold: ttmmsshh                            00171004
+      *                                                                 00172004
+      * Eksempel på anrop:                                              00173004
+      *   Initialize                           R7919070-Timestamp       00174004
+      *   Set   R7919070-Versjon         To    True                     00175004
+      *   Call  'F7919070'               Using R7919070-Timestamp       00176004
+      *                                        R7919999-Error           00177004
+      *   End-Call                                                      00178004
+      *   If  R7919999-Retur-Abend                                      00179004
+      *       abend                                                     00180004
+      *   End-If                                                        00190004
+      *   Move  R7919070-Ut-Timestamp    To    ååååmmddttmmsshh         00200004
+      *                                                                 00210004
+      *################################################################*00220004
+      * DATO ! SI! ENDRINGENS ART                                ! 3A ! 00230004
+      *---------------------------------------------------------------- 00240004
+      *090911!AMR! lagt til DB2 format og tatt med mikrosekunder !    ! 00250004
+      *130195!HLR! Nytt copy-område                              !JR68! 00260004
+      *################################################################*00270004
+       01  R7919070-TIMESTAMP.                                          00280005
+      *                                                                 00290004
+           05  R7919070-VERSJONS-NR      PIC  X(08).                    00300004
+             88  R7919070-VERSJON                   VALUE '20110909'.   00310004
+      *                                                                 00320004
+           05  R7919070-RESULTAT.                                       00330004
+      * DB2 Format:                                                     00340004
+               10  R7919070-UT-TMS-DB2   PIC X(26).                     00350004
+      *                                                                 00360004
+      * Nummeriske formater:                                            00370004
+               10  R7919070-UT-TMS-20    PIC X(20).                     00380004
+      *                                                                 00390004
+               10  R7919070-UT-TMS-16    PIC 9(16).                     00400004
+               10  R7919070-UT-TIMESTAMP Redefines R7919070-UT-TMS-16   00410004
+                                         PIC 9(16).                     00420004
+      * Redefinerer for at de som benytter det gamle variabel navnet    00421004
+      * ikke skal få kompileringsfeil.                                  00422004
+      *                                                                 00423004
+               10  R7919070-UT-DATO      PIC 9(08).                     00424004
+               10  R7919070-UT-TID       PIC 9(08).                     00425004
+      *                                                                 00426004

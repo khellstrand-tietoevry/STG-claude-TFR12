@@ -1,0 +1,197 @@
+      *################################################################*        
+      *                                                                         
+      * FPP/PROD_TJEN_PRIS                                                      
+      *                                                                         
+      * Copy-område R349IPP0.                                                   
+      * Interface for les og oppdatering av PP_PROD_TJEN_PRIS                   
+      *                                                                         
+      * OBS!  -In-Fra-Key og -In-Til-Key benyttes KUN ved cursor-les,           
+      *       dvs. ved -Get-1st og -Get-Next.                                   
+      *       For alt annet benyttes -In-Key.                                   
+      *                                                                         
+      * Interfacen kan lese en spesifikk forekomst,                             
+      * eller en serie, evt. helt eller delvis kvalifisert med                  
+      * fra- og til-verdier.                                                    
+      *                                                                         
+      * Ved les av en serie skal man alltid starte med                          
+      * "-In-Get-1st", og så fortsette med "-In-Get-Next".                      
+      *                                                                         
+      *                                                                         
+      * Et normalt anrop kan f.eks. se slik ut:                                 
+      *                                                                         
+      *    Initialize                     R349IPP0-Prod-Tjen-Pris               
+      *    Set   R349IPP0-Versjon      To True                                  
+      *    Set   R349IPP0-In-Select    To True                                  
+      *    Move  &                     To R349IPP0-In-Konsern-Id                
+      *    Move  &                     To R349IPP0-In-Produkt-Nr                
+      *    Move  &                     To R349IPP0-In-Produkt-Lopenr            
+      *    Move  &                     To R349IPP0-In-Tjeneste-Kode             
+      *    Move  &                     To R349IPP0-In-Gyldig-Fra-Dato           
+      *    Move  &                     To R349IPP0-In-Gyldig-Til-Belop          
+      *                                                                         
+      *    Call  'F349IPP0'              Using R349IPP0-Prod-Tjen-Pris          
+      *                                        R7919999-Error                   
+      *    End-Call                                                             
+      *                                                                         
+      *    Evaluate True                                                        
+      *      When R7919999-Retur-Abend                                          
+      *        Move  '&&&&'              To    R7919999-Paragraf                
+      *        Perform Z900-Abend                                               
+      *                                                                         
+      *      When R7919999-Retur-Feil                                           
+      *        Ikke funnet...                                                   
+      *                                                                         
+      *      When R7919999-Retur-OK                                             
+      *        ...                                                              
+      *                                                                         
+      *    End-Evaluate                                                         
+      *                                                                         
+      *################################################################*        
+      * Dato ! Si! Endringens art                                ! 3A !         
+      *------+---+-----------------------------------------------+----+         
+      *180599!AMR! Nytt copy-område                              !JM93!         
+      *################################################################*        
+      *                                                                         
+         03  R349IPP0-Prod-Tjen-Pris.                                           
+      *                                                                         
+           05  R349IPP0-Versjons-Nr            Pic  X(08).                      
+             88  R349IPP0-Versjon                    Value '19990502'.          
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+           05  R349IPP0-Kvalifisering.                                          
+      *                                                                         
+             10  R349IPP0-In-Aksjon            Pic  X(16).                      
+               88  R349IPP0-In-Get-1st               Value 'GET-1ST'.           
+               88  R349IPP0-In-Get-Next              Value 'GET-NEXT'.          
+               88  R349IPP0-In-Select                Value 'SELECT'.            
+               88  R349IPP0-In-Insert                Value 'INSERT'.            
+               88  R349IPP0-In-Update                Value 'UPDATE'.            
+               88  R349IPP0-In-Delete                Value 'DELETE'.            
+               88  R349IPP0-In-Initialize            Value 'INITIALIZE'.        
+      *                                                                         
+      * Ved kall fra system som IKKE er gruppedelt må kjøregruppe               
+      * settes.                                                                 
+      *                                                                         
+             10  R349IPP0-In-Gruppe            Pic  X(03).                      
+               88  R349IPP0-In-B02                   Value 'B02'.               
+               88  R349IPP0-In-C03                   Value 'C03'.               
+               88  R349IPP0-In-E05                   Value 'E05'.               
+               88  R349IPP0-In-L12                   Value 'L12'.               
+               88  R349IPP0-In-M13                   Value 'M13'.               
+               88  R349IPP0-In-R18                   Value 'R18'.               
+      *                                                                         
+      * Oppdaterende kall krever verifisering.                                  
+      *                                                                         
+             10  R349IPP0-In-Verifiser         Pic  X(08).                      
+      *                                                                         
+      * Her tar vi med Trace felt fra Servo-header for å evt. og                
+      * kjøre Tracelogg i programmet.                                           
+      *                                                                         
+             10  R349IPP0-In-Trace             Pic  X(01).                      
+               88 R349IPP0-In-Logg                   Value 'J'.                 
+                                                                                
+      *                                                                         
+      *----------------------------------------------------------------*        
+      * Select / Delete                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+             10  R349IPP0-In-Key.                                               
+               15 R349IPP0-In-Konsern-Id       Pic S9(18)V      Comp-3.         
+               15 R349IPP0-In-Konsern-Nr       Pic S9(04)V      Comp.           
+               15 R349IPP0-In-Produkt-Nr       Pic S9(04)       Comp.           
+               15 R349IPP0-In-Produkt-Lopenr   Pic S9(04)       Comp.           
+               15 R349IPP0-In-Tjeneste-Kode    Pic  X(06).                      
+               15 R349IPP0-In-Gyldig-Fra-Dato  Pic S9(09)     Comp-3.           
+               15 R349IPP0-In-Gyldig-Til-Belop Pic S9(09)       Comp.           
+      *                                                                         
+      * Ved SELECT er Konsern-Id valgfri kvalifisering. Ved les via             
+      * STG-Funksjon skal ALLTID Konsern-Id                                     
+      *                                                                         
+      *                                                                         
+      *----------------------------------------------------------------*        
+      * Get-1st / Get-Next.                                                     
+      *----------------------------------------------------------------*        
+      *                                                                         
+      * I forbindelse med et "-Get-1st"-kall kan man be om å få vite            
+      * totalt antall items i henhold til angitt kvalifisering.                 
+      *                                                                         
+             10  R349IPP0-In-Kode-Count        Pic  X(10).                      
+               88  R349IPP0-In-KC-Count              Value 'COUNT'.             
+      *                                                                         
+      * Alle forekomster : Hverken -Fra eller -Til verdier fylles ut.           
+      *                                                                         
+      * Intervall        : Både -Fra og -Til verdier fylles ut.                 
+      *                                                                         
+      * Bestemt forekomst: Kun -Fra verdien fylles ut.                          
+      *                                                                         
+             10  R349IPP0-In-Fra-Key.                                           
+               15 R349IPP0-In-Fra-Konsern-Id   Pic S9(18)V      Comp-3.         
+               15 R349IPP0-In-Fra-Konsern-Nr   Pic S9(04)V      Comp.           
+               15 R349IPP0-In-Fra-Produkt-Nr   Pic S9(04)       Comp.           
+               15 R349IPP0-In-Fra-Produkt-Lopenr                                
+                                               Pic S9(04)       Comp.           
+               15 R349IPP0-In-Fra-Tjeneste-Kode                                 
+                                               Pic  X(06).                      
+      *                                                                         
+      *      10  R349IPP0-In-Til-Key.                                           
+      *                                                                         
+      * Cursor som lister adresser som er gyldige i                             
+      * angitt periode. Datoer må være i AMD9 format (YYYYMMDD).                
+      *                                                                         
+      * Alle            : Ingen kvalifisering.                                  
+      * Bestemt dato    : Kun -Fra-Dato fylles ut.                              
+      * intervaller     : Både -Fra-dato og -Til-Dato må fylles ut.             
+      *                                                                         
+             10  R349IPP0-In-Type-Cursor.                                       
+               15  R349IPP0-In-Fra-Gyldig-Dato Pic S9(09)       Comp-3.         
+               15  R349IPP0-In-Til-Gyldig-Dato Pic S9(09)       Comp-3.         
+      *                                                                         
+      *----------------------------------------------------------------*        
+      * INSERT / UPDATE                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+      * Ved INSERT/UPDATE benyttes Resultat-feltene. Nøkkelen må være           
+      * utfylt (se SELECT).                                                     
+      *                                                                         
+      * NB! Alle datoer må være i AMD9 format (YYYYMMDD).                       
+      *                                                                         
+           05  R349IPP0-Resultat.                                               
+      *                                                                         
+             10  R349IPP0-Produkt-Tjenest-Pris.                                 
+               15 R349IPP0-Konsern-Id          Pic S9(18)V    Comp-3.           
+               15 R349IPP0-Produkt-Nummer      Pic S9(4)      Comp.             
+               15 R349IPP0-Produkt-Lopenr      Pic S9(4)      Comp.             
+               15 R349IPP0-Tjeneste-Kode       Pic  X(06).                      
+               15 R349IPP0-Gyldig-Fra-Dato     Pic S9(09)     Comp-3.           
+               15 R349IPP0-Gyldig-Til-Belop    Pic S9(9)      Comp.             
+               15 R349IPP0-Gyldig-Til-Dato     Pic S9(09)     Comp-3.           
+               15 R349IPP0-Kap-Frekvens        Pic  X(01).                      
+               15 R349IPP0-Avvik-Tillatt-JN    Pic  X(01).                      
+               15 R349IPP0-Ovre-Prisbelop      Pic S9(7)V9(2)  Comp-3.          
+               15 R349IPP0-Ovre-Prispst        Pic S9(2)V9(3)  Comp-3.          
+               15 R349IPP0-Nedre-Prisbelop     Pic S9(7)V9(2)  Comp-3.          
+               15 R349IPP0-Nedre-Prispst       Pic S9(2)V9(3)  Comp-3.          
+               15 R349IPP0-Ant-Gebyrfri        Pic S9(9)       Comp.            
+               15 R349IPP0-Prisbelop           Pic S9(7)V9(2)  Comp-3.          
+               15 R349IPP0-Prisprosent         Pic S9(2)V9(3)  Comp-3.          
+               15 R349IPP0-Minimumpris         Pic S9(9)       Comp.            
+               15 R349IPP0-Maksimumpris        Pic S9(9)       Comp.            
+               15 R349IPP0-Transkode           Pic  X(01).                      
+               15 R349IPP0-Endret-Dato         Pic S9(09)      Comp-3.          
+               15 R349IPP0-Endret-Logonid      Pic  X(07).                      
+      *                                                                         
+      * Følgende antalls-felter er kun relevante i forbindelse med              
+      * "-Get-1st" og "-Get-Next".                                              
+      * Ak-Rad-Nr starter på 1 ved "-Get-1st", og øker med 1 for                
+      * hver "-Get-Next".                                                       
+      * Ak-Ant-Totalt settes ved "-Get-1st" dersom man har satt                 
+      * koden -In-KC-Count. Den viser hvor mange rader man vil motta            
+      * innenfor angitt kvalifisering.                                          
+      *                                                                         
+             10  R349IPP0-Ut-Akkumulatorer.                                     
+               15  R349IPP0-Ut-Ak-Rad-Nr       Pic S9(11)       Comp-3.         
+               15  R349IPP0-Ut-Ak-Rader-Totalt Pic S9(11)       Comp-3.         
+      *                                                                         
+             10  R349IPP0-Meldings-Kode        Pic  X(30).                      
+      *                                                                         

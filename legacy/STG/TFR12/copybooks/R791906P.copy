@@ -1,0 +1,110 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * Copy-område R791906P.                                           00030000
+      * Generell submodul for å avgjøre om det er skuddår eller ikke.   00040000
+      *                                                                 00050000
+      * Logikk til Procedure Division.                                  00060000
+      *                                                                 00070000
+      * Kan benyttes sammen med R791906W dersom man ønsker å unngå kall.00080000
+      *                                                                 00090000
+      *################################################################*00100000
+      * DATO ! SI! ENDRINGENS ART                                ! 3A ! 00110000
+      *---------------------------------------------------------------- 00120000
+      *130195!HLR! Nytt copy-område                              !JR68! 00130000
+      *################################################################*00140000
+       F7919060-Skudd-Aar                Section.                       00150000
+      *                                                                 00160000
+           Perform F7919060-B000-Initialize                             00170000
+           Perform F7919060-C000-Beregning                              00180000
+      *                                                                 00190000
+           .                                                            00200000
+       F7919060-Exit.                                                   00210000
+           Exit.                                                        00220000
+      *################################################################*00230000
+       F7919060-B000-Initialize          Section.                       00240000
+      *                                                                 00250000
+           Set   R7919999-Retur-Ok       To    True                     00260000
+           Initialize                          R7919060-Resultat        00270000
+                                         In    R7919060-Skudd-Aar       00280000
+      *                                                                 00290000
+           .                                                            00300000
+       F7919060-B099-Exit.                                              00310000
+           Exit.                                                        00320000
+      *################################################################*00330000
+       F7919060-C000-Beregning           Section.                       00340000
+      *                                                                 00350000
+           Move  R7919060-In-Dato        In    R7919060-Skudd-Aar       00360000
+                                         To    W9060-Split-Dato         00370001
+      *                                                                 00380000
+           Set   R7919060-Ut-Ikke-Skudd-Aar                             00390000
+                                         In    R7919060-Skudd-Aar       00400000
+                                         To    True                     00410000
+      *                                                                 00420000
+           Divide     W9060-SD-Aar       By    400                      00430000
+               Giving W9060-Aar-400                                     00440000
+               End-Divide                                               00450000
+           Multiply   400                By    W9060-Aar-400            00460000
+               End-Multiply                                             00470000
+      *                                                                 00480000
+           Divide     W9060-SD-Aar       By    100                      00490000
+               Giving W9060-Aar-100                                     00500000
+               End-Divide                                               00510000
+           Multiply   100                By    W9060-Aar-100            00520000
+               End-Multiply                                             00530000
+      *                                                                 00540000
+           Divide     W9060-SD-Aar       By    4                        00550000
+               Giving W9060-Aar-4                                       00560000
+               End-Divide                                               00570000
+           Multiply   4                  By    W9060-Aar-4              00580000
+               End-Multiply                                             00590000
+      *                                                                 00600000
+           Evaluate True                                                00610000
+      *                                                                 00620000
+      * Hundre-år delelig med 400 er skuddår.                           00630000
+      *                                                                 00640000
+             When W9060-Aar-400          =     W9060-SD-Aar             00650000
+               Set   R7919060-Ut-Skudd-Aar                              00660000
+                                         In    R7919060-Skudd-Aar       00670000
+                                         To    True                     00680000
+      *                                                                 00690000
+      * Øvrige hundre-år delelig med 100 er ikke skuddår.               00700000
+      *                                                                 00710000
+             When W9060-Aar-100          =     W9060-SD-Aar             00720000
+               Continue                                                 00730000
+      *                                                                 00740000
+      * Øvrige år delelig med 4 er skuddår.                             00750000
+      *                                                                 00760000
+             When W9060-Aar-4            =     W9060-SD-Aar             00770000
+               Set   R7919060-Ut-Skudd-Aar                              00780000
+                                         In    R7919060-Skudd-Aar       00790000
+                                         To    True                     00800000
+      *                                                                 00810000
+           End-Evaluate                                                 00820000
+      *                                                                 00830000
+           .                                                            00840000
+       F7919060-C099-Exit.                                              00850000
+           Exit.                                                        00860000
+      *################################################################*00870000
+       F7919060-Z900-Abend               Section.                       00880000
+      *                                                                 00890000
+           If  Not R7919999-Retur-Abend                                 00900000
+               Move  +0                  To    R7919999-Modul-Ind       00910000
+           End-If                                                       00920000
+      *                                                                 00930000
+           Add   +1                      To    R7919999-Modul-Ind       00940000
+      *                                                                 00950000
+           If  R7919999-Modul-Ind        Not >                          00960000
+                             ( Length    Of    R7919999-Modul-Tab       00970000
+                             / Length    Of    R7919999-Modul-Element   00980000
+                                                                   (1) )00990000
+               Move  'F7919060'          To    R7919999-Modul-Navn      01000000
+                                                    (R7919999-Modul-Ind)01010000
+               Move  R7919999-Paragraf   To    R7919999-Modul-Para      01020000
+                                                    (R7919999-Modul-Ind)01030000
+           End-If                                                       01040000
+      *                                                                 01050000
+           Set   R7919999-Retur-Abend    To    True                     01060000
+      *                                                                 01070000
+           .                                                            01080000
+       F7919060-Z999-Exit.                                              01090000
+           Exit.                                                        01100000

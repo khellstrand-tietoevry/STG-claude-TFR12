@@ -1,0 +1,35 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      *                                                                 00030005
+      * >>> NB! This copy book is also used outside EDB Core,  <<<      00040005
+      * >>> it is also defined in MKS/SubVersion.              <<<      00050005
+      * >>> If changes are required, these versions must be    <<<      00060005
+      * >>> harmonized. This must be done in co-operation with <<<      00070005
+      * >>> those responsible for PO and for iHub!!!           <<<      00080005
+      * >>>                       Jan.2009, Henning L. Rødland <<<      00090005
+      *                                                                 00100005
+      *                                                                 00110005
+      * User exit for system 'PO'                                       00120001
+      * -------------------------                                       00130001
+      *                                                                 00140001
+      * Src-fragment necessary to run F791ERR0-Error-Handling routines. 00150000
+      *                                                                 00160000
+      * System spesific !!!                                             00170000
+      *                                                                 00180000
+      * Each system should make their own version of this copy book.    00190000
+      * You might, as an alternative, use this copy book,               00200000
+      * but then it would be better to make your own containing         00210000
+      *    Copy S791ERRS.                                               00220000
+      *                                                                 00230000
+      *################################################################*00240002
+      * Dato   !Si ! Endringens art                               ! 3A *00250002
+      *--------+---+----------------------------------------------+----*00260002
+      *14.08.00!AS ! New copybook - defined system                !KC18*00270002
+      *################################################################*00280002
+       ZSYS-Error-System-Exit            Section.                       00290000
+      *                                                                 00300000
+           Continue                                                     00310000
+      *                                                                 00320000
+           Move  'PO'                    To    R791ERR0-In-System-ID    00330004
+      *                                                                 00340000
+           .                                                            00350000

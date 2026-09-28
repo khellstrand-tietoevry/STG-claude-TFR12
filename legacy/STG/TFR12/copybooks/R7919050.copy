@@ -1,0 +1,61 @@
+      *################################################################*00010004
+      *                                                                 00020004
+      * Copy-område R7919050.                                           00030004
+      * Generell submodul for å hente antall dager i perioden.          00040004
+      *                                                                 00050004
+      * Man leverer dato, samt hva slags periode som ønskes.            00060004
+      * Alternative perioder er:                                        00070004
+      *   - måned, kvartal, tertial, halvår og år.                      00080004
+      * Dersom ingen periode angis, benyttes måned.                     00090004
+      * Man kan også angi antall dager per år, dersom intet angis,      00100004
+      * benyttes kalender.                                              00110004
+      * I retur vil man få antall dager i angitt periode.               00120004
+      *                                                                 00130004
+      * Eksempel på anrop:                                              00140004
+      *   Initialize                           R7919050-Dager-I-Periode 00150004
+      *   Set   R7919050-Versjon         To    True                     00160004
+      *   Move  ååååmmdd                 To    R7919050-In-Dato         00170004
+      *   Set   R7919050-In-Kvt          To    True                     00180004
+      *   Call  'F7919050'               Using R7919050-Dager-I-Periode 00190004
+      *                                        R7919999-Error           00200004
+      *   End-Call                                                      00210004
+      *   If  R7919999-Retur-Abend                                      00220004
+      *       abend                                                     00230004
+      *   End-If                                                        00240004
+      *   Move  R7919050-Ut-Dgr-I-Per    To    ...                      00250004
+      *                                                                 00260004
+      *################################################################*00270004
+      * DATO ! SI! ENDRINGENS ART                                ! 3A ! 00280004
+      *---------------------------------------------------------------- 00290004
+      *130195!HLR! Nytt copy-område                              !JR68! 00300004
+      *################################################################*00310004
+       01  R7919050-DAGER-I-PERIODE.                                    00320004
+      *                                                                 00330004
+           05  R7919050-VERSJONS-NR      PIC  X(08).                    00340004
+             88  R7919050-VERSJON                   VALUE '19950113'.   00350004
+      *                                                                 00360004
+           05  R7919050-KVALIFISERING.                                  00370004
+               10  R7919050-IN-DATO      PIC S9(09)              COMP-3.00380004
+      *                                                                 00390004
+      * Default periode er Måned.                                       00400004
+      *                                                                 00410004
+               10  R7919050-IN-PERIODE   PIC S9(03)              COMP-3.00420004
+                 88  R7919050-IN-MND                VALUE +01.          00430004
+                 88  R7919050-IN-KVT                VALUE +03.          00440004
+                 88  R7919050-IN-TERT               VALUE +04.          00450004
+                 88  R7919050-IN-HALV               VALUE +06.          00460004
+                 88  R7919050-IN-AAR                VALUE +12.          00470004
+                 88  R7919050-IN-DEFAULT-PERIODE    VALUE +00, +01.     00480004
+      *                                                                 00490004
+      * Default dager per år er Kalender.                               00500004
+      *                                                                 00510004
+               10  R7919050-IN-DGR-PR-AAR                               00520004
+                                         PIC S9(03)              COMP-3.00530004
+                 88  R7919050-IN-360-DGR-PR-AAR     VALUE +360.         00540004
+                 88  R7919050-IN-365-DGR-PR-AAR     VALUE +365.         00550004
+                 88  R7919050-IN-KALENDER-AAR       VALUE +366.         00560004
+                 88  R7919050-IN-DEFAULT-DGR-PR-AAR VALUE +000, +366.   00570004
+      *                                                                 00580004
+           05  R7919050-RESULTAT.                                       00590004
+               10  R7919050-UT-DGR-I-PER PIC S9(03)              COMP-3.00600004
+      *                                                                 00610004

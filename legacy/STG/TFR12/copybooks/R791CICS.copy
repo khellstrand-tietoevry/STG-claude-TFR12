@@ -1,0 +1,74 @@
+      *################################################################*        
+      *                                                                         
+      * Copy-område R791CICS.                                                   
+      * Interface for å returnere alle date fra CICS DFHEIBLK.                  
+      *                                                                         
+      * En normal kall sekvens for å åpne en sesjon kan se slik ut              
+      *                                                                         
+      *    Initialize                          R791CICS-Dfheiblk                
+      *    Set  R791CICS-Versjon         To    True                             
+      *                                                                         
+      *    Call  'F791CICS'                                                     
+      *          Using By Reference      R791CICS-Dfheiblk                      
+      *                By Reference      R7919999-Error                         
+      *    End-Call                                                             
+      *                                                                         
+      *    If  Not  R7919999-Retur-Ok                                           
+      *       Feil                                                              
+      *    End-If                                                               
+      *                                                                         
+      *                                                                         
+      *################################################################*        
+      * Dato ! Si! Endringens art                                 ! 3A !        
+      *------+---+------------------------------------------------+----+        
+      *041197!JPK! Nytt copy-område                               !    !        
+      *################################################################*        
+       01  R791CICS-Dfheiblk.                                                   
+      *                                                                         
+           05 R791CICS-Versjons-Nr           Pic  X(08).                        
+              88 R791CICS-Versjon                   Value '19971104'.           
+      *-----------------------------------------------------------------        
+      *                                                                         
+      *-----------------------------------------------------------------        
+      *                                                                         
+      *                                                                         
+           05 R791CICS-Resultat.                                                
+      *                                                                         
+            10 R791CICS-Ut-EIBTIME           Pic s9(07)         Comp-3.         
+            10 R791CICS-Ut-EIBDATE           Pic s9(07)         Comp-3.         
+            10 R791CICS-Ut-EIBTRNID          Pic  x(04).                        
+            10 R791CICS-Ut-EIBTASKN          Pic s9(07)         Comp-3.         
+            10 R791CICS-Ut-EIBTRMID          Pic  x(04).                        
+            10 R791CICS-Ut-DFHEIGDI          Pic s9(04)         Comp.           
+            10 R791CICS-Ut-EIBCPOSN          Pic s9(04)         Comp.           
+            10 R791CICS-Ut-EIBCALEN          Pic s9(04)         Comp.           
+            10 R791CICS-Ut-EIBAID            Pic  x(01).                        
+            10 R791CICS-Ut-EIBFN             Pic  x(02).                        
+            10 R791CICS-Ut-EIBRCODE          Pic  x(06).                        
+            10 R791CICS-Ut-EIBDS             Pic  x(08).                        
+            10 R791CICS-Ut-EIBREQID          Pic  x(08).                        
+            10 R791CICS-Ut-EIBRSRCE          Pic  x(08).                        
+            10 R791CICS-Ut-EIBSYNC           Pic  x(01).                        
+            10 R791CICS-Ut-EIBFREE           Pic  x(01).                        
+            10 R791CICS-Ut-EIBRECV           Pic  x(01).                        
+            10 R791CICS-Ut-EIBSEND           Pic  x(01).                        
+            10 R791CICS-Ut-EIBATT            Pic  x(01).                        
+            10 R791CICS-Ut-EIBEOC            Pic  x(01).                        
+            10 R791CICS-Ut-EIBFMH            Pic  x(01).                        
+            10 R791CICS-Ut-EIBCOMPL          Pic  x(01).                        
+            10 R791CICS-Ut-EIBSIG            Pic  x(01).                        
+            10 R791CICS-Ut-EIBCONF           Pic  x(01).                        
+            10 R791CICS-Ut-EIBERR            Pic  x(01).                        
+            10 R791CICS-Ut-EIBERRCD          Pic  x(04).                        
+            10 R791CICS-Ut-EIBSYNRB          Pic  x(01).                        
+            10 R791CICS-Ut-EIBNODAT          Pic  x(01).                        
+            10 R791CICS-Ut-EIBRESP           Pic s9(08)         Comp.           
+            10 R791CICS-Ut-EIBRESP2          Pic s9(08)         Comp.           
+            10 R791CICS-Ut-EIBRLDBK          Pic  x(01).                        
+                                                                                
+      *-----------------------------------------------------------------        
+      *                                                                         
+      *                                                                         
+      *-----------------------------------------------------------------        
+      *                                                                         
+      *                                                                         

@@ -1,0 +1,219 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * Copy-område R7919310.                                           00030000
+      *                                                                 00040002
+      * Generell submodul for å manipulere strenger                     00050002
+      *                                                                 00060000
+      * Funksjoner :                                                    00070002
+      *                                                                 00080002
+      *   - In-Length   , Returnerer lengde frem til siste tegn som     00090002
+      *                   ikke er spaces,low-values, high-values        00100002
+      *                                                                 00110002
+      *   - In-Strip    , Fjerne innledene/påfølgende tegn              00120002
+      *                                                                 00130002
+      *   - In-Right    , Høyrejusterer et felt paddet eller trunkert.  00140003
+      *                   Blank er default pad tegn                     00150003
+      *                                                                 00160003
+      *   - In-Left     , Venstrejusterer et felt padded eller trunkert.00170003
+      *                   Blank er default pad tegn                     00180003
+      *                                                                 00190003
+      * Følgende aksjoner er gyldige for In-Length :                    00200002
+      *                                                                 00210002
+      *   In-Spaces      Inkluderer blanke i lengde beregningen         00220002
+      *                                                                 00230002
+      *   In-Low-Values  Inkluderer Low-Values i lengde beregningen     00240002
+      *                                                                 00250002
+      *   In-High-Values Inkluderer High-Values i lengde beregningen    00260002
+      *                                                                 00270002
+      * Eksempel på anrop:                                              00280002
+      *    Initialize                          R7919310-Streng          00290002
+      *    Set   R7919310-Versjon        To    True                     00300002
+      *    Set   R7919310-In-Length      To    True                     00310002
+      *    Move  &Streng                 To    R7919310-In-Streng       00320002
+      *    Move  Length                  Of    &Streng                  00330008
+      *                                  To    R7919310-In-Lengde       00340008
+      *    Call  'F7919310'              Using R7919310-Streng          00350002
+      *                                        R7919999-Error           00360002
+      *    End-Call                                                     00370002
+      *                                                                 00380002
+      *    If  R7919999-Retur-Abend                                     00390002
+      *        Move  '&&&&'              To    R7919999-Paragraf        00400002
+      *        Perform Z900-Abend                                       00410002
+      *    End-If                                                       00420002
+      *                                                                 00430002
+      *    Move  R7919310-Ut-Len         To    &En eller annen variabel 00440002
+      *                                                                 00450002
+      * Følgende aksjoner er gyldige for In-Strip:                      00460002
+      *                                                                 00470000
+      *   In-Both     Fjerner både innledende og påfølgende tegn fra    00480000
+      *               In-Streng. Dette er default.                      00490000
+      *                                                                 00500000
+      *   In-Leading  Fjerner innledende tegn fra In-Streng             00510000
+      *                                                                 00520000
+      *   In-Trailing Fjerner påfølgende tegn fra In-Streng             00530000
+      *                                                                 00540000
+      * In-Char angir hvilket tegn som skal fjernes, deafult er blank.  00550000
+      *                                                                 00560000
+      * Her er noen eksempler.                                          00570000
+      *                                                                 00580000
+      * In-Streng = "  AB C  "                                          00590000
+      * Ut-Streng = "AB C"     , Ut-Streng-Len = 4                      00600000
+      *                                                                 00610000
+      * In-Streng = "  AB C  " , In-Leading                             00620000
+      * Ut-Streng = "AB C  "   , Ut-Streng-Len = 6                      00630000
+      *                                                                 00640000
+      * In-Streng = "  AB C  " , In-Trailing                            00650000
+      * Ut-Streng = "  AB C"   , Ut-Streng-Len = 6                      00660000
+      *                                                                 00670000
+      * In-Streng = "12.7000"                                           00680000
+      * In-Char   = "0"                                                 00690000
+      * Ut-Streng = "12.7"   , Ut-Streng-Len = 4                        00700000
+      *                                                                 00710000
+      * In-Streng = "0012.700"                                          00720000
+      * In-Char   = "0"                                                 00730000
+      * Ut-Streng = "12.7"   , Ut-Streng-Len = 4                        00740000
+      *                                                                 00750000
+      *                                                                 00760000
+      * Eksempel på anrop:                                              00770000
+      *    Initialize                          R7919310-Streng          00780002
+      *    Set   R7919310-Versjon        To    True                     00790000
+      *    Set   R7919310-Strip          To    True                     00800002
+      *    Move  &Streng                 To    R7919310-In-Streng       00810000
+      *    Call  'F7919310'              Using R7919310-Streng          00820002
+      *                                        R7919999-Error           00830000
+      *    End-Call                                                     00840000
+      *                                                                 00850000
+      *    If  R7919999-Retur-Abend                                     00860000
+      *        Move  '&&&&'              To    R7919999-Paragraf        00870000
+      *        Perform Z900-Abend                                       00880000
+      *    End-If                                                       00890000
+      *                                                                 00900000
+      *    Move  R7919310-Ut-Streng(1 : R7919310-Ut-Len)                00910000
+      *                                  To    &En eller annen variabel 00920000
+      *                                                                 00930000
+      * Det er ingen gyldige aksjoner for In-Right                      00940003
+      *                                                                 00950003
+      * In-Lengde of In-Lengde-Pad må fylles ut slik at rutinen vet hvor00960005
+      * langt feltet som skal returneres skal justeres.                 00970005
+      *                                                                 00980003
+      *  In-Streng  = 'ABC'   , In-Lengde = +3 , In-Lengde-Pad = +5     00990005
+      *  Ut-Streng  = '  ABC' , Ut-Lengde = +5                          01000003
+      *                                                                 01010003
+      *  In-Streng  = 'ABC DEF'   , In-Lengde = +7, In-Lengde-Pad = +6  01020005
+      *  Ut-Streng  = 'BC DEF'    , Ut-Lengde = +6                      01030005
+      *                                                                 01040003
+      *  In-Streng  = '5'       , In-Lengde = +1, In-Char = '0'         01050005
+      *                           In-Lengde-Pad = +7                    01060005
+      *  Ut-Streng  = '0000005' , Ut-Lengde = +7                        01070003
+      *                                                                 01080003
+      *                                                                 01090003
+      * Eksempel på anrop:                                              01100003
+      *    Initialize                          R7919310-Streng          01110003
+      *    Set   R7919310-Versjon        To    True                     01120003
+      *    Set   R7919310-In-Right       To    True                     01130003
+      *    Move  +10                     To    R7919310-In-Lengde       01140003
+      *    Move  &Streng                 To    R7919310-In-Streng       01150003
+      *    Call  'F7919310'              Using R7919310-Streng          01160003
+      *                                        R7919999-Error           01170003
+      *    End-Call                                                     01180003
+      *                                                                 01190003
+      *    If  R7919999-Retur-Abend                                     01200003
+      *        Move  '&&&&'              To    R7919999-Paragraf        01210003
+      *        Perform Z900-Abend                                       01220003
+      *    End-If                                                       01230003
+      *                                                                 01240003
+      *    Move  R7919310-Ut-Streng(1 : R7919310-Ut-Lengde)             01250003
+      *                                  To    &En eller annen variabel 01260003
+      *                                                                 01270003
+      * Det er ingen gyldige aksjoner for In-Left                       01280003
+      *                                                                 01290003
+      * In-Lengde of In-Lengde-Pad må fylles ut slik at rutinen vet hvor01300005
+      * langt feltet som skal returneres skal justeres.                 01310005
+      *                                                                 01320003
+      *  In-Streng  = 'ABC'   , In-Lengde = +3, In-Lengde-Pad = +5      01330005
+      *  Ut-Streng  = 'ABC  ' , Ut-Lengde = +5                          01340003
+      *                                                                 01350003
+      *  In-Streng  = 'ABC D'     , In-Lengde = +4, In-Char = '.'       01360005
+      *                             In-Lengde-Pad = +8                  01370005
+      *  Ut-Streng  = 'ABC D...'  , Ut-Lengde = +8                      01380003
+      *                                                                 01390003
+      *  In-Streng  = 'ABC  DEF'  , In-Lengde = +8, In-Lengde-Pad = +7  01400005
+      *  Ut-Streng  = 'ABC  DE'   , Ut-Lengde = +7                      01410003
+      *                                                                 01420003
+      *  In-Streng  = '5'       , In-Lengde = +1, In-Char = '0'         01430005
+      *                           In-Lengde-Pad = +7                    01440005
+      *  Ut-Streng  = '5000000' , Ut-Lengde = +7                        01450003
+      *                                                                 01460003
+      *                                                                 01470003
+      * Eksempel på anrop:                                              01480003
+      *    Initialize                          R7919310-Streng          01490003
+      *    Set   R7919310-Versjon        To    True                     01500003
+      *    Set   R7919310-In-Left        To    True                     01510003
+      *    Move  +10                     To    R7919310-In-Lengde       01520003
+      *    Move  &Streng                 To    R7919310-In-Streng       01530003
+      *    Call  'F7919310'              Using R7919310-Streng          01540003
+      *                                        R7919999-Error           01550003
+      *    End-Call                                                     01560003
+      *                                                                 01570003
+      *    If  R7919999-Retur-Abend                                     01580003
+      *        Move  '&&&&'              To    R7919999-Paragraf        01590003
+      *        Perform Z900-Abend                                       01600003
+      *    End-If                                                       01610003
+      *                                                                 01620003
+      *    Move  R7919310-Ut-Streng(1 : R7919310-Ut-Lengde)             01630003
+      *                                  To    &En eller annen variabel 01640003
+      *                                                                 01650003
+      *################################################################*01660000
+      * DATO ! SI! ENDRINGENS ART                                ! 3A ! 01670000
+      *---------------------------------------------------------------- 01680000
+      *090697!JPK! Nytt copy-område                              !    ! 01690000
+      *################################################################*01700000
+       01  R7919310-Streng.                                             01710002
+      *                                                                 01720000
+           05  R7919310-Versjons-Nr      Pic  X(08).                    01730000
+             88  R7919310-Versjon                   VALUE '19970906'.   01740000
+      *                                                                 01750000
+      *----------------------------------------------------------------*01760000
+      *    Input Felter                                                 01770000
+      *                                                                 01780000
+           05  R7919310-Kvalifisering.                                  01790000
+      *                                                                 01800000
+             10  R7919310-In-Funksjon    Pic  x(16)    Value Spaces.    01810002
+                 88  R7919310-In-Left                  Value 'LEFT   '. 01820003
+                 88  R7919310-In-Length                Value 'LENGTH '. 01830003
+                 88  R7919310-In-Right                 Value 'RIGHT  '. 01840003
+                 88  R7919310-In-Strip                 Value 'STRIP  '. 01850003
+                 88  R7919310-In-Words                 Value 'WORDS  '. 01860007
+      *                                                                 01870002
+             10  R7919310-In-Aksjon      Pic  9(01).                    01880000
+                 88  R7919310-In-Both                  Value 0.         01890000
+                 88  R7919310-In-Leading               Value 1.         01900000
+                 88  R7919310-In-Trailing              Value 2.         01910000
+                 88  R7919310-In-Spaces                Value 3.         01920002
+                 88  R7919310-In-Low-Values            Value 4.         01930002
+                 88  R7919310-In-High-Values           Value 5.         01940002
+      *                                                                 01950000
+             10  R7919310-In-Streng      Pic  X(32768).                 01960000
+      *                                                                 01970001
+             10  R7919310-In-Lengde      Pic s9(08)  Comp.              01980001
+      *                                                                 01990004
+             10  R7919310-In-Lengde-Pad  Pic s9(08)  Comp.              02000004
+      *                                                                 02010000
+             10  R7919310-In-Char        Pic  X(01)    Value Space.     02020000
+      *                                                                 02030001
+      *----------------------------------------------------------------*02040000
+      *    Output Felter                                                02050000
+      *                                                                 02060000
+           05  R7919310-Resultat.                                       02070000
+      *                                                                 02080000
+             10  R7919310-Ut-Streng      Pic  X(32768).                 02090000
+      *                                                                 02100000
+             10  R7919310-Ut-Lengde      Pic s9(08)  Comp.              02110006
+      *                                                                 02120000
+             10  R7919310-Ut-Words       Pic  x(25600).                 02130007
+             10  Filler                  Redefines R7919310-Ut-Words.   02140007
+                 15  R7919310-Ut-Word    Occurs 256 Times               02150007
+                                         Pic  x(100).                   02160007
+      *                                                                 02170007
+             10  R7919310-Ut-Num-Words   Pic s9(08)  Comp.              02180007
+      *                                                                 02190007

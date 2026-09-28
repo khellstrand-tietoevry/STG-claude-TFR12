@@ -1,0 +1,84 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD Trade Finance                                                00030000
+      *                                                                 00040000
+      * Copy-area R115IMCS.                                             00050004
+      *                                                                 00060000
+      * This copy-area is in use for module F115IMCR and F115IMCU,      00070004
+      * which are sub-modules to F115IMC0.                              00080004
+      *   - F115IMCR handles read-only SQL's.                           00090004
+      *   - F115IMCU handles updating SQL's.                            00100004
+      *                                                                 00110000
+      *################################################################*00120000
+      * Date ! Si! Change description                            ! 3A ! 00130000
+      *------+---+-----------------------------------------------+----+ 00140000
+      *270905!NDL! Added cursor C-use-None.                      !NA35! 00150025
+      *130201!HLR! Added cursor C-FI-CN-Asc.                     !    ! 00151025
+      *090201!HLR! Tuning - Removed cursor C-FI-CN-Asc.          !    ! 00160021
+      *      !   !        - Removed cursor C-FI-CU-CN-Asc.       !    ! 00170021
+      *190600!HLR! Removed cursors CT, CN and CT-CN (3, 4 and 9).!LO18! 00180019
+      *      !   ! Cursor CU changed to FI-CU.                   !    ! 00190017
+      *      !   ! Cursor CU-CT changed to FI-CU-CT.             !    ! 00200017
+      *      !   ! Cursor CU-CN changed to FI-CU-CN.             !    ! 00210017
+      *      !   ! Cursor CU-CT-CN changed to FI-CU-CT-CN.       !    ! 00220017
+      *      !   ! Removed interval on Contract-No.              !    ! 00230018
+      *110899!HLR! Added cursor -Fi-CT-ST.                       !LG10! 00240014
+      *090299!HLR! New copy area                                 !LG10! 00250002
+      *################################################################*00260000
+      *                                                                 00270000
+         03  R115IMCS-SQL-Submodules.                                   00280004
+      *                                                                 00290000
+           05  R115IMCS-Version-No              Pic  X(08).             00300004
+             88  R115IMCS-Version                    Value '19990811'.  00310013
+      *                                                                 00320000
+      *----------------------------------------------------------------*00330000
+      *                                                                 00340000
+           05  R115IMCS-Qualification.                                  00350004
+      *                                                                 00360000
+             10  R115IMCS-In-Action             Pic  X(16).             00370004
+               88  R115IMCS-In-Count-Cursor          Value 'COUNT'.     00380004
+               88  R115IMCS-In-Open-Cursor           Value 'OPEN'.      00390004
+               88  R115IMCS-In-Fetch-Cursor          Value 'FETCH'.     00400004
+               88  R115IMCS-In-Close-Cursor          Value 'CLOSE'.     00410004
+               88  R115IMCS-In-Select                Value 'SELECT'.    00420004
+               88  R115IMCS-In-Insert                Value 'INSERT'.    00430004
+               88  R115IMCS-In-Update                Value 'UPDATE'.    00440004
+               88  R115IMCS-In-Delete                Value 'DELETE'.    00450004
+      *                                                                 00460000
+             10  R115IMCS-In-Table-Version      Pic  X(16).             00470011
+               88  R115IMCS-In-Actual                Value 'ACTUAL'.    00480011
+               88  R115IMCS-In-Work                  Value 'WORK'.      00490011
+      *                                                                 00500011
+      *----------------------------------------------------------------*00510000
+      * For cursor use, we need some additional information.            00520000
+      *                                                                 00530000
+      * Switches used for selecting the correct cursor:                 00540000
+      *                                                                 00550000
+             10  R115IMCS-Cursor-Code           Pic  X(08).             00560004
+               88  R115IMCS-Use-Fi-Asc               Value 'F     '.    00570004
+               88  R115IMCS-Use-Fi-Cu-Asc            Value 'FC    '.    00580017
+               88  R115IMCS-Use-Fi-CT-Asc            Value 'F T   '.    00590005
+               88  R115IMCS-Use-Fi-CN-Asc            Value 'F  N  '.    00600023
+               88  R115IMCS-Use-Fi-Cu-CT-Asc         Value 'FCT   '.    00610017
+               88  R115IMCS-Use-Fi-CT-CN-Asc         Value 'F TN  '.    00620005
+               88  R115IMCS-Use-Fi-CT-ST-Asc         Value 'F T S '.    00630013
+               88  R115IMCS-Use-Fi-Cu-CT-CN-Asc      Value 'FCTN  '.    00640017
+               88  R115IMCS-Use-Fi-St-Asc            Value 'F   S '.    00650012
+               88  R115IMCS-Use-None                 Value '      '.    00651024
+      *                                                                 00660001
+      * These fields are used for SQL qualification:                    00670000
+      *                                                                 00680000
+             10  R115IMCS-DB-Key.                                       00690004
+               15  R115IMCS-DB-Fin-Inst-ID      Pic S9(18)       Comp-3.00700004
+               15  R115IMCS-DB-Customer-ID      Pic S9(11)       Comp-3.00710004
+               15  R115IMCS-DB-Contr-Type       Pic  X(03).             00720010
+               15  R115IMCS-DB-Contract-No      Pic S9(07)       Comp-3.00730018
+               15  R115IMCS-DB-Status           Pic  X(12).             00740012
+      *                                                                 00750001
+      * Here is the result of a Count request:                          00760000
+      *                                                                 00770000
+             10  R115IMCS-Out-Accumulators.                             00780004
+               15  R115IMCS-Out-Total-Rows      Pic S9(11)       Comp-3.00790004
+      *                                                                 00800000
+      *----------------------------------------------------------------*00810000
+      *                                                                 00820000

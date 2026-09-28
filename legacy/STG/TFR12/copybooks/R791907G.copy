@@ -1,0 +1,41 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * Copy-område R791907G.                                           00030000
+      * Generell submodul for å hente timestamp - maskindato/klokke.    00040000
+      *                                                                 00050000
+      * Her ligger gamle versjoner av copy-området, på grunn av         00060001
+      * versjonshåndtering.                                             00070001
+      * Vi skal konvertere til og fra ny layout.                        00080001
+      *                                                                 00090001
+      * Ved innleggelse av "gammel" versjon:                            00100001
+      *  - Lag nytt 01-nivå                                             00110001
+      *  - Kopier inn copy-området før dette endres                     00120001
+      *                                                                 00130001
+      *################################################################*00140000
+      * DATO ! SI! ENDRINGENS ART                                ! 3A ! 00150000
+      *---------------------------------------------------------------- 00160000
+      *090911!AMR! ny versjon 19950113                           !JR68! 00170002
+      *130195!HLR! Nytt copy-område                              !JR68! 00171002
+      *################################################################*00180000
+       01  F7919070-Versjon-19950113.                                   00190002
+      *                                                                 00200000
+           05  R7919070-VERSJONS-NR      PIC  X(08).                    00200102
+             88  R7919070-VERSJON                   VALUE '19950113'.   00200202
+      *                                                                 00200302
+           05  R7919070-RESULTAT.                                       00200402
+               10  R7919070-UT-TIMESTAMP                                00200502
+                                         PIC S9(16)              COMP.  00200602
+               10  R7919070-UT-DATO      PIC S9(09)              COMP-3.00200702
+               10  R7919070-UT-TID       PIC S9(09)              COMP-3.00200802
+      *-----------------------------------------------------------------00200902
+       01  F7919070-Versjon-19941231.                                   00201002
+      *                                                                 00202002
+           05  R7919070-Versjons-Nr      PIC  X(08).                    00210000
+             88  R7919070-Versjon                   Value '19941231'.   00220000
+      *                                                                 00230000
+           05  R7919070-Resultat.                                       00240000
+               10  R7919070-Ut-Timestamp                                00250000
+                                         Pic S9(16)              Comp.  00260000
+               10  R7919070-Ut-Dato      Pic S9(09)              Comp-3.00270000
+               10  R7919070-Ut-Tid       Pic S9(07)              Comp-3.00280000
+      *                                                                 00290000

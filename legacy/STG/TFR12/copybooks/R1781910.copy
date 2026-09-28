@@ -1,0 +1,206 @@
+      *################################################################*00010001
+      *                                                                 00020001
+      * Copy-område R1781910.                                           00030001
+      * Interface for les og oppdatering av KL_CUSTOMER_ID              00040008
+      *                                                                 00050001
+      *                                                                 00060001
+      * Select:                                                         00070001
+      * -------                                                         00080001
+      * Lever:  konsern-nr og kunde-nr - og få:  kunde-id.              00090001
+      * Lever:  kunde-id               - og få:  konsern-nr og kunde-nr.00100001
+      *                                                                 00110001
+      * Et normalt anrop kan f.eks. se slik ut:                         00120001
+      *    Initialize                          R1781910-Kunde-ID        00130001
+      *    Set   R1781910-Versjon        To    True                     00140001
+      *    Set   R1781910-In-Select      To    True                     00150001
+      *  enten:                                                         00160001
+      *    Move  &konsern-nr             To    R1781910-In-Konsern-Nr   00170001
+      *    Move  &kunde-nr               To    R1781910-In-Kunde-Nr     00180001
+      *  eller:                                                         00190001
+      *    Move  &kunde-id               To    R1781910-In-Kunde-ID     00200001
+      *                                                                 00210001
+      *    Call  'F1781910'              Using R1781910-Kunde-ID        00220001
+      *                                        R7919999-Error           00230001
+      *    End-Call                                                     00240001
+      *    If  Not R7919999-Retur-OK                                    00250001
+      *        Move  '&&&&'              To    R7919999-Paragraf        00260001
+      *        Perform Z900-Abend                                       00270001
+      *    End-If                                                       00280001
+      *                                                                 00290001
+      *  enten:                                                         00300001
+      *    Move  R1781910-Ut-Kunde-ID    To    &...                     00310001
+      *  eller:                                                         00320001
+      *    Move  R1781910-Ut-Konsern-Nr  To    &...                     00330001
+      *    Move  R1781910-Ut-Kunde-Nr    To    &...                     00340001
+      *                                                                 00350001
+      *                                                                 00360001
+      * Insert:                                                         00370001
+      * -------                                                         00380001
+      *                                                                 00390001
+      * Et normalt anrop kan f.eks. se slik ut:                         00400001
+      *    Initialize                          R1781910-Kunde-ID        00410001
+      *    Set   R1781910-Versjon        To    True                     00420001
+      *    Set   R1781910-In-Insert      To    True                     00430001
+      *    Move  &konsern-nr             To    R1781910-In-Konsern-Nr   00440001
+      *    Move  &kunde-nr               To    R1781910-In-Kunde-Nr     00450001
+      *                                                                 00460001
+      *    Call  'F1781910'              Using R1781910-Kunde-ID        00470001
+      *                                        R7919999-Error           00480001
+      *    End-Call                                                     00490001
+      *    If  Not R7919999-Retur-OK                                    00500001
+      *        Move  '&&&&'              To    R7919999-Paragraf        00510001
+      *        Perform Z900-Abend                                       00520001
+      *    End-If                                                       00530001
+      *                                                                 00540001
+      *                                                                 00550001
+      * Update:                                                         00560001
+      * -------                                                         00570001
+      *                                                                 00580001
+      * Et normalt anrop kan f.eks. se slik ut:                         00590001
+      *    Initialize                          R1781910-Kunde-ID        00600001
+      *    Set   R1781910-Versjon        To    True                     00610001
+      *    Set   R1781910-In-Update      To    True                     00620001
+      *                                                                 00630001
+      *  enten:                                                         00640001
+      *    Move  &gml-konsern-nr         To    R1781910-In-Konsern-Nr   00650001
+      *    Move  &gml-kunde-nr           To    R1781910-In-Kunde-Nr     00660001
+      *  eller:                                                         00670001
+      *    Move  &kunde-id               To    R1781910-In-Kunde-ID     00680001
+      *                                                                 00690001
+      *    Move  &nytt-konsern-nr        To    R1781910-Ut-Konsern-Nr   00700001
+      *    Move  &nytt-kunde-nr          To    R1781910-Ut-Kunde-Nr     00710001
+      *                                                                 00720001
+      *    Call  'F1781910'              Using R1781910-Kunde-ID        00730001
+      *                                        R7919999-Error           00740001
+      *    End-Call                                                     00750001
+      *    If  Not R7919999-Retur-OK                                    00760001
+      *        Move  '&&&&'              To    R7919999-Paragraf        00770001
+      *        Perform Z900-Abend                                       00780001
+      *    End-If                                                       00790001
+      *                                                                 00800001
+      *                                                                 00810001
+      * Delete:                                                         00820001
+      * -------                                                         00830001
+      *                                                                 00840001
+      * Et normalt anrop kan f.eks. se slik ut:                         00850001
+      *    Initialize                          R1781910-Kunde-ID        00860001
+      *    Set   R1781910-Versjon        To    True                     00870001
+      *    Set   R1781910-In-Delete      To    True                     00880001
+      *  enten:                                                         00890001
+      *    Move  &konsern-nr             To    R1781910-In-Konsern-Nr   00900001
+      *    Move  &kunde-nr               To    R1781910-In-Kunde-Nr     00910001
+      *  eller:                                                         00920001
+      *    Move  &kunde-id               To    R1781910-In-Kunde-ID     00930001
+      *                                                                 00940001
+      *    Call  'F1781910'              Using R1781910-Kunde-ID        00950001
+      *                                        R7919999-Error           00960001
+      *    End-Call                                                     00970001
+      *    If  Not R7919999-Retur-OK                                    00980001
+      *        Move  '&&&&'              To    R7919999-Paragraf        00990001
+      *        Perform Z900-Abend                                       01000001
+      *    End-If                                                       01010001
+      *                                                                 01020001
+      *################################################################*01030001
+      * Dato ! Si! Endringens art                                ! 3A ! 01040001
+      *------+---+-----------------------------------------------+----+ 01050001
+      *220218!HS ! To nye felt (som tidligere var stjernet ut)   !Lv10! 01050107
+      *      !   ! R1781910-Ut-Dann-TS                           !2018! 01050207
+      *      !   ! R1781910-Ut-Endre-TS                          !2018! 01050307
+      *------+---+-----------------------------------------------+----+ 01050407
+      *220218!HS ! OBS-OBS: Nytt format på Kundenr => X(35)      !Lev5! 01051001
+      *      !   !                                               !2018! 01052001
+      *------+---+-----------------------------------------------+----+ 01053001
+      *270598!HLR! Lagt inn -Status                              !    ! 01060001
+      *100497!HLR! Nytt copy-område                              !LA01! 01070001
+      *################################################################*01080001
+      *                                                                 01090001
+         03  R1781910-Kunde-ID.                                         01100001
+      *                                                                 01110001
+           05  R1781910-Versjons-Nr             Pic  X(08).             01120001
+             88  R1781910-Versjon                    Value '20180814'.  01130007
+      *                                                                 01130207
+      *      88  R1781910-Versjon                    Value '20180222'.  01130307
+      *      88  R1781910-Versjon                    Value '19980527'.  01131001
+      *                                                                 01140001
+      *----------------------------------------------------------------*01150001
+      *                                                                 01160001
+           05  R1781910-Kvalifisering.                                  01170001
+      *                                                                 01180001
+      * In-Select gir ikke Status ut slik at vi kun leser på indexene   01181001
+      * In-Select-All gir også status ut                                01182001
+             10  R1781910-In-Aksjon             Pic  X(16).             01190001
+               88  R1781910-In-Select                Value 'SELECT'.    01200001
+               88  R1781910-In-Select-All            Value 'SELECT-ALL'.01201001
+               88  R1781910-In-Insert                Value 'INSERT'.    01210001
+               88  R1781910-In-Update                Value 'UPDATE'.    01220001
+               88  R1781910-In-Delete                Value 'DELETE'.    01230001
+      *                                                                 01240001
+               88  R1781910-In-Adder-Sist-Brukt      Value 'ADD-ID'.    01250001
+               88  R1781910-In-Sett-Sist-Brukt       Value 'SETT-ID'.   01260001
+      * Select-Main conecter seg mot Server som Komplett nøkkelskap     01260101
+      * ligger aksjonen krever at man har med Coll-ID 'KLX99' i planen  01260201
+               88  R1781910-In-Select-Main           Value 'SELECT-M'.  01261001
+      *                                                                 01270001
+      * Ved Select:                                                     01280001
+      *     - enten -In-Kunde-ID                                        01290001
+      *     - eller -In-Konsern-Nr og In-Kunde-Nr                       01300001
+      *                                                                 01310001
+      * Ved Insert:                                                     01320001
+      *     - -In-Konsern-Nr og In-Kunde-Nr                             01330001
+      *                                                                 01340001
+      * Ved Update:                                                     01350001
+      *   For å kvalifisere på den gamle raden:                         01360001
+      *     - enten -In-Kunde-ID                                        01370001
+      *     - eller -In-Konsern-Nr og In-Kunde-Nr                       01380001
+      *   For å levere nye verdier:                                     01390001
+      *     - -Ut-Konsern-Nr og Ut-Kunde-Nr                             01400001
+      *                                                                 01410001
+      * Ved Delete:                                                     01420001
+      *     - enten -In-Kunde-ID                                        01430001
+      *     - eller -In-Konsern-Nr og In-Kunde-Nr                       01440001
+      *                                                                 01450001
+      *                                                                 01460001
+      * Adder-Sist-Brukt:                                               01470001
+      *     - Det gapet man ønsker addert til sist brukte ID,           01480001
+      *       legges i -In-Kunde-ID.                                    01490001
+      *                                                                 01500001
+      * Sett-Sist-Brukt:                                                01510001
+      *     - Den nye verdien man ønsker lagt i sist brukte ID,         01520001
+      *       legges i -In-Kunde-ID.                                    01530001
+      *                                                                 01540001
+             10  R1781910-In-Kunde-ID           Pic S9(11)       Comp-3.01550001
+      *                                                                 01560001
+             10  R1781910-In-Konsern-Nr         Pic S9(05)       Comp-3.01570001
+      **     10  R1781910-In-Kunde-Nr           Pic S9(11)       Comp-3.01580003
+      **=>     OBS: Nytt format på kundenr!                             01580103
+             10  R1781910-In-Kunde-Nr-X35       Pic  X(35).             01581003
+             10  R1781910-In-Kunde-Nr       Redefines                   01582003
+                                            R1781910-In-Kunde-Nr-X35    01582103
+                                                Pic  9(11).             01583003
+      *                                                                 01590001
+      * Følgende felt benyttes kun ved insert:                          01600001
+             10  R1781910-In-Status             Pic  X(01).             01610001
+               88  R1781910-In-Reservert-ID          Value 'R'.         01620001
+               88  R1781910-In-Kunde-Finnes          Value 'K', ' '.    01630001
+      *                                                                 01640001
+      *----------------------------------------------------------------*01650001
+      *                                                                 01660001
+           05  R1781910-Resultat.                                       01670001
+      *                                                                 01680001
+             10  R1781910-Ut-Kunde-ID           Pic S9(11)       Comp-3.01690001
+      *                                                                 01700001
+             10  R1781910-Ut-Konsern-Nr         Pic S9(05)       Comp-3.01710001
+      **     10  R1781910-Ut-Kunde-Nr           Pic S9(11)       Comp-3.01720003
+      **=>     OBS: Nytt format på kundenr!                             01721003
+             10  R1781910-Ut-Kunde-Nr-X35       Pic  X(35).             01722003
+             10  R1781910-Ut-Kunde-Nr        Redefines                  01723006
+                                             R1781910-Ut-Kunde-Nr-X35   01724003
+                                                Pic  9(11).             01725003
+      *                                                                 01730001
+      ** Returneres kun dersom aksjon R1781910-In-Select-All            01731004
+             10  R1781910-Ut-Status             Pic  X(01).             01740001
+               88  R1781910-Ut-Reservert-ID          Value 'R'.         01750001
+               88  R1781910-Ut-Kunde-Finnes          Value 'K'.         01760001
+      ** Ny høst 2018                                                   01770007
+             10  R1781910-Ut-Dann-TS            Pic  X(26).             01780007
+             10  R1781910-Ut-Endre-TS           Pic  X(26).             01790007

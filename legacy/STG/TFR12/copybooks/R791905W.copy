@@ -1,0 +1,47 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * Copy-område R791905W.                                           00030000
+      * Generell submodul for å hente antall dager i perioden.          00040000
+      *                                                                 00050000
+      * Felter til Working-Storage.                                     00060000
+      *                                                                 00070000
+      * Kan benyttes sammen med R791905P dersom man ønsker å unngå kall.00080000
+      *                                                                 00090000
+      * Krever i tilfelle også copy-områdene                            00100000
+      *   - R791906W og R791906P                                        00110000
+      *                                                                 00120000
+      *################################################################*00130000
+      * DATO ! SI! ENDRINGENS ART                                ! 3A ! 00140000
+      *---------------------------------------------------------------- 00150000
+      *130195!HLR! Nytt copy-område                              !JR68! 00160000
+      *################################################################*00170000
+       01  F7919050-Arbeids-Felter.                                     00180000
+      *                                                                 00190000
+           05  W9050-Split-Dato          Pic  9(08).                    00200000
+           05  Filler                    Redefines W9050-Split-Dato.    00210000
+               10  W9050-SD-Aar          Pic  9(04).                    00220000
+               10  W9050-SD-Mnd          Pic  9(02).                    00230000
+               10  W9050-SD-Dag          Pic  9(02).                    00240000
+      *                                                                 00250000
+           05  W9050-Start-Mnd           Pic S9(04)              Comp.  00260002
+           05  W9050-Slutt-Mnd           Pic S9(04)              Comp.  00270002
+      *                                                                 00280001
+           05  W9050-Mnds-Tabell.                                       00290000
+               10  W9050-Januar          Pic  9(03) Value 31.           00300000
+               10  W9050-Februar         Pic  9(03).                    00310000
+                 88  W9050-Ikke-Skudd-Aar           Value 28.           00320000
+                 88  W9050-Skudd-Aar                Value 29.           00330000
+               10  W9050-Mars            Pic  9(03) Value 31.           00340000
+               10  W9050-April           Pic  9(03) Value 30.           00350000
+               10  W9050-Mai             Pic  9(03) Value 31.           00360000
+               10  W9050-Juni            Pic  9(03) Value 30.           00370000
+               10  W9050-Juli            Pic  9(03) Value 31.           00380000
+               10  W9050-August          Pic  9(03) Value 31.           00390000
+               10  W9050-September       Pic  9(03) Value 30.           00400000
+               10  W9050-Oktober         Pic  9(03) Value 31.           00410000
+               10  W9050-November        Pic  9(03) Value 30.           00420000
+               10  W9050-Desember        Pic  9(03) Value 31.           00430000
+           05  Filler                    Redefines W9050-Mnds-Tabell.   00440000
+               10  W9050-Dgr-I-Mnd       Occurs 12 Times                00450000
+                                         Pic  9(03).                    00460000
+      *                                                                 00470000

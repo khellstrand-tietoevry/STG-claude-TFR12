@@ -1,0 +1,202 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD Trade Finance                                                00030000
+      *                                                                 00040000
+      * Copy-area R115IPA0.                                             00050000
+      *                                                                 00060000
+      * Interface for all database access on table TF_Part_Amount.      00070000
+      *                                                                 00080000
+      * The interface kan read one spesific occurence,                  00090000
+      * or several occurences, fully or partly qualified with           00100000
+      * from- and to- values.                                           00110000
+      *                                                                 00120000
+      * When reading several occurences, one must always start with     00130000
+      * -In-Get-1st, and continue with -In-Get-Next.                    00140000
+      *                                                                 00150000
+      * NB!  There are several key-fields, which may be used            00160000
+      *      differently depending on the need.                         00170000
+      *      See seperate description below.                            00180000
+      *                                                                 00190000
+      *                                                                 00200000
+      * An ordinary Select call may look like this:                     00210000
+      *                                                                 00220000
+      *    Initialize                          R115IPA0-Part-Amount     00230000
+      *    Set   R115IPA0-Version        To    True                     00240000
+      *    Set   R115IPA0-In-Select      To    True                     00250000
+      *                                                                 00260000
+      * One of these:                                                   00270003
+      * 1) Set   R115IPA0-In-Actual      To    True                     00280003
+      * 2) Set   R115IPA0-In-Work        To    True                     00290003
+      *                                                                 00300003
+      * One of these:                                                   00310000
+      * 1) Move  &fin-inst-id            To    R115IPA0-In-Fin-Inst-ID  00320000
+      * 2) Move  &fin-inst-no            To    R115IPA0-In-Fin-Inst-No  00330000
+      *                                                                 00340000
+      *    Move  &contract-type          To    R115IPA0-In-Contract-Type00350000
+      *    Move  &contract-no            To    R115IPA0-In-Contract-No  00360000
+      *    Move  &currency (ISO 4217)    To    R115IPA0-In-CA-Currency  00370000
+      *    Move  &part-amount seq.no     To    R115IPA0-In-PA-Seq-No    00380000
+      *                                                                 00390000
+      *    Call  'F115IPA0'              Using R115IPA0-Part-Amount     00400000
+      *                                        R7919999-Error-Area      00410000
+      *    End-Call                                                     00420000
+      *                                                                 00430000
+      *    Evaluate True                                                00440000
+      *      When R7919999-Return-Abend                                 00450000
+      *        Move  '&&&&'              To    R7919999-Paragraph       00460000
+      *        Perform Z900-Abend                                       00470000
+      *                                                                 00480000
+      *      When R7919999-Return-Error                                 00490000
+      *        ...not found...                                          00500000
+      *                                                                 00510000
+      *      When R7919999-Return-OK                                    00520000
+      *        ...found...                                              00530000
+      *                                                                 00540000
+      *    End-Evaluate                                                 00550000
+      *                                                                 00560000
+      *################################################################*00570000
+      * Date ! Si! Change description                            ! 3A ! 00580000
+      *------+---+-----------------------------------------------+----+ 00590000
+      *170602!NDL! Added -Availability (Accept/Longterm)         !LV07! 00592018
+      *230401!NDL! Added -Incom-Swift Brukes foreløbig for flagg !LT12! 00592118
+      *      !   ! som viser at %-omkostning fra MC er avregnet  !    ! 00593016
+      *190600!HLR! Changed cursor-qual. on FK_TFMC_Contr_Type    !LO18! 00600011
+      *      !   ! from "Like" to "=".                           !    ! 00610008
+      *      !   ! Removed -In-From-Contr-No (kept as redef.).   !    ! 00620009
+      *      !   ! Removed -In-To-Contr-No.                      !    ! 00630012
+      *010999!HLR! Added -Excess-Amount                          !LG10! 00640007
+      *250899!HLR! Added -In-Status as cursor qualification      !LG10! 00650007
+      *150699!HLR! Added -Prev/Curr-Amount & Accept-Date         !LG10! 00660006
+      *050599!HLR! New copy area                                 !LG10! 00670005
+      *################################################################*00680000
+      *                                                                 00690000
+         03  R115IPA0-Part-Amount.                                      00700000
+      *                                                                 00710000
+           05  R115IPA0-Version-No              Pic  X(08).             00720000
+             88  R115IPA0-Version                    Value '20000619'.  00730009
+      *                                                                 00740000
+      *----------------------------------------------------------------*00750000
+      *                                                                 00760000
+           05  R115IPA0-Qualification.                                  00770000
+      *                                                                 00780000
+             10  R115IPA0-In-Action             Pic  X(16).             00790000
+               88  R115IPA0-In-Get-1st               Value 'GET-1ST'.   00800000
+               88  R115IPA0-In-Get-Next              Value 'GET-NEXT'.  00810000
+               88  R115IPA0-In-Select                Value 'SELECT'.    00820000
+               88  R115IPA0-In-Insert                Value 'INSERT'.    00830000
+               88  R115IPA0-In-Update                Value 'UPDATE'.    00840000
+               88  R115IPA0-In-Delete                Value 'DELETE'.    00850000
+      *                                                                 00860000
+      * There are several key-fields, which may be used differently     00870000
+      * depending on the need.                                          00880000
+      *                                                                 00890000
+      * In-Table must be set whatever the desired action is.            00900003
+      *                                                                 00910003
+      * For Insert, all relevant fields in the Data group must be       00920002
+      * populated. However, PA-Seq-No will be created by the interface. 00930002
+      *     - Fin-Inst-No or Fin-Inst-ID                                00940002
+      *     - Contract-Type                                             00950002
+      *     - Contract-No                                               00960002
+      *     - Currency                                                  00970002
+      *                                                                 00980002
+      * For Select, Update and Delete, use:                             00990002
+      *     - Fin-Inst-No or Fin-Inst-ID                                01000000
+      *     - Contract-Type                                             01010000
+      *     - Contract-No                                               01020000
+      *     - Currency                                                  01030000
+      *     - Part Amount Sequence Number                               01040000
+      *                                                                 01050000
+      * For cursor (Get-1st / Get-Next), use:                           01060000
+      *     - Optional: Fin-Inst-No or Fin-Inst-ID                      01070000
+      *     - Optional: Contract-Type                                   01080000
+      *     - Optional: Contract-No                                     01090010
+      *     - Optional: Currency and Part Amount Seq.no                 01100000
+      *     - Optional: Status (only with Fin-Inst-No)                  01110006
+      *                                                                 01120000
+             10  R115IPA0-In-Key.                                       01130000
+      *                                                                 01140000
+               15  R115IPA0-In-Table-Version    Pic  X(16).             01150004
+                 88  R115IPA0-In-Actual              Value 'ACTUAL'.    01160003
+                 88  R115IPA0-In-Work                Value 'WORK'.      01170003
+      *                                                                 01180003
+      *        It is optional wether you use Fin-Inst-No or Fin-Inst-ID.01190000
+               15  R115IPA0-In-Fin-Inst.                                01200000
+                 20  R115IPA0-In-Fin-Inst-No    Pic  X(18).             01210000
+                 20  R115IPA0-In-Fin-Inst-ID    Pic S9(18)       Comp-3.01220000
+      *                                                                 01230000
+      *        Contract-Type and -No is mandatory for                   01240000
+      *        Select/Update/Delete.                                    01250002
+               15  R115IPA0-In-Contract.                                01260000
+                 20  R115IPA0-In-Contract-Type  Pic  X(03).             01270000
+                 20  R115IPA0-In-Contract-No    Pic S9(07)       Comp-3.01280000
+      *                                                                 01290009
+      *          Temporary, as this field is still in use.              01300009
+                 20  R115IPA0-In-From-Contr-No  Redefines               01310009
+                                                R115IPA0-In-Contract-No 01320009
+                                                Pic S9(07)       Comp-3.01330009
+      *                                                                 01340000
+      *        These fields are mandatory for                           01350000
+      *        Select/Update/Delete.                                    01360002
+               15  R115IPA0-In-Part-Amount.                             01370000
+                 20  R115IPA0-In-CA-Currency    Pic  X(03).             01380000
+                 20  R115IPA0-In-PA-Seq-No      Pic S9(04)       Comp.  01390000
+      *                                                                 01400000
+      *        Status is optional for Get-1st / Get-Next.               01410006
+               15  R115IPA0-In-Status           Pic  X(12).             01420006
+      *                                                                 01430006
+      * When performing a Get-1st-call one may ask for the total        01440000
+      * number of rows complying with the qualification.                01450000
+      *                                                                 01460000
+             10  R115IPA0-In-Code-Count         Pic  X(10).             01470000
+               88  R115IPA0-In-CC-Count              Value 'COUNT'.     01480000
+      *                                                                 01490000
+      *----------------------------------------------------------------*01500000
+      *                                                                 01510000
+           05  R115IPA0-Data.                                           01520000
+      *                                                                 01530000
+             10  R115IPA0-Key.                                          01540000
+               15  R115IPA0-Fin-Inst-ID         Pic S9(18)       Comp-3.01550000
+               15  R115IPA0-Contract-ID.                                01560000
+                 20  R115IPA0-Contract-Type     Pic  X(03).             01570000
+                 20  R115IPA0-Contract-No       Pic S9(07)       Comp-3.01580000
+      *                                                                 01590000
+               15  R115IPA0-CA-Currency         Pic  X(03).             01600001
+               15  R115IPA0-PA-Seq-No           Pic S9(04)       Comp.  01610001
+      *                                                                 01620000
+             10  R115IPA0-Status                Pic  X(12).             01630000
+      *        88  R115IPA0-...                      Value '..........'.01640000
+      *                                                                 01650000
+             10  R115IPA0-In-Progress           Pic  X(01).             01660000
+               88  R115IPA0-In-Progress-Yes          Value 'Y'.         01670000
+               88  R115IPA0-In-Progress-No           Value 'N'.         01680000
+      *                                                                 01690000
+             10  R115IPA0-Register-Date         Pic S9(08)       Comp-3.01700000
+             10  R115IPA0-User-ID               Pic  X(08).             01710000
+             10  R115IPA0-Amount                Pic S9(14)V9(03) Comp-3.01720001
+             10  R115IPA0-Prev-Amount           Pic S9(14)V9(03) Comp-3.01730005
+             10  R115IPA0-Curr-Amount           Pic S9(14)V9(03) Comp-3.01740005
+             10  R115IPA0-Accept-Date           Pic S9(08)       Comp-3.01750005
+             10  R115IPA0-Excess-Amount         Pic S9(14)V9(03) Comp-3.01760007
+             10  R115IPA0-Incom-Swift           Pic  X(01).             01761013
+               88  R115IPA0-Incom-Yes                Value 'Y'.         01762013
+               88  R115IPA0-Incom-No                 Value 'N'.         01763013
+               88  R115IPA0-Has-Been-Settled         Value 'A'.         01764016
+             10  R115IPA0-Availability          Pic  X(01).             01765017
+               88  R115IPA0-Uten-Ansvar              Value ' '.         01766020
+               88  R115IPA0-Ansvar                   Value 'Y'.         01767020
+      *                                                                 01770005
+             10  Filler.                                                01780000
+               15  R115IPA0-Fin-Inst-No         Pic  X(18).             01790000
+      *                                                                 01800000
+      * The following accumulators are only relevant when performing    01810000
+      * Get-1st or Get-Next.                                            01820000
+      * Row-No starts on 1 when doing Get-1st, and increases by 1 for   01830000
+      * each Get-Next.                                                  01840000
+      * Total-Rows is set when doing Get-1st, but ONLY if the           01850000
+      * In-CC-Count is set. The field will tell you how many rows       01860000
+      * that complies with your qualification.                          01870000
+      *                                                                 01880000
+             10  R115IPA0-Out-Accumulators.                             01890000
+               15  R115IPA0-Out-Row-No          Pic S9(11)       Comp-3.01900000
+               15  R115IPA0-Out-Total-Rows      Pic S9(11)       Comp-3.01910000
+      *                                                                 01920000

@@ -1,0 +1,59 @@
+      *################################################################*00010004
+      *                                                                 00020004
+      * Copy-område R7919020.                                           00030004
+      * Generell submodul for beregning av intervall mellom to datoer.  00040004
+      *                                                                 00050004
+      * Man leverer to datoer, en fra-dato og en til-dato.              00060004
+      * Man kan velge hvor mange dager pr. år som skal benyttes,        00070004
+      * dersom intet angis, benyttes reell kalender.                    00080004
+      * Fra-datoen kan godt være større enn til-datoen, da vil          00090004
+      * intervallet bli negativt.                                       00100004
+      *                                                                 00110004
+      * -Ut-Ant-Dgr, -Mnd og -Aar blir alltid beregnet med utgangspunkt 00120006
+      * i kalender-år, og vil alltid være positive, uansett hvilken     00130006
+      * dato som er størst.                                             00140006
+      *                                                                 00150006
+      * Eksempel på anrop:                                              00160004
+      *   Initialize                           R7919020-Intervall       00170004
+      *   Set   R7919020-Versjon         To    True                     00180004
+      *   Move  ååååmmdd                 To    R7919020-In-Fra-Dato     00190004
+      *   Move  ååååmmdd                 To    R7919020-In-Til-Dato     00200004
+      *   Call  'F7919020'               Using R7919020-Intervall       00210004
+      *                                        R7919999-Error           00220004
+      *   End-Call                                                      00230004
+      *   If  R7919999-Retur-Abend                                      00240004
+      *       abend                                                     00250004
+      *   End-If                                                        00260004
+      *   Move  R7919020-Ut-Intervall    To    ...                      00270004
+      *                                                                 00280004
+      *################################################################*00290004
+      * DATO ! SI! ENDRINGENS ART                                ! 3A ! 00300004
+      *---------------------------------------------------------------- 00310004
+      *050696!HLR! Lagt inn -Ut-Ant-Aar/Mnd/Dgr                  !    ! 00320005
+      *110195!HLR! Nytt copy-område                              !JR68! 00330005
+      *################################################################*00340004
+       01  R7919020-INTERVALL.                                          00350004
+      *                                                                 00360004
+           05  R7919020-VERSJONS-NR      PIC  X(08).                    00370004
+             88  R7919020-VERSJON                   VALUE '19960605'.   00380005
+      *                                                                 00390004
+           05  R7919020-KVALIFISERING.                                  00400004
+               10  R7919020-IN-FRA-DATO  PIC S9(09)              COMP-3.00410004
+               10  R7919020-IN-TIL-DATO  PIC S9(09)              COMP-3.00420004
+      *                                                                 00430004
+      * Default dager per år er Kalender.                               00440004
+      *                                                                 00450004
+               10  R7919020-IN-DGR-PR-AAR                               00460004
+                                         PIC S9(03)              COMP-3.00470004
+                 88  R7919020-IN-360-DGR-PR-AAR     VALUE +360.         00480004
+                 88  R7919020-IN-365-DGR-PR-AAR     VALUE +365.         00490004
+                 88  R7919020-IN-KALENDER-AAR       VALUE +366.         00500004
+                 88  R7919020-IN-DEFAULT-DGR-PR-AAR VALUE +000, +366.   00510004
+      *                                                                 00520004
+           05  R7919020-RESULTAT.                                       00530004
+               10  R7919020-UT-INTERVALL PIC S9(05)              COMP-3.00540004
+      *                                                                 00550004
+               10  R7919020-UT-ANT-AAR   PIC S9(05)              COMP-3.00560005
+               10  R7919020-UT-ANT-MND   PIC S9(03)              COMP-3.00570005
+               10  R7919020-UT-ANT-DGR   PIC S9(03)              COMP-3.00580005
+      *                                                                 00590005

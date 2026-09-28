@@ -1,0 +1,162 @@
+      *################################################################*00010001
+      *                                                                 00020001
+      * FD Trade Finance                                                00030001
+      *                                                                 00040001
+      * Copy-area R115ISC0.                                             00050001
+      *                                                                 00060001
+      * Interface for all database access on table TF_Sys_Code.         00070001
+      *                                                                 00080001
+      * The interface kan read one spesific occurence,                  00090001
+      * or several occurences, fully or partly qualified with           00100001
+      * from- and to- values.                                           00110001
+      *                                                                 00120001
+      * When reading several occurences, one must always start with     00130001
+      * -In-Get-1st, and continue with -In-Get-Next.                    00140001
+      *                                                                 00150001
+      * NB!  There are several key-fields, which may be used            00160001
+      *      differently depending on the need.                         00170001
+      *      See seperate description below.                            00180001
+      *                                                                 00190001
+      *                                                                 00200001
+      * An ordinary Select call may look like this:                     00210001
+      *                                                                 00220001
+      *    Initialize                          R115ISC0-Sys-Code        00230001
+      *    Set   R115ISC0-Version        To    True                     00240001
+      *    Set   R115ISC0-In-Select      To    True                     00250001
+      *    Move  &sys-type               To    R115ISC0-In-ST-Type      00260003
+      *    Move  &sys-code               To    R115ISC0-In-SC-Code      00270003
+      *                                                                 00280001
+      *    Call  'F115ISC0'              Using R115ISC0-Sys-Code        00290001
+      *                                        R7919999-Error-Area      00300004
+      *    End-Call                                                     00310001
+      *                                                                 00320001
+      *    Evaluate True                                                00330001
+      *      When R7919999-Return-Abend                                 00340004
+      *        Move  '&&&&'              To    R7919999-Paragraph       00350004
+      *        Perform Z900-Abend                                       00360001
+      *                                                                 00370001
+      *      When R7919999-Return-Error                                 00380004
+      *        ...not found...                                          00390001
+      *                                                                 00400001
+      *      When R7919999-Return-OK                                    00410004
+      *        ...found...                                              00420001
+      *                                                                 00430001
+      *    End-Evaluate                                                 00440001
+      *                                                                 00450001
+      *################################################################*00460001
+      * Date ! Si! Change description                            ! 3A ! 00470001
+      *------+---+-----------------------------------------------+----+ 00480001
+      *290911!NDL! New fields for reservation                    !LG10! 00491023
+      *------+---+-----------------------------------------------+----+ 00492023
+      *170399!HLR! New copy area                                 !LG10! 00493023
+      *################################################################*00500001
+      *                                                                 00510001
+         03  R115ISC0-Sys-Code.                                         00520001
+      *                                                                 00530001
+           05  R115ISC0-Version-No              Pic  X(08).             00540001
+             88  R115ISC0-Version                    Value '19990317'.  00550001
+      *                                                                 00560001
+      *----------------------------------------------------------------*00570001
+      *                                                                 00580001
+           05  R115ISC0-Qualification.                                  00590001
+      *                                                                 00600001
+             10  R115ISC0-In-Action             Pic  X(16).             00610001
+               88  R115ISC0-In-Get-1st               Value 'GET-1ST'.   00620001
+               88  R115ISC0-In-Get-Next              Value 'GET-NEXT'.  00630001
+               88  R115ISC0-In-Select                Value 'SELECT'.    00640001
+               88  R115ISC0-In-Insert                Value 'INSERT'.    00650001
+               88  R115ISC0-In-Update                Value 'UPDATE'.    00660001
+               88  R115ISC0-In-Delete                Value 'DELETE'.    00670001
+      *                                                                 00680001
+      * For cursor (Get-1st / Get-Next), you may mask both key fields,  00690001
+      * e.g. like this: 'ABC*'.                                         00700001
+      * This will give you all rows with the field starting with 'ABC'. 00710001
+      *                                                                 00720001
+             10  R115ISC0-In-Key.                                       00730001
+               15  R115ISC0-In-ST-Type          Pic  X(20).             00740003
+               15  R115ISC0-In-Fin-Inst-No      Pic  X(18).             00750005
+               15  R115ISC0-In-Fin-Inst-Id      Pic S9(18)       Comp-3.00750105
+               15  R115ISC0-In-Contr-Type       Pic  X(03).             00751006
+               15  R115ISC0-In-SC-Code          Pic  X(20).             00752005
+      *                                                                 00760001
+      * When performing a Get-1st-call one may ask for the total        00770001
+      * number of rows complying with the qualifISCtion.                00780001
+      *                                                                 00790001
+             10  R115ISC0-In-Code-Count         Pic  X(10).             00800001
+               88  R115ISC0-In-CC-Count              Value 'COUNT'.     00810001
+      *                                                                 00820001
+      *----------------------------------------------------------------*00830001
+      *                                                                 00840001
+           05  R115ISC0-Data.                                           00850001
+      *                                                                 00860001
+             10  R115ISC0-Key.                                          00870001
+               15  R115ISC0-ST-Type             Pic  X(20).             00880003
+               15  R115ISC0-Fin-Inst-Id         Pic S9(18)       Comp-3.00882005
+               15  R115ISC0-Contr-Type          Pic  X(03).             00883006
+               15  R115ISC0-SC-Code             Pic  X(20).             00890003
+      *                                                                 00900001
+             10  R115ISC0-Filler.                                       00901007
+               15  R115ISC0-Fin-Inst-No         Pic  X(18).             00901107
+      *                                                                 00902007
+             10  R115ISC0-Description           Pic  X(150).            00910001
+      *                                                                 00911008
+             10  R115ISC0-Property              Pic  X(80).             00920001
+             10  Filler                         Redefines               00922008
+                                                R115ISC0-Property.      00922109
+               15  R115ISC0-Contract-Name       Pic  X(10).             00923012
+               15  Filler                       Pic  X(01).             00924008
+               15  R115ISC0-Contr-Imp-Exp       Pic  X(10).             00925008
+               15  Filler                       Pic  X(01).             00926008
+               15  R115ISC0-Range-Type          Pic  X(10).             00927008
+               15  Filler                       Pic  X(01).             00927110
+               15  R115ISC0-Product-No          Pic  9(04).             00927210
+               15  Filler                       Pic  X(01).             00927311
+               15  R115ISC0-Product-Seq-No      Pic  9(04).             00927411
+      *                                                                 00928008
+             10  Filler                         Redefines               00929008
+                                                R115ISC0-Property.      00929109
+               15  R115ISC0-Range-Start         Pic  9(07).             00929208
+               15  Filler                       Pic  X(01).             00929308
+               15  R115ISC0-Range-End           Pic  X(07).             00929408
+               15  Filler                       Pic  X(01).             00929508
+               15  R115ISC0-Range-Current       Pic  9(07).             00929608
+      *                                                                 00929713
+               15  Filler                       Pic  X(01).             00929816
+               15  R115ISC0-Range2-Start        Pic  9(07).             00929916
+               15  Filler                       Pic  X(01).             00930016
+               15  R115ISC0-Range2-End          Pic  X(07).             00930116
+               15  Filler                       Pic  X(01).             00930216
+               15  R115ISC0-Range2-Current      Pic  9(07).             00930316
+      *                                                                 00930416
+             10  Filler                         Redefines               00930516
+                                                R115ISC0-Property.      00930616
+               15  R115ISC0-Letter-Receiver     Pic  X(05).             00930716
+      *                                                                 00930817
+             10  Filler                         Redefines               00930917
+                                                R115ISC0-Property.      00931017
+               15  R115ISC0-Default-Add-Days    Pic  9(02).             00931118
+  ndl * 06.02.06 new redefines for margins on currencys                 00931219
+             10  Filler                         Redefines               00931319
+                                                R115ISC0-Property.      00931419
+               15  R115ISC0-Margin              Pic  9(03)v9(5).        00931521
+  ndl * 28.09.11 new redefines for reservation                          00931622
+             10  Filler                         Redefines               00931722
+                                                R115ISC0-Property.      00931822
+               15  R115ISC0-TermContNo          Pic  9(04).             00931922
+               15  Filler                       Pic  X(01).             00932022
+               15  R115ISC0-TermNo              Pic  9(02).             00932122
+               15  Filler                       Pic  X(01).             00932322
+               15  R115ISC0-RegNo               Pic  9(04).             00932422
+      *                                                                 00933017
+      * The following accumulators are only relevant when performing    00940001
+      * Get-1st or Get-Next.                                            00950001
+      * Row-No starts on 1 when doing Get-1st, and increases by 1 for   00960001
+      * each Get-Next.                                                  00970001
+      * Total-Rows is set when doing Get-1st, but ONLY if the           00980001
+      * In-CC-Count is set. The field will tell you how many rows       00990001
+      * that complies with your qualifISCtion.                          01000001
+      *                                                                 01010001
+             10  R115ISC0-Out-Accumulators.                             01020001
+               15  R115ISC0-Out-Row-No          Pic S9(11)       Comp-3.01030001
+               15  R115ISC0-Out-Total-Rows      Pic S9(11)       Comp-3.01040001
+      *                                                                 01050001

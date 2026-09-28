@@ -1,0 +1,55 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * COPY-OMRÅDE R7919999.                                           00030007
+      * FEIL- OG ABEND-HÅNDTERING.                                      00040007
+      *                                                                 00050000
+      *################################################################*00060000
+      * DATO ! SI! ENDRINGENS ART                                ! 3A ! 00070000
+      *---------------------------------------------------------------- 00080000
+      *210599!SS ! NEW VALUE ON RETURN-CODE:                     !LL10! 00090010
+      *      !   ! R7919999-RETURN-ERROR-COMM                    !    ! 00100009
+      *      !   ! THIS IS A DATA COMMUNICATION FAILURE.         !    ! 00110009
+      *150299!JPK! CHANGED TO MAKE A ENGLISH VERSION THE PRIMARY.!    ! 00120009
+      *090195!HLR! NYTT COPY-OMRÅDE, KOPIERT FRA R10029999.      !JR68! 00130007
+      *      !   ! GENERELLE MODULER HØRER MER HJEMME HOS POP.   !    ! 00140007
+      *################################################################*00150000
+       01  R7919999-ERROR-AREA.                                         00160007
+           05  R7919999-MODULE-IND           PIC S9(03)          COMP-3.00170007
+           05  R7919999-MODULE-TAB.                                     00180007
+               10  R7919999-MODULE-ELEMENT   OCCURS 20 TIMES.           00190007
+                   15  R7919999-MODULE-NAME  PIC  X(08).                00200007
+                   15  R7919999-MODULE-PARA  PIC  X(04).                00210007
+           05  R7919999-PARAGRAPH            PIC  X(04).                00220007
+           05  R7919999-CUSTOMER-NO          PIC S9(11)          COMP-3.00230007
+           05  R7919999-ACCOUNT-NO           PIC S9(11)          COMP-3.00240007
+           05  R7919999-MESSAGE              PIC  X(80).                00250007
+      *                                                                 00260000
+           05  R7919999-RETURN-CODE          PIC S9(01)          COMP-3.00270007
+             88  R7919999-RETURN-OK                     VALUE +0, +4,   00280013
+                                                              +5.       00281013
+             88  R7919999-RETURN-WARNING                VALUE +4, +5.   00290013
+             88  R7919999-RETURN-WARNING-GOBACK         VALUE +5.       00300011
+             88  R7919999-RETURN-ERROR                  VALUE +1, +2.   00310009
+             88  R7919999-RETURN-ERROR-COMM             VALUE +2.       00320009
+             88  R7919999-RETURN-ABEND                  VALUE +9.       00330007
+      *                                                                 00340000
+       01  R7919999-ERROR   REDEFINES R7919999-ERROR-AREA.              00350007
+           05  R7919999-MODUL-IND            PIC S9(03)          COMP-3.00360007
+           05  R7919999-MODUL-TAB.                                      00370004
+               10  R7919999-MODUL-ELEMENT    OCCURS 20 TIMES.           00380004
+                   15  R7919999-MODUL-NAVN   PIC  X(08).                00390007
+                   15  R7919999-MODUL-PARA   PIC  X(04).                00400007
+           05  R7919999-PARAGRAF             PIC  X(04).                00410007
+           05  R7919999-KUNDE-NR             PIC S9(11)          COMP-3.00420007
+           05  R7919999-KONTO-NR             PIC S9(11)          COMP-3.00430007
+           05  R7919999-MELDING              PIC  X(80).                00440007
+      *                                                                 00450004
+           05  R7919999-RETUR-KODE           PIC S9(01)          COMP-3.00460007
+             88  R7919999-RETUR-OK                      VALUE +0, +4,   00470013
+                                                              +5.       00471013
+             88  R7919999-RETUR-WARNING                 VALUE +4, +5.   00480013
+             88  R7919999-RETUR-WARNING-GOBACK          VALUE +5.       00490011
+             88  R7919999-RETUR-FEIL                    VALUE +1, +2.   00500009
+             88  R7919999-RETUR-FEIL-KOMM               VALUE +2.       00510009
+             88  R7919999-RETUR-ABEND                   VALUE +9.       00520004
+      *                                                                 00530004

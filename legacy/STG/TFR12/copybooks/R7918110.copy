@@ -1,0 +1,67 @@
+      *################################################################*00010003
+      *                                                                 00020003
+      * Copy-område R7918110.                                           00030003
+      * Interface for les av system-datoer                              00040003
+      *                                                                 00050003
+      *     - Kjøre-dato fra F7918090                                   00060003
+      *     - Neste-dato fra F7918090                                   00070003
+      *     - Maskin-dato fra F7919070                                  00080003
+      *     - Gjeldende-dato ( CICS: maskin-dato, batch: kjøre-dato)    00090005
+      *                                                                 00100003
+      * Anropet kan f.eks. se slik ut:                                  00110003
+      *    Initialize                          R7918110-System-Datoer   00120003
+      *    Set   R7918110-Versjon        To    True                     00130003
+      *    Call  'F7918110'              Using R7918110-System-Datoer   00140003
+      *                                        R7919999-Error           00150003
+      *    End-Call                                                     00160003
+      *    If  Not R7919999-Retur-OK                                    00170003
+      *        Move  '&&&&'              To    R7919999-Paragraf        00180003
+      *        Perform Z900-Abend                                       00190003
+      *    End-If                                                       00200003
+      *                                                                 00210003
+      *    Move  R7918110-Ut-Kjore-Dato  To    &ååååmmdd                00220003
+      *    Move  R7918110-Ut-Neste-Dato  To    &ååååmmdd                00230003
+      *    Move  R7918110-Ut-Maskin-Dato To    &ååååmmdd                00240003
+      *    Move  R7918110-Ut-Maskin-Tid  To    &ttmmsshh                00250003
+      *                                                                 00260003
+      *################################################################*00270003
+      * Dato ! Si! Endringens art                                ! 3A ! 00280003
+      *---------------------------------------------------------------- 00290003
+      *140898!AS ! Lagt inn "svitsjing" av package            H98!JM93! 00300006
+      *170497!HLR! Lagt inn -Ut-Registrer-Dato                   !    ! 00301006
+      *060397!HLR! Nytt copy-område                              !    ! 00310004
+      *################################################################*00320003
+      *                                                                 00330003
+         03  R7918110-System-Datoer.                                    00340003
+      *                                                                 00350003
+           05  R7918110-Versjons-Nr      Pic  X(08).                    00360003
+             88  R7918110-Versjon                   Value '19980814'.   00370006
+      *                                                                 00370106
+           05  R7918110-Kvalifisering.                                  00370206
+      *                                                                 00371006
+      * Ved kall fra system som IKKE er gruppedelt må kjøregruppe       00372006
+      * settes.                                                         00373006
+      *                                                                 00374006
+             10  R7918110-In-Gruppe            Pic  X(03).              00375006
+               88  R7918110-In-B02                   Value 'B02'.       00376006
+               88  R7918110-In-C03                   Value 'C03'.       00377006
+               88  R7918110-In-E05                   Value 'E05'.       00378006
+               88  R7918110-In-L12                   Value 'L12'.       00379006
+               88  R7918110-In-M13                   Value 'M13'.       00379106
+               88  R7918110-In-R18                   Value 'R18'.       00379206
+      *                                                                 00380003
+      *----------------------------------------------------------------*00390003
+      *                                                                 00400003
+           05  R7918110-Resultat.                                       00410003
+      *                                                                 00420003
+             10  R7918110-Ut-Kjore-Dato  Pic S9(09)              Comp-3.00430003
+             10  R7918110-Ut-Neste-Dato  Pic S9(09)              Comp-3.00440003
+             10  R7918110-Ut-Maskin-Dato Pic S9(09)              Comp-3.00450003
+             10  R7918110-Ut-Maskin-Tid  Pic S9(09)              Comp-3.00460003
+      *                                                                 00470004
+      * Gjeldende-dato er lik:                                          00480005
+      *   i CICS: maskin-dato                                           00490005
+      *   i batch: kjøre-dato                                           00500005
+             10  R7918110-Ut-Gjeldende-Dato                             00510005
+                                         Pic S9(09)              Comp-3.00520004
+      *                                                                 00530003

@@ -1,0 +1,827 @@
+       Identification Division.                                         00010000
+       Program-ID. F5879010.                                            00020000
+       Author. Henning Langfeldt Rødland.                               00030000
+      *################################################################*00040000
+      *                                                                 00050000
+      * EDB iHUB Organization                                           00060000
+      *                                                                 00070000
+      * Temporary version of the DB interface for table OA_Konsern.     00080000
+      * The OA tables has been replaced by iHUB Org, so instead         00090000
+      * of accessing DB2 directly, this "clutched" DBI calls            00100000
+      * the new DBI's of iHUB Org.                                      00110000
+      *                                                                 00120000
+      *################################################################*00130000
+      * Date   ! Si! Change description                          ! 3A ! 00140000
+      *------+---+-----------------------------------------------+----+ 00141016
+MIPS  *020621!OBJ! Recompiled to version 6.3 (OptiMIPS)          !    ! 00141017
+      *190915!MH ! Rekomp cob 4.2 - teknisk gjeld  Lev#10        !2019! 00142016
+      *---------------------------------------------------------------- 00150000
+      *20090609!HLR! New module, based on the old DBI            !IHUB! 00160000
+      *20091113!HLR! Uses Group instead of W-Package as input    !IHUB! 00170009
+      *        !   ! to iHUB Org's PackageSet.                   !    ! 00180009
+      *################################################################*00190000
+       Environment Division.                                            00200000
+       Configuration Section.                                           00210000
+       Special-Names.                                                   00220000
+           Decimal-Point Is Comma.                                      00230000
+      *                                                                 00240000
+      *################################################################*00250000
+       Data Division.                                                   00260000
+       Working-Storage Section.                                         00270000
+      *                                                                 00280000
+       01  W-Constants.                                                 00290000
+      *                                                                 00300000
+           05  WC-Program-ID             Pic  X(08) Value 'F5879010'.   00310000
+           05  WC-System-ID              Pic  X(02) Value 'OA'.         00320000
+      *                                                                 00330000
+           05  WC-DB2-System-ID          Pic  X(02) Value 'OR'.         00340000
+      *                                                                 00350000
+           05  WC-Use-Copy               Pic  X(01) Value 'Y'.          00360000
+             88  WC-Use-Copy-No                     Value 'N'.          00370000
+             88  WC-Use-Copy-Yes                    Value 'Y'.          00380000
+      *                                                                 00390000
+           05  WC-Dynamic-Calls.                                        00400002
+             10  BZXOJOR0                Pic  X(08) Value 'BZXOJOR0'.   00410002
+             10  BZXOJNA0                Pic  X(08) Value 'BZXOJNA0'.   00420002
+      *                                                                 00430002
+      *----------------------------------------------------------------*00440000
+      *                                                                 00450000
+       01  Filler.                                                      00460000
+      *                                                                 00470000
+           05  W-Indexes.                                               00480000
+             10  Ind-Key                 Pic S9(04)              Comp.  00490000
+             10  W-Max-Occ-Key-Tbl       Pic S9(04)              Comp.  00500000
+      *                                                                 00510000
+             10  Ind-Data                Pic S9(04)              Comp.  00520000
+             10  W-Max-Occ-Data-Tbl      Pic S9(04)              Comp.  00530000
+      *                                                                 00540000
+      *................................................................*00550000
+      *                                                                 00560000
+           05  W-Switches.                                              00570000
+             10  SW-Select-By            Pic  X(01).                    00580000
+               88  SW-Select-By-ID                  Value 'I'.          00590000
+               88  SW-Select-By-No                  Value 'N'.          00600000
+      *                                                                 00610000
+             10  SW-Select-On            Pic  X(01).                    00620000
+               88  SW-Select-On-Copy                Value 'C'.          00630000
+               88  SW-Select-On-DB2                 Value 'D'.          00640000
+      *                                                                 00650000
+      *................................................................*00660000
+      *                                                                 00670000
+      *    05  W-Accumulators.                                          00680000
+      *      10  WA-Field                Pic  9(15).                    00690000
+      *                                                                 00700000
+      *................................................................*00710000
+      *                                                                 00720000
+      *    05  W-Display-Fields.                                        00730000
+      *      10  WD-Field                Pic  zz9.                      00740000
+      *                                                                 00750000
+      *................................................................*00760000
+      *                                                                 00770000
+      *    05  W-Storage-Fields.                                        00780000
+      *      10  WS-Field                Pic  9(04).                    00790000
+      *                                                                 00800000
+      *................................................................*00810000
+      *                                                                 00820000
+           05  W-Work-Fields.                                           00830000
+      *                                                                 00840000
+             10  W-IO-Length             Pic S9(04)              Comp.  00850000
+             10  W-Package               Pic  X(05) Value Space.        00860000
+      *                                                                 00870000
+             10  W-Fin-Inst-No           Pic  9(04).                    00880000
+             10  W-Search-Date           Pic  9(08).                    00890000
+      *                                                                 00900000
+             10  W-Ext-Fields.                                          00910007
+               15  W-Ext-GRP             Pic  X(03).                    00920007
+               15  W-Ext-SGRP            Pic  9(04).                    00930007
+               15  W-Ext-UPDC            Pic  9(04).                    00940007
+               15  W-Ext-MRR             Pic  99,999.                   00950007
+      *                                                                 00960000
+             10  WT-Data-Table.                                         00970000
+               15  WT-Data-Element       Occurs 10 Times.               00980000
+                 20  WT-Data-Key         Pic  X(15).                    00990000
+                 20  WT-Data-Value       Pic  X(15).                    01000000
+      *                                                                 01010000
+      *-----------------------------------------------------------------01020000
+      * Internal IO area                                                01030000
+      *                                                                 01040000
+       01  W-Int-IO-Area.                                               01050000
+           Copy R5879010.                                               01060000
+      *                                                                 01070000
+       01  Filler.                                                      01080000
+           Copy R587901T.                                               01090000
+      *                                                                 01100000
+      *-----------------------------------------------------------------01110000
+      * iHUB Org DBI                                                    01120000
+      *                                                                 01130000
+       01  Filler.                                                      01140000
+           Copy BZXOJOR0.                                               01150000
+      *                                                                 01160000
+       01  Filler.                                                      01170000
+           Copy BZXOJNA0.                                               01180000
+      *                                                                 01190000
+      *-----------------------------------------------------------------01200000
+      * Misc. external modules                                          01210000
+      *                                                                 01220000
+       01  Filler.                                                      01230000
+           Copy R7918110.                                               01240000
+      *                                                                 01250000
+       Copy R7919100.                                                   01260008
+      *                                                                 01270008
+      *-----------------------------------------------------------------01280000
+      * Error Handling                                                  01290000
+      *                                                                 01300000
+       01  Filler.                                                      01310000
+           Copy R791ERR0.                                               01320000
+      *                                                                 01330000
+       Copy R791ERRX.                                                   01340000
+      *                                                                 01350000
+      *################################################################*01360000
+       Linkage Section.                                                 01370000
+      *                                                                 01380000
+       01  L-Ext-IO-Area                 Pic  X(1024).                  01390000
+      *                                                                 01400000
+       Copy R7919999.                                                   01410000
+      *                                                                 01420000
+      *################################################################*01430000
+       Procedure Division                Using L-Ext-IO-Area            01440000
+                                               R7919999-Error.          01450000
+      *                                                                 01460000
+       A000-Main                         Section.                       01470000
+      *                                                                 01480000
+           Perform B000-Initialize                                      01490000
+      *                                                                 01500000
+           Perform ZI00-Conv-Input-Version                              01510000
+           Perform A100-Set-Packageset                                  01520000
+      *                                                                 01530000
+           Perform C000-Interface                                       01540000
+      *                                                                 01550000
+           Perform A200-Free-Packageset                                 01560000
+           Perform ZO00-Conv-Output-Version                             01570000
+      *                                                                 01580000
+           Goback                                                       01590000
+      *                                                                 01600000
+           .                                                            01610000
+      *################################################################*01620000
+       A100-Set-Packageset               Section.                       01630000
+      *                                                                 01640000
+           Move  Space                   To    W-Package                01650000
+      *                                                                 01660000
+           If  R5879010-In-Gruppe        Not = Space                    01670000
+               Move  WC-DB2-System-ID    To    W-Package (1:2)          01680000
+               Move  R5879010-In-Gruppe  To    W-Package (3:3)          01690000
+           End-If                                                       01700000
+      *                                                                 01710000
+           .                                                            01720000
+      *################################################################*01730000
+       A200-Free-Packageset              Section.                       01740000
+      *                                                                 01750000
+           Continue                                                     01760000
+      *                                                                 01770000
+           .                                                            01780000
+      *################################################################*01790000
+       B000-Initialize                   Section.                       01800000
+      *                                                                 01810000
+                                                                        01811010
+           Initialize                          R791ERR0-Error-Handling  01820000
+           Initialize                          R791ERRX-External-Data   01830000
+           Initialize                          R7919999-Error           01840000
+      *                                                                 01850000
+           Compute  W-Max-Occ-Key-Tbl                                   01860000
+               =    Length               Of    R791ERR0-In-Key-Table    01870000
+               /    Length               Of    R791ERR0-In-Key-Element  01880000
+           End-Compute                                                  01890000
+      *                                                                 01900000
+           .                                                            01910000
+      *################################################################*01920000
+       C000-Interface                    Section.                       01930000
+      *                                                                 01940000
+           Perform C100-Initialize-Output                               01950000
+      *                                                                 01960000
+           Evaluate True                                                01970000
+             When R5879010-In-Get-1st                                   01980000
+               Perform D000-Get-1st                                     01990000
+      *                                                                 02000000
+             When R5879010-In-Get-Next                                  02010000
+               Perform E000-Get-Next                                    02020000
+      *                                                                 02030000
+             When R5879010-In-Select                                    02040000
+               Perform F000-Select                                      02050000
+      *                                                                 02060000
+             When Other                                                 02070000
+               Move  Space               To    R7919999-Message         02080000
+               String 'R5879010-In-Aksjon er lik "'                     02090000
+                                               Delimited by size        02100000
+                      R5879010-In-Aksjon       Delimited by space       02110000
+                      '", dette er ikke en gyldig verdi.'               02120000
+                                               Delimited by size        02130000
+                                         Into  R7919999-Message         02140000
+               End-String                                               02150000
+               Move  'C001'              To    R7919999-Paragraph       02160000
+               Perform Z900-Abend                                       02170000
+      *                                                                 02180000
+           End-Evaluate                                                 02190000
+      *                                                                 02200000
+           .                                                            02210000
+      *################################################################.02220000
+       C100-Initialize-Output            Section.                       02230000
+      *                                                                 02240000
+           Initialize                          R5879010-Resultat        02250000
+      *                                                                 02260000
+           .                                                            02270000
+      *################################################################.02280000
+       D000-Get-1st                      Section.                       02290000
+      *                                                                 02300000
+           Perform D100-Prepare-OROR-Qual                               02310000
+      *                                                                 02320000
+           Perform D300-Call-DBI-OROR-Get-1st                           02330000
+           Perform D900-Populate-Output                                 02340000
+      *                                                                 02350000
+           .                                                            02360000
+      *################################################################.02370000
+       D100-Prepare-OROR-Qual            Section.                       02380000
+      *                                                                 02390000
+           Initialize                          BZXOJOR0-OR-Organization 02400000
+           Set   BZXOJOR0-EyeCatcher     To    True                     02410000
+           Set   BZXOJOR0-Version        To    True                     02420000
+      *                                                                 02430000
+           If  R5879010-In-Konsern-ID    >     0                        02440000
+           or  R5879010-In-KonsernNr     >     0                        02450000
+               Move  Space               To    R7919999-Message         02460000
+               String 'R5879010: Get-1st brukt.'                        02470000
+                      ' Kan da ikke kvalifisere med Konsernr/Id.'       02480000
+                                              Delimited by size         02490000
+                                         Into  R7919999-Message         02500000
+               End-String                                               02510000
+               Move  'D101'              To    R7919999-Paragraph       02520000
+               Perform Z900-Abend                                       02530000
+           End-If                                                       02540000
+      *                                                                 02550000
+           Move  'FIIN'                  To BZXOJOR0-In-FK-TY-Int-Code  02560000
+      *                                                                 02570000
+           Set   BZXOJOR0-Cursor4        To    True                     02580003
+      *                                                                 02590003
+           .                                                            02600000
+      *################################################################.02610000
+       D300-Call-DBI-OROR-Get-1st        Section.                       02620000
+      *                                                                 02630000
+           Set   BZXOJOR0-In-Get-1st     To    True                     02640000
+           Move  R5879010-In-Gruppe      To    BZXOJOR0-In-PackageSet   02650009
+      *                                                                 02660000
+           Call  BZXOJOR0                Using BZXOJOR0-OR-Organization 02670002
+           End-Call                                                     02680000
+      *                                                                 02690000
+           Evaluate True                                                02700000
+             When R791ERRX-State-Abend                                  02710000
+               Perform Zkey-Move-Keys                                   02720000
+               Move  'D301'              To    R791ERR0-In-Paragraph-Id 02730000
+               Perform Z300-Call-Trace-R7919999-2-Old                   02740000
+             When R791ERRX-State-Error                                  02750000
+               Perform Zkey-Move-Keys                                   02760000
+               Move  'D302'              To    R791ERR0-In-Paragraph-Id 02770000
+               Perform Z300-Call-Trace-R7919999-2-Old                   02780000
+           End-Evaluate                                                 02790000
+      *                                                                 02800000
+           .                                                            02810000
+      *################################################################.02820000
+       D900-Populate-Output              Section.                       02830000
+      *                                                                 02840000
+           Perform F900-Populate-Output                                 02850000
+      *                                                                 02860000
+           .                                                            02870000
+      *################################################################.02880000
+       E000-Get-Next                     Section.                       02890000
+      *                                                                 02900000
+           Perform D100-Prepare-OROR-Qual                               02910000
+      *                                                                 02920000
+           Perform E100-Call-DBI-OROR-Get-Next                          02930000
+           Perform D900-Populate-Output                                 02940000
+      *                                                                 02950000
+           .                                                            02960000
+      *################################################################.02970000
+       E100-Call-DBI-OROR-Get-Next       Section.                       02980000
+      *                                                                 02990000
+           Set   BZXOJOR0-In-Get-Next    To    True                     03000000
+           Move  R5879010-In-Gruppe      To    BZXOJOR0-In-PackageSet   03010009
+      *                                                                 03020000
+           Call  BZXOJOR0                Using BZXOJOR0-OR-Organization 03030002
+           End-Call                                                     03040000
+      *                                                                 03050000
+           Evaluate True                                                03060000
+             When R791ERRX-State-Abend                                  03070000
+               Perform Zkey-Move-Keys                                   03080000
+               Move  'E101'              To    R791ERR0-In-Paragraph-Id 03090000
+               Perform Z300-Call-Trace-R7919999-2-Old                   03100000
+             When R791ERRX-State-Error                                  03110000
+               Perform Zkey-Move-Keys                                   03120000
+               Move  'E102'              To    R791ERR0-In-Paragraph-Id 03130000
+               Perform Z300-Call-Trace-R7919999-2-Old                   03140000
+           End-Evaluate                                                 03150000
+      *                                                                 03160000
+           .                                                            03170000
+      *################################################################.03180000
+       F000-Select                       Section.                       03190000
+      *                                                                 03200000
+           Perform F100-Prepare-OROR-Qual                               03210000
+      *                                                                 03220000
+           If  SW-Select-On-Copy                                        03230000
+               Perform F200-Select-On-Copy                              03240000
+           End-If                                                       03250000
+      *                                                                 03260000
+           If  SW-Select-On-DB2                                         03270000
+               Perform F300-Select-On-DB2                               03280000
+           End-If                                                       03290000
+      *                                                                 03300000
+           Perform F900-Populate-Output                                 03310000
+      *                                                                 03320000
+           .                                                            03330000
+      *################################################################.03340000
+       F100-Prepare-OROR-Qual            Section.                       03350000
+      *                                                                 03360000
+           Initialize                          BZXOJOR0-OR-Organization 03370000
+           Set   BZXOJOR0-EyeCatcher     To    True                     03380000
+           Set   BZXOJOR0-Version        To    True                     03390000
+      *                                                                 03400000
+           If  R5879010-In-Konsern-ID    >     0                        03410000
+             Then                                                       03420000
+               Set   SW-Select-By-ID     To    True                     03430000
+               Move  R5879010-In-Konsern-ID                             03440000
+                                         To BZXOJOR0-In-OROR-Org-ID     03450000
+             Else                                                       03460000
+               Set   SW-Select-By-No     To    True                     03470000
+               Move  R5879010-In-KonsernNr                              03480000
+                                         To W-Fin-Inst-No               03490000
+               Move  W-Fin-Inst-No       To BZXOJOR0-In-OROR-Ext-Org-Ref03500000
+               Set   BZXOJOR0-Cursor1    To    True                     03510003
+           End-If                                                       03520000
+      *                                                                 03530000
+           If  WC-Use-Copy-Yes                                          03540000
+             Then                                                       03550000
+               Set   SW-Select-On-Copy   To    True                     03560000
+             Else                                                       03570000
+               Set   SW-Select-On-DB2    To    True                     03580000
+           End-If                                                       03590000
+      *                                                                 03600000
+           .                                                            03610000
+      *################################################################.03620000
+       F200-Select-On-Copy               Section.                       03630000
+      *                                                                 03640000
+           Initialize                          R587901T-OROR-Copy       03650000
+           Set   R587901T-EyeCatcher     To    True                     03660000
+           Set   R587901T-Version        To    True                     03670000
+      *                                                                 03680000
+           If  SW-Select-By-ID                                          03690000
+             Then                                                       03700000
+               Set   R587901T-In-Use-ID  To    True                     03710000
+               Move  BZXOJOR0-In-OROR-Org-ID                            03720000
+                                         To    R587901T-In-Org-ID       03730000
+             Else                                                       03740000
+               Set   R587901T-In-Use-No  To    True                     03750000
+               Move  BZXOJOR0-In-OROR-Ext-Org-Ref (1:4)                 03760000
+                                         To    R587901T-In-Org-No       03770000
+           End-If                                                       03780000
+      *                                                                 03790000
+           Call  'F587901T'              Using R587901T-OROR-Copy       03800000
+           End-Call                                                     03810000
+      *                                                                 03820000
+           Evaluate True                                                03830000
+             When R791ERRX-State-Abend                                  03840000
+               Perform Zkey-Move-Keys                                   03850000
+               Move  'F201'              To    R791ERR0-In-Paragraph-Id 03860000
+               Perform Z300-Call-Trace-R7919999-2-Old                   03870000
+      *                                                                 03880000
+             When R791ERRX-State-Error                                  03890000
+               Set   R791ERRX-State-OK   To    True                     03900000
+               Set   SW-Select-On-DB2    To    True                     03910000
+      *                                                                 03920000
+             When other                                                 03930000
+               Move  R587901T-Out-Org-ID To    BZXOJOR0-OROR-Org-ID     03940000
+               Move  R587901T-Out-Org-No To    BZXOJOR0-OROR-Ext-Org-Ref03950000
+                                                                   (1:4)03960000
+               Move  R587901T-Out-ISO-639-2                             03970000
+                                         To    BZXOJOR0-OROR-ISO-639-2  03980000
+               Move  R587901T-Out-Chg-Dt To    BZXOJOR0-OROR-Chg-TS-D   03990000
+               Move  R587901T-Out-Chg-LogID                             04000000
+                                         To    BZXOJOR0-FK-US-Chg-LogID 04010000
+      *                                                                 04020000
+           End-Evaluate                                                 04030000
+      *                                                                 04040000
+           .                                                            04050000
+      *################################################################.04060000
+       F300-Select-On-DB2                Section.                       04070000
+      *                                                                 04080000
+           If  SW-Select-By-ID                                          04090000
+             Then                                                       04100000
+               Perform F310-Call-DBI-OROR-Select                        04110000
+             Else                                                       04120000
+               Perform F320-Call-DBI-OROR-Get-1st                       04130000
+               Perform F330-Call-DBI-OROR-Close                         04140000
+           End-If                                                       04150000
+      *                                                                 04160000
+           .                                                            04170000
+      *################################################################.04180000
+       F310-Call-DBI-OROR-Select         Section.                       04190000
+      *                                                                 04200000
+           Set   BZXOJOR0-In-Select      To    True                     04210000
+           Move  R5879010-In-Gruppe      To    BZXOJOR0-In-PackageSet   04220009
+      *                                                                 04230000
+           Call  BZXOJOR0                Using BZXOJOR0-OR-Organization 04240002
+           End-Call                                                     04250000
+      *                                                                 04260000
+           Evaluate True                                                04270000
+             When R791ERRX-State-Abend                                  04280000
+               Perform Zkey-Move-Keys                                   04290000
+               Move  'F311'              To    R791ERR0-In-Paragraph-Id 04300000
+               Perform Z300-Call-Trace-R7919999-2-Old                   04310000
+             When R791ERRX-State-Error                                  04320000
+               Perform Zkey-Move-Keys                                   04330000
+               Move  'F312'              To    R791ERR0-In-Paragraph-Id 04340000
+               Perform Z300-Call-Trace-R7919999-2-Old                   04350000
+           End-Evaluate                                                 04360000
+      *                                                                 04370000
+           .                                                            04380000
+      *################################################################.04390000
+       F320-Call-DBI-OROR-Get-1st        Section.                       04400000
+      *                                                                 04410000
+           Set   BZXOJOR0-In-Get-1st     To    True                     04420000
+           Move  R5879010-In-Gruppe      To    BZXOJOR0-In-PackageSet   04430009
+      *                                                                 04440000
+           Call  BZXOJOR0                Using BZXOJOR0-OR-Organization 04450002
+           End-Call                                                     04460000
+      *                                                                 04470000
+           Evaluate True                                                04480000
+             When R791ERRX-State-Abend                                  04490000
+               Perform Zkey-Move-Keys                                   04500000
+               Move  'F321'              To    R791ERR0-In-Paragraph-Id 04510000
+               Perform Z300-Call-Trace-R7919999-2-Old                   04520000
+             When R791ERRX-State-Error                                  04530000
+               Perform Zkey-Move-Keys                                   04540000
+               Move  'F322'              To    R791ERR0-In-Paragraph-Id 04550000
+               Perform Z300-Call-Trace-R7919999-2-Old                   04560000
+           End-Evaluate                                                 04570000
+      *                                                                 04580000
+           .                                                            04590000
+      *################################################################.04600000
+       F330-Call-DBI-OROR-Close          Section.                       04610000
+      *                                                                 04620000
+           Set   BZXOJOR0-In-Close       To    True                     04630000
+           Move  R5879010-In-Gruppe      To    BZXOJOR0-In-PackageSet   04640009
+      *                                                                 04650000
+           Call  BZXOJOR0                Using BZXOJOR0-OR-Organization 04660002
+           End-Call                                                     04670000
+      *                                                                 04680000
+           Evaluate True                                                04690000
+             When R791ERRX-State-Abend                                  04700000
+               Perform Zkey-Move-Keys                                   04710000
+               Move  'F331'              To    R791ERR0-In-Paragraph-Id 04720000
+               Perform Z300-Call-Trace-R7919999-2-Old                   04730000
+             When R791ERRX-State-Error                                  04740000
+               Set   R791ERRX-State-OK   To    True                     04750000
+           End-Evaluate                                                 04760000
+      *                                                                 04770000
+           .                                                            04780000
+      *################################################################.04790000
+       F900-Populate-Output              Section.                       04800000
+      *                                                                 04810000
+           Move  BZXOJOR0-OROR-Org-ID    To R5879010-Ut-KO-Konsern-Id   04820000
+           Move  BZXOJOR0-OROR-Ext-Org-Ref (1:4)                        04830000
+                                         To R5879010-Ut-KO-Konsernnummer04840000
+           If  BZXOJOR0-OROR-ISO-639-2   =  'NNO'                       04850000
+             Then                                                       04860000
+               Move  'N'                 To R5879010-Ut-KO-Maalform     04870000
+             Else                                                       04880000
+               Move  'B'                 To R5879010-Ut-KO-Maalform     04890000
+           End-If                                                       04900000
+           Move  BZXOJOR0-FK-US-Chg-LogID                               04910000
+                                         To R5879010-Ut-KO-Endre-Logonid04920000
+      *                                                                 04930000
+           Initialize                          R7919100-Konverter-Dato  04940008
+           Set   R7919100-Versjon        To    True                     04950008
+           Move  BZXOJOR0-OROR-Chg-TS-D  To    R7919100-In-Dato-AMD9    04960008
+           Set   R7919100-In-Konv-Til-DB2                               04970008
+                                         To    True                     04980008
+           Call  'F7919100'              Using R7919100-Konverter-Dato  04990008
+                                               R7919999-Error           05000008
+           End-Call                                                     05010008
+           If  Not R7919999-Return-OK                                   05020008
+               Move  'F901'              To    R7919999-Paragraph       05030008
+               Perform Z900-Abend                                       05040008
+           End-If                                                       05050008
+           Move  R7919100-Ut-Dato-DB2    To R5879010-Ut-KO-Endret-Dato  05060008
+      *                                                                 05070008
+      * These fields will only be delivered if spesifically asked for:  05080000
+      *                                                                 05090000
+      *  - R5879010-Ut-KO-Kjoregruppe                                   05100000
+      *  - R5879010-Ut-KO-Delgruppe                                     05110000
+      *  - R5879010-Ut-KO-Oppdat-Kode                                   05120000
+      *  - R5879010-Ut-KO-Mellomregnrte                                 05130000
+      *                                                                 05140000
+           If  R5879010-In-Xtra-Info-Yes                                05150000
+               Perform G000-Get-Attributes                              05160000
+           End-If                                                       05170000
+      *                                                                 05180000
+           .                                                            05190000
+      *################################################################.05200000
+       G000-Get-Attributes               Section.                       05210000
+      *                                                                 05220000
+           Perform G100-Get-Search-Date                                 05230000
+           Perform G200-Get-1st-Attribute                               05240000
+           If  R791ERRX-State-OK                                        05250000
+               Perform G400-Extract-Attributes                          05260000
+               Perform G300-Close-Attribute                             05270000
+           End-If                                                       05280000
+           Set   R791ERRX-State-OK       To    True                     05290000
+      *                                                                 05300000
+           .                                                            05310000
+      *################################################################*05320000
+       G100-Get-Search-Date              Section.                       05330000
+      *                                                                 05340000
+           If  Not R7918110-Versjon                                     05350000
+      *                                                                 05360000
+               Initialize                      R7918110-System-Datoer   05370000
+               Set   R7918110-Versjon    To    True                     05380000
+               Call  'F7918110'          Using R7918110-System-Datoer   05390000
+                                               R7919999-Error           05400000
+               End-Call                                                 05410000
+               If  Not R7919999-Return-OK                               05420000
+                   Move  'G101'          To    R7919999-Paragraph       05430000
+                   Perform Z900-Abend                                   05440000
+               End-If                                                   05450000
+      *                                                                 05460000
+           End-If                                                       05470000
+      *                                                                 05480000
+           Move  R7918110-Ut-Kjore-Dato  To    W-Search-Date            05490000
+      *                                                                 05500000
+           .                                                            05510000
+      *################################################################.05520000
+       G200-Get-1st-Attribute            Section.                       05530000
+      *                                                                 05540000
+           Initialize                          BZXOJNA0-OR-Org-Unit-Attr05550000
+           Set   BZXOJNA0-EyeCatcher     To    True                     05560000
+           Set   BZXOJNA0-Version        To    True                     05570000
+      *                                                                 05580000
+           Move  BZXOJOR0-OROR-Org-ID    To BZXOJNA0-In-FK-OR-Org-ID    05590000
+           Move  'ORORH'                 To BZXOJNA0-In-FK-TY-Int-Code  05600000
+           Move  W-Search-Date           To BZXOJNA0-In-ORNA-Val-From-Dt05610000
+           Move  W-Search-Date           To BZXOJNA0-In-ORNA-Val-To-Dt  05620000
+      *                                                                 05630000
+           Set   BZXOJNA0-Cursor2-ET     To    True                     05640003
+      *                                                                 05650003
+           Set   BZXOJNA0-In-Get-1st     To    True                     05660000
+           Move  R5879010-In-Gruppe      To    BZXOJNA0-In-PackageSet   05670009
+      *                                                                 05680000
+           Call  BZXOJNA0                Using BZXOJNA0-OR-Org-Unit-Attr05690002
+           End-Call                                                     05700000
+      *                                                                 05710000
+           Evaluate True                                                05720000
+             When R791ERRX-State-Abend                                  05730000
+               Perform Zkey-Move-Keys                                   05740000
+               Move  'G201'              To    R791ERR0-In-Paragraph-Id 05750000
+               Perform Z300-Call-Trace-R7919999-2-Old                   05760000
+           End-Evaluate                                                 05770000
+      *                                                                 05780000
+           .                                                            05790000
+      *################################################################.05800000
+       G300-Close-Attribute              Section.                       05810000
+      *                                                                 05820000
+           Set   BZXOJNA0-In-Close       To    True                     05830000
+           Move  R5879010-In-Gruppe      To    BZXOJNA0-In-PackageSet   05840009
+      *                                                                 05850000
+           Call  BZXOJNA0                Using BZXOJNA0-OR-Org-Unit-Attr05860002
+           End-Call                                                     05870000
+      *                                                                 05880000
+           Evaluate True                                                05890000
+             When R791ERRX-State-Abend                                  05900000
+               Perform Zkey-Move-Keys                                   05910000
+               Move  'G301'              To    R791ERR0-In-Paragraph-Id 05920000
+               Perform Z300-Call-Trace-R7919999-2-Old                   05930000
+           End-Evaluate                                                 05940000
+      *                                                                 05950000
+           .                                                            05960000
+      *################################################################.05970000
+       G400-Extract-Attributes           Section.                       05980000
+      *                                                                 05990000
+           Initialize                          W-Ext-Fields             06000007
+           Initialize                          WT-Data-Table            06010007
+           Move  0                       To    W-Max-Occ-Data-Tbl       06020000
+      *                                                                 06030000
+           Unstring BZXOJNA0-ORNA-Data                                  06040000
+             Delimited by                ':' or ';'                     06050000
+             Into                        WT-Data-Key   (01)             06060000
+                                         WT-Data-Value (01)             06070000
+                                         WT-Data-Key   (02)             06080000
+                                         WT-Data-Value (02)             06090000
+                                         WT-Data-Key   (03)             06100000
+                                         WT-Data-Value (03)             06110000
+                                         WT-Data-Key   (04)             06120000
+                                         WT-Data-Value (04)             06130000
+                                         WT-Data-Key   (05)             06140000
+                                         WT-Data-Value (05)             06150000
+                                         WT-Data-Key   (06)             06160000
+                                         WT-Data-Value (06)             06170000
+                                         WT-Data-Key   (07)             06180000
+                                         WT-Data-Value (07)             06190000
+                                         WT-Data-Key   (08)             06200000
+                                         WT-Data-Value (08)             06210000
+                                         WT-Data-Key   (09)             06220000
+                                         WT-Data-Value (09)             06230000
+                                         WT-Data-Key   (10)             06240000
+                                         WT-Data-Value (10)             06250000
+             Tallying in                 W-Max-Occ-Data-Tbl             06260000
+             On overflow                                                06270000
+               Move  Space               To    R7919999-Message         06280000
+               String 'For mange parameter-elementer'                   06290000
+                      ', tabell må utvides.'   Delimited By Size        06300000
+                                         Into  R7919999-Message         06310000
+               End-String                                               06320000
+               Move  'G401'              To    R7919999-Paragraph       06330000
+               Perform Z900-Abend                                       06340000
+           End-Unstring                                                 06350000
+      *                                                                 06360000
+           Perform Varying Ind-Data                                     06370000
+                   From  +1              By    +1                       06380000
+                   Until Ind-Data        >     W-Max-Occ-Data-Tbl       06390000
+               Evaluate WT-Data-Key (Ind-Data)                          06400000
+                 When 'GRP'                                             06410000
+                   Move  WT-Data-Value (Ind-Data) (1:3)                 06420004
+                                         To W-Ext-GRP                   06430000
+                   Move  W-Ext-GRP       To R5879010-Ut-KO-Kjoregruppe  06440000
+                 When 'SGRP'                                            06450000
+                   Move  WT-Data-Value (Ind-Data) (1:4)                 06460000
+                                         To W-Ext-SGRP                  06470000
+                   Move  W-Ext-SGRP      To R5879010-Ut-KO-Delgruppe    06480000
+                 When 'UPDC'                                            06490000
+                   Move  WT-Data-Value (Ind-Data) (1:4)                 06500000
+                                         To W-Ext-UPDC                  06510000
+                   Move  W-Ext-UPDC      To R5879010-Ut-KO-Oppdat-Kode  06520000
+                 When 'MRR'                                             06530000
+                   Move  WT-Data-Value (Ind-Data) (1:6)                 06540004
+                                         To W-Ext-MRR (1:6)             06550005
+                   Move  W-Ext-MRR       To R5879010-Ut-KO-Mellomregnrte06560000
+               End-Evaluate                                             06570000
+           End-Perform                                                  06580000
+      *                                                                 06590000
+           .                                                            06600000
+      *################################################################*06610000
+       ZI00-Conv-Input-Version           Section.                       06620000
+      *                                                                 06630000
+      * Version handling - from external to internal area               06640000
+      *                                                                 06650000
+           Set   R5879010-Versjon        To    True                     06660000
+           Move  Length                  Of    W-Int-IO-Area            06670000
+                                         To    W-IO-Length              06680000
+      *                                                                 06690000
+           Evaluate True                                                06700000
+             When L-Ext-IO-Area (1:8)    =     R5879010-Versjons-Nr     06710000
+             and  Length                 Of    L-Ext-IO-Area            06720000
+                                         Not < W-IO-Length              06730000
+               Move  L-Ext-IO-Area (1:W-IO-Length)                      06740000
+                                         To    W-Int-IO-Area            06750000
+      *                                                                 06760000
+             When Other                                                 06770000
+               Call  'F5879990'                                         06780000
+                   Using By Reference    WC-Program-ID                  06790000
+                         By Content      'INPUT '                       06800000
+                         By Reference    L-Ext-IO-Area                  06810000
+                                         W-Int-IO-Area                  06820000
+                                         R7919999-Error                 06830000
+               End-Call                                                 06840000
+      *                                                                 06850000
+               If  R7919999-Return-Abend                                06860000
+                   Move  'ZI01'          To    R7919999-Paragraph       06870000
+                   Perform Z900-Abend                                   06880000
+               End-If                                                   06890000
+      *                                                                 06900000
+           End-Evaluate                                                 06910000
+      *                                                                 06920000
+           .                                                            06930000
+      *################################################################*06940000
+       ZO00-Conv-Output-Version          Section.                       06950000
+      *                                                                 06960000
+      * Version handling - from internal to external area               06970000
+      *                                                                 06980000
+           Evaluate True                                                06990000
+             When L-Ext-IO-Area (1:8)    =     R5879010-Versjons-Nr     07000000
+             and  Length                 Of    L-Ext-IO-Area            07010000
+                                         Not < W-IO-Length              07020000
+               Move  W-Int-IO-Area       To    L-Ext-IO-Area            07030000
+                                                         (1:W-IO-Length)07040000
+      *                                                                 07050000
+             When Other                                                 07060000
+               Call  'F5879990'                                         07070000
+                   Using By Reference    WC-Program-ID                  07080000
+                         By Content      'OUTPUT '                      07090000
+                         By Reference    L-Ext-IO-Area                  07100000
+                                         W-Int-IO-Area                  07110000
+                                         R7919999-Error                 07120000
+               End-Call                                                 07130000
+      *                                                                 07140000
+               If  R7919999-Return-Abend                                07150000
+                   Move  'ZO01'          To    R7919999-Paragraph       07160000
+                   Perform Z900-Abend                                   07170000
+               End-If                                                   07180000
+      *                                                                 07190000
+           End-Evaluate                                                 07200000
+      *                                                                 07210000
+           .                                                            07220000
+      *################################################################*07230000
+       Z900-Abend                        Section.                       07240000
+      *                                                                 07250000
+           If  R7919999-Return-Code      Not   Numeric                  07260000
+           or  Not R7919999-Return-Abend                                07270000
+               Move  +0                  To    R7919999-Module-Ind      07280000
+           End-If                                                       07290000
+      *                                                                 07300000
+           Add   +1                      To    R7919999-Module-Ind      07310000
+      *                                                                 07320000
+           If  R7919999-Module-Ind       Not >                          07330000
+                             ( Length    Of    R7919999-Module-Tab      07340000
+                             / Length    Of    R7919999-Module-Element )07350000
+               Move  WC-Program-ID       To    R7919999-Module-Name     07360000
+                                                   (R7919999-Module-Ind)07370000
+               Move  R7919999-Paragraph  To    R7919999-Module-Para     07380000
+                                                   (R7919999-Module-Ind)07390000
+           End-If                                                       07400000
+      *                                                                 07410000
+           Set   R7919999-Return-Abend   To    True                     07420000
+      *                                                                 07430000
+           Perform A200-Free-Packageset                                 07440000
+      *                                                                 07450000
+           Goback                                                       07460000
+      *                                                                 07470000
+           .                                                            07480000
+      *################################################################*07490000
+       Zkey-Move-Keys                    Section.                       07500000
+      *                                                                 07510000
+      * In-Konsern                                                      07520000
+      *                                                                 07530000
+           If  R5879010-In-Konsern-ID    Not = 0                        07540000
+           or  R5879010-In-KonsernNr     Not = 0                        07550000
+      *                                                                 07560000
+               Perform Varying Ind-Key                                  07570000
+                       From  +1          By +1                          07580000
+                       Until Ind-Key     >     W-Max-Occ-Key-Tbl        07590000
+                       or    R791ERR0-In-Key-Fin-Inst (Ind-Key)         07600000
+                       or    R791ERR0-In-Key-Type (Ind-Key)             07610000
+                                         =     Space                    07620000
+               End-Perform                                              07630000
+      *                                                                 07640000
+               If  Ind-Key               Not > W-Max-Occ-Key-Tbl        07650000
+                   Set   R791ERR0-In-Key-Fin-Inst (Ind-Key)             07660000
+                                         To    True                     07670000
+                   If  R5879010-In-Konsern-ID                           07680000
+                                         Not = 0                        07690000
+                       Move  Space       To    R791ERR0-In-Key-Int-Alpha07700000
+                                                               (Ind-Key)07710000
+                       Move  R5879010-In-Konsern-ID                     07720000
+                                         To    R791ERR0-In-Key-Int-Num  07730000
+                                                               (Ind-Key)07740000
+                   End-If                                               07750000
+                   If  R5879010-In-KonsernNr                            07760000
+                                         Not = 0                        07770000
+                       Move  Space       To    R791ERR0-In-Key-Ext-Alpha07780000
+                                                               (Ind-Key)07790000
+                       Move  R5879010-In-KonsernNr                      07800000
+                                         To    R791ERR0-In-Key-Ext-Num  07810000
+                                                               (Ind-Key)07820000
+                   End-If                                               07830000
+               End-If                                                   07840000
+      *                                                                 07850000
+           End-If                                                       07860000
+      *                                                                 07870000
+      * Package                                                         07880000
+      *                                                                 07890000
+           If  R5879010-Package          Not = Space                    07900000
+      *                                                                 07910000
+               Perform Varying Ind-Key                                  07920000
+                       From  +1          By +1                          07930000
+                       Until Ind-Key     >     W-Max-Occ-Key-Tbl        07940000
+                       or    R791ERR0-In-Key-Type (Ind-Key)             07950000
+                                         =     'PACKAGE'                07960000
+                       or    R791ERR0-In-Key-Type (Ind-Key)             07970000
+                                         =     Space                    07980000
+               End-Perform                                              07990000
+      *                                                                 08000000
+               If  Ind-Key               Not > W-Max-Occ-Key-Tbl        08010000
+                   Move  'PACKAGE'       To    R791ERR0-In-Key-Type     08020000
+                                                               (Ind-Key)08030000
+                   Move  R5879010-Package                               08040000
+                                         To    R791ERR0-In-Key-Int-Alpha08050000
+                                                               (Ind-Key)08060000
+               End-If                                                   08070000
+      *                                                                 08080000
+           End-If                                                       08090000
+      *                                                                 08100000
+           .                                                            08110000
+      *################################################################*08120000
+      * Error Handling                                                  08130000
+      *                                                                 08140000
+       Copy S791ERR0.                                                   08150000
+       Copy S791ERX0.                                                   08160000
+      *                                                                 08170000
+       Copy S791ERRS.                                                   08180000
+      *    This statement will be part of the system exit section       08190000
+      *    in the preceeding copy book.                                 08200000
+           Perform A200-Free-Packageset                                 08210000
+           .                                                            08220000
+      *                                                                 08230000

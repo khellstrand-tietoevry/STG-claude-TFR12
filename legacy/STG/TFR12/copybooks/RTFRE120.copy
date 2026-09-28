@@ -1,0 +1,299 @@
+      ******************************************************************        
+      *  Program XCTGTG00 executed                                     *        
+      *     Date      : 15 Mar 2012                                    *        
+      *     Time      : 15:11:10                                       *        
+      *     User      : Z2106NL                                        *        
+      *     Copy      : RTFRE120                                       *        
+      *                                                                *        
+      ******************************************************************        
+      *                                                                *        
+      *     Function  : TFR12                                          *        
+      *     Version   : 01                                             *        
+      *     Calls     : FTFRH120                                       *        
+      *     Base      : DLI                                            *        
+      *     Name      : ReadCharge                                     *        
+      *     Num. Item : 28                                             *        
+      *     Num Rep   : 1                                              *        
+      *                                                                         
+           02  TFR12-V01.                                                       
+      *****************************************************************         
+      *     Item   : 005                                                        
+      *     Descr  : Fin-Inst-No                                                
+      *                                                                         
+           05  RTFRE120-I-Fin-Inst-No-G.                                        
+                 15  RTFRE120-I-Fin-Inst-No-I        Pic  x(01).                
+                 15  RTFRE120-I-Fin-Inst-No-O        Pic  x(01).                
+                 15  RTFRE120-I-Fin-Inst-No-X.                                  
+                   20  RTFRE120-I-Fin-Inst-No-D      Pic  x(18).                
+      *****************************************************************         
+      *     Item   : 010                                                        
+      *     Descr  : Kontrakt-Type                                              
+      *                                                                         
+           05  RTFRE120-I-Contract-Type-G.                                      
+                 15  RTFRE120-I-Contract-Type-I      Pic  x(01).                
+                 15  RTFRE120-I-Contract-Type-O      Pic  x(01).                
+                 15  RTFRE120-I-Contract-Type-X.                                
+                   20  RTFRE120-I-Contract-Type-D    Pic  x(3).                 
+      *****************************************************************         
+      *     Item   : 011                                                        
+      *     Descr  : Kontrakt-Nr                                                
+      *                                                                         
+           05  RTFRE120-I-Contract-No-G.                                        
+                 15  RTFRE120-I-Contract-No-I        Pic  x(01).                
+                 15  RTFRE120-I-Contract-No-O        Pic  x(01).                
+                 15  RTFRE120-I-Contract-No-X.                                  
+                   20  RTFRE120-I-Contract-No-D      Pic  9(7).                 
+      *****************************************************************         
+      *     Item   : 012                                                        
+      *     Descr  : Rate-Nr                                                    
+      *                                                                         
+           05  RTFRE120-I-Part-Amount-No-G.                                     
+                 15  RTFRE120-I-Part-Amount-No-I     Pic  x(01).                
+                 15  RTFRE120-I-Part-Amount-No-O     Pic  x(01).                
+                 15  RTFRE120-I-Part-Amount-No-X.                               
+                   20  RTFRE120-I-Part-Amount-No-D   Pic  9(2).                 
+      *****************************************************************         
+      *     Item   : 030                                                        
+      *     Descr  : Sist-Lagret-Dato                                           
+      *                                                                         
+           05  RTFRE120-O-Last-Saved-Date-G.                                    
+                 15  RTFRE120-O-Last-Saved-Date-I    Pic  x(01).                
+                 15  RTFRE120-O-Last-Saved-Date-O    Pic  x(01).                
+                 15  RTFRE120-O-Last-Saved-Date-X.                              
+                   20  RTFRE120-O-Last-Saved-Date-D  Pic  x(26).                
+      *****************************************************************         
+      *     Item   : 035                                                        
+      *     Descr  : Operasjons-Type                                            
+      *                                                                         
+           05  RTFRE120-I-Operation-Type-G.                                     
+                 15  RTFRE120-I-Operation-Type-I     Pic  x(01).                
+                 15  RTFRE120-I-Operation-Type-O     Pic  x(01).                
+                 15  RTFRE120-I-Operation-Type-X.                               
+                   20  RTFRE120-I-Operation-Type-D   Pic  x(20).                
+      *****************************************************************         
+      *     Item   : 310                                                        
+      *     Descr  : Agent Provisjon                                            
+      *                                                                         
+           05  RTFRE120-O-Agent-Commission-G.                                   
+                 15  RTFRE120-O-Agent-Commission-I   Pic  x(01).                
+                 15  RTFRE120-O-Agent-Commission-O   Pic  x(01).                
+                 15  RTFRE120-O-Agent-Commission-X.                             
+                   20  RTFRE120-O-Agent-Commission-D Pic  9(14)V9(3).           
+      *****************************************************************         
+      *     Item   : 368                                                        
+      *     Descr  : Tot omk kjøper - gskr a. bank                              
+      *                                                                         
+           05  RTFRE120-O-Tot-Ch-Buy-CrThB-G.                                   
+                 15  RTFRE120-O-Tot-Ch-Buy-CrThB-I   Pic  x(01).                
+                 15  RTFRE120-O-Tot-Ch-Buy-CrThB-O   Pic  x(01).                
+                 15  RTFRE120-O-Tot-Ch-Buy-CrThB-X.                             
+                   20  RTFRE120-O-Tot-Ch-Buy-CrThB-D Pic  9(14)V9(3).           
+      *****************************************************************         
+      *     Item   : 369                                                        
+      *     Descr  : Tot omk kjøper - gskr. vår bank                            
+      *                                                                         
+           05  RTFRE120-O-Tot-Ch-Buy-CrOuB-G.                                   
+                 15  RTFRE120-O-Tot-Ch-Buy-CrOuB-I   Pic  x(01).                
+                 15  RTFRE120-O-Tot-Ch-Buy-CrOuB-O   Pic  x(01).                
+                 15  RTFRE120-O-Tot-Ch-Buy-CrOuB-X.                             
+                   20  RTFRE120-O-Tot-Ch-Buy-CrOuB-D Pic  9(14)V9(3).           
+      *****************************************************************         
+      *     Item   : 370                                                        
+      *     Descr  : Sum Omkostninger Kjoper                                    
+      *                                                                         
+           05  RTFRE120-O-Total-Ch-Buyer-G.                                     
+                 15  RTFRE120-O-Total-Ch-Buyer-I     Pic  x(01).                
+                 15  RTFRE120-O-Total-Ch-Buyer-O     Pic  x(01).                
+                 15  RTFRE120-O-Total-Ch-Buyer-X.                               
+                   20  RTFRE120-O-Total-Ch-Buyer-D   Pic  9(14)V9(3).           
+      *****************************************************************         
+      *     Item   : 375                                                        
+      *     Descr  : Sum Omkostninger Selger                                    
+      *                                                                         
+           05  RTFRE120-O-Total-Ch-Seller-G.                                    
+                 15  RTFRE120-O-Total-Ch-Seller-I    Pic  x(01).                
+                 15  RTFRE120-O-Total-Ch-Seller-O    Pic  x(01).                
+                 15  RTFRE120-O-Total-Ch-Seller-X.                              
+                   20  RTFRE120-O-Total-Ch-Seller-D  Pic  9(14)V9(3).           
+      *****************************************************************         
+      *     Item   : 376                                                        
+      *     Descr  : Tot omk selger - gskr annen bank                           
+      *                                                                         
+           05  RTFRE120-O-Tot-Ch-Sell-CrThB-G.                                  
+                 15  RTFRE120-O-Tot-Ch-Sell-CrThB-I  Pic  x(01).                
+                 15  RTFRE120-O-Tot-Ch-Sell-CrThB-O  Pic  x(01).                
+                 15  RTFRE120-O-Tot-Ch-Sell-CrThB-X.                            
+                   20  RTFRE120-O-Tot-Ch-Sell-CrThB-D                           
+                                                     Pic  9(14)V9(3).           
+      *****************************************************************         
+      *     Item   : 377                                                        
+      *     Descr  : Tot omk selger - gskr vår bank                             
+      *                                                                         
+           05  RTFRE120-O-Tot-Ch-Sell-CrOuB-G.                                  
+                 15  RTFRE120-O-Tot-Ch-Sell-CrOuB-I  Pic  x(01).                
+                 15  RTFRE120-O-Tot-Ch-Sell-CrOuB-O  Pic  x(01).                
+                 15  RTFRE120-O-Tot-Ch-Sell-CrOuB-X.                            
+                   20  RTFRE120-O-Tot-Ch-Sell-CrOuB-D                           
+                                                     Pic  9(14)V9(3).           
+      *****************************************************************         
+      *     Item   : 400                                                        
+      *     Descr  : Omkostnings-Type                                           
+      *                                                                         
+           05  RTFRE120-O-Charge-Type-G.                                        
+               10  RTFRE120-O-Charge-Type-A          Pic  9(04) Comp.           
+                 88  RTFRE120-O-Charge-Type-M        Value  50.                 
+               10  RTFRE120-O-Charge-Type-T          Occurs 50 Times.           
+                 15  RTFRE120-O-Charge-Type-I        Pic  x(01).                
+                 15  RTFRE120-O-Charge-Type-O        Pic  x(01).                
+                 15  RTFRE120-O-Charge-Type-X.                                  
+                   20  RTFRE120-O-Charge-Type-D      Pic  x(20).                
+      *****************************************************************         
+      *     Item   : 410                                                        
+      *     Descr  : Beskrivelse                                                
+      *                                                                         
+           05  RTFRE120-O-Description-G.                                        
+               10  RTFRE120-O-Description-A          Pic  9(04) Comp.           
+                 88  RTFRE120-O-Description-M        Value  50.                 
+               10  RTFRE120-O-Description-T          Occurs 50 Times.           
+                 15  RTFRE120-O-Description-I        Pic  x(01).                
+                 15  RTFRE120-O-Description-O        Pic  x(01).                
+                 15  RTFRE120-O-Description-X.                                  
+                   20  RTFRE120-O-Description-D      Pic  x(200).               
+      *****************************************************************         
+      *     Item   : 412                                                        
+      *     Descr  : Fritekst-Omk                                               
+      *                                                                         
+           05  RTFRE120-O-Charge-Text-G.                                        
+               10  RTFRE120-O-Charge-Text-A          Pic  9(04) Comp.           
+                 88  RTFRE120-O-Charge-Text-M        Value  50.                 
+               10  RTFRE120-O-Charge-Text-T          Occurs 50 Times.           
+                 15  RTFRE120-O-Charge-Text-I        Pic  x(01).                
+                 15  RTFRE120-O-Charge-Text-O        Pic  x(01).                
+                 15  RTFRE120-O-Charge-Text-X.                                  
+                   20  RTFRE120-O-Charge-Text-D      Pic  x(30).                
+      *****************************************************************         
+      *     Item   : 420                                                        
+      *     Descr  : Valgt                                                      
+      *                                                                         
+           05  RTFRE120-O-Selected-G.                                           
+               10  RTFRE120-O-Selected-A             Pic  9(04) Comp.           
+                 88  RTFRE120-O-Selected-M           Value  50.                 
+               10  RTFRE120-O-Selected-T             Occurs 50 Times.           
+                 15  RTFRE120-O-Selected-I           Pic  x(01).                
+                 15  RTFRE120-O-Selected-O           Pic  x(01).                
+                 15  RTFRE120-O-Selected-X.                                     
+                   20  RTFRE120-O-Selected-D         Pic  x(1).                 
+      *****************************************************************         
+      *     Item   : 421                                                        
+      *     Descr  : Prosent-Kan-Registreres                                    
+      *                                                                         
+           05  RTFRE120-O-Percent-G.                                            
+               10  RTFRE120-O-Percent-A              Pic  9(04) Comp.           
+                 88  RTFRE120-O-Percent-M            Value  50.                 
+               10  RTFRE120-O-Percent-T              Occurs 50 Times.           
+                 15  RTFRE120-O-Percent-I            Pic  x(01).                
+                 15  RTFRE120-O-Percent-O            Pic  x(01).                
+                 15  RTFRE120-O-Percent-X.                                      
+                   20  RTFRE120-O-Percent-D          Pic  x(1).                 
+      *****************************************************************         
+      *     Item   : 430                                                        
+      *     Descr  : Beløp                                                      
+      *                                                                         
+           05  RTFRE120-O-Charge-Amount-G.                                      
+               10  RTFRE120-O-Charge-Amount-A        Pic  9(04) Comp.           
+                 88  RTFRE120-O-Charge-Amount-M      Value  50.                 
+               10  RTFRE120-O-Charge-Amount-T        Occurs 50 Times.           
+                 15  RTFRE120-O-Charge-Amount-I      Pic  x(01).                
+                 15  RTFRE120-O-Charge-Amount-O      Pic  x(01).                
+                 15  RTFRE120-O-Charge-Amount-X.                                
+                   20  RTFRE120-O-Charge-Amount-D    Pic  9(14)V9(3).           
+      *****************************************************************         
+      *     Item   : 435                                                        
+      *     Descr  : Valutasort                                                 
+      *                                                                         
+           05  RTFRE120-O-Currency-G.                                           
+               10  RTFRE120-O-Currency-A             Pic  9(04) Comp.           
+                 88  RTFRE120-O-Currency-M           Value  50.                 
+               10  RTFRE120-O-Currency-T             Occurs 50 Times.           
+                 15  RTFRE120-O-Currency-I           Pic  x(01).                
+                 15  RTFRE120-O-Currency-O           Pic  x(01).                
+                 15  RTFRE120-O-Currency-X.                                     
+                   20  RTFRE120-O-Currency-D         Pic  x(3).                 
+      *****************************************************************         
+      *     Item   : 440                                                        
+      *     Descr  : Betalende-Part                                             
+      *                                                                         
+           05  RTFRE120-O-Paying-Party-G.                                       
+               10  RTFRE120-O-Paying-Party-A         Pic  9(04) Comp.           
+                 88  RTFRE120-O-Paying-Party-M       Value  50.                 
+               10  RTFRE120-O-Paying-Party-T         Occurs 50 Times.           
+                 15  RTFRE120-O-Paying-Party-I       Pic  x(01).                
+                 15  RTFRE120-O-Paying-Party-O       Pic  x(01).                
+                 15  RTFRE120-O-Paying-Party-X.                                 
+                   20  RTFRE120-O-Paying-Party-D     Pic  x(20).                
+      *****************************************************************         
+      *     Item   : 445                                                        
+      *     Descr  : Prosent-Provisjon                                          
+      *                                                                         
+           05  RTFRE120-O-Percent-Comm-G.                                       
+               10  RTFRE120-O-Percent-Comm-A         Pic  9(04) Comp.           
+                 88  RTFRE120-O-Percent-Comm-M       Value  50.                 
+               10  RTFRE120-O-Percent-Comm-T         Occurs 50 Times.           
+                 15  RTFRE120-O-Percent-Comm-I       Pic  x(01).                
+                 15  RTFRE120-O-Percent-Comm-O       Pic  x(01).                
+                 15  RTFRE120-O-Percent-Comm-X.                                 
+                   20  RTFRE120-O-Percent-Comm-D     Pic  9(3)V9(3).            
+      *****************************************************************         
+      *     Item   : 446                                                        
+      *     Descr  : Perioder                                                   
+      *                                                                         
+           05  RTFRE120-O-Period-G.                                             
+                 15  RTFRE120-O-Period-I             Pic  x(01).                
+                 15  RTFRE120-O-Period-O             Pic  x(01).                
+                 15  RTFRE120-O-Period-X.                                       
+                   20  RTFRE120-O-Period-D           Pic  9(2).                 
+      *****************************************************************         
+      *     Item   : 800                                                        
+      *     Descr  : Tilgang fritekst                                           
+      *                                                                         
+           05  RTFRE120-O-Access-Text-G.                                        
+                 15  RTFRE120-O-Access-Text-I        Pic  x(01).                
+                 15  RTFRE120-O-Access-Text-O        Pic  x(01).                
+                 15  RTFRE120-O-Access-Text-X.                                  
+                   20  RTFRE120-O-Access-Text-D      Pic  x(1).                 
+      *****************************************************************         
+      *     Item   : 801                                                        
+      *     Descr  : tilgang valgfri valuta                                     
+      *                                                                         
+           05  RTFRE120-O-Access-CC-Am-G.                                       
+                 15  RTFRE120-O-Access-CC-Am-I       Pic  x(01).                
+                 15  RTFRE120-O-Access-CC-Am-O       Pic  x(01).                
+                 15  RTFRE120-O-Access-CC-Am-X.                                 
+                   20  RTFRE120-O-Access-CC-Am-D     Pic  x(1).                 
+      *****************************************************************         
+      *     Item   : 900                                                        
+      *     Descr  : Antall-Lest                                                
+      *                                                                         
+           05  RTFRE120-O-No-Read-G.                                            
+                 15  RTFRE120-O-No-Read-I            Pic  x(01).                
+                 15  RTFRE120-O-No-Read-O            Pic  x(01).                
+                 15  RTFRE120-O-No-Read-X.                                      
+                   20  RTFRE120-O-No-Read-D          Pic  9(4).                 
+      *****************************************************************         
+      *     Item   : 901                                                        
+      *     Descr  : Les-Fra                                                    
+      *                                                                         
+           05  RTFRE120-B-Read-From-G.                                          
+                 15  RTFRE120-B-Read-From-I          Pic  x(01).                
+                 15  RTFRE120-B-Read-From-O          Pic  x(01).                
+                 15  RTFRE120-B-Read-From-X.                                    
+                   20  RTFRE120-B-Read-From-D        Pic  9(4).                 
+      *****************************************************************         
+      *     Item   : 902                                                        
+      *     Descr  : Les-Til                                                    
+      *                                                                         
+           05  RTFRE120-B-Read-To-G.                                            
+                 15  RTFRE120-B-Read-To-I            Pic  x(01).                
+                 15  RTFRE120-B-Read-To-O            Pic  x(01).                
+                 15  RTFRE120-B-Read-To-X.                                      
+                   20  RTFRE120-B-Read-To-D          Pic  9(4).                 
