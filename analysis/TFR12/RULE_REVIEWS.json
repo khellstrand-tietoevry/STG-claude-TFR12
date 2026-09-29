@@ -1,0 +1,12 @@
+{
+  "system": "STG/TFR12",
+  "version": 1,
+  "reviews": {
+    "RULE-001": { "verdict": "confirmed", "at": "2026-09-28T13:20:14Z", "title": "Party-specific charge price override (POP) is priced as of today's processing date, not the contract date" },
+    "RULE-002": { "verdict": "confirmed", "at": "2026-09-28T13:20:14Z", "title": "Charge amount computed from percentage of contract/part amount, clamped to min/max" },
+    "RULE-003": { "verdict": "confirmed", "at": "2026-09-28T13:20:14Z", "title": "Graduated/tiered percentage pricing across amount bands" },
+    "RULE-014": { "verdict": "confirmed", "at": "2026-09-28T13:20:14Z", "title": "Duplicate/conflicting charge detection between Main and Part charge records" },
+    "RULE-015": { "verdict": "confirmed", "at": "2026-09-28T13:20:14Z", "title": "Buyer/seller both charged is not allowed (single payer per charge)" },
+    "RULE-026": { "verdict": "confirmed", "at": "2026-09-28T13:20:14Z", "title": "Contract data-version selection (Actual vs Work)" }
+  }
+}

@@ -1,0 +1,166 @@
+# Node packet: F115ISC0
+Kind: module
+Domain: Charge/Contract DBI Layer
+Entry point: False
+LOC (full file): 1180
+
+## First 150 lines of src/F115ISC0.src (header + start of Data Division)
+       Identification Division.                                         00010000
+       Program-ID. F115ISC0.                                            00020000
+       Author.  Henning Langfeldt Rødland.                              00030000
+      *################################################################*00040000
+      *                                                                 00050000
+      * FD Trade Finance                                                00060000
+      *                                                                 00070000
+      * Interface for all database access on table TF_Sys_Code.         00080000
+      *                                                                 00090000
+      * The interface kan read one spesific occurence,                  00100000
+      * or several occurences, fully or partly qualified with           00110000
+      * from- and to- values.                                           00120000
+      *                                                                 00130000
+      * When reading several occurences, one must always start with     00140000
+      * -In-Get-1st, and continue with -In-Get-Next.                    00150000
+      *                                                                 00160000
+      * NB!  There are several key-fields, which may be used            00170000
+      *      differently depending on the need.                         00180000
+      *      See seperate description below.                            00190000
+      *                                                                 00200000
+      *                                                                 00210000
+      * An ordinary Select call may look like this:                     00220000
+      *                                                                 00230000
+      *    Initialize                          R115ISC0-Sys-Code        00240000
+      *    Set   R115ISC0-Version        To    True                     00250000
+      *    Set   R115ISC0-In-Select      To    True                     00260000
+      *    Move  &sys-type               To    R115ISC0-In-ST-Type      00270000
+      *    Move  &sys-code               To    R115ISC0-In-SC-Code      00280000
+      *                                                                 00290000
+      *    Call  'F115ISC0'              Using R115ISC0-Sys-Code        00300000
+      *                                        R7919999-Error-Area      00310000
+      *    End-Call                                                     00320000
+      *                                                                 00330000
+      *    Evaluate True                                                00340000
+      *      When R7919999-Return-Abend                                 00350000
+      *        Move  '&&&&'              To    R7919999-Paragraph       00360000
+      *        Perform Z900-Abend                                       00370000
+      *                                                                 00380000
+      *      When R7919999-Return-Error                                 00390000
+      *        ...not found...                                          00400000
+      *                                                                 00410000
+      *      When R7919999-Return-OK                                    00420000
+      *        ...found...                                              00430000
+      *                                                                 00440000
+      *    End-Evaluate                                                 00450000
+      *                                                                 00460000
+      *################################################################*00470000
+      * Date ! Si! Change description                            ! 3A ! 00480000
+      *------+---+-----------------------------------------------+----+ 00490000
+      *090201!HLR! Tuning - Removed the cursors without qual.    !    ! 00500000
+      *      !   !          on type & fin-inst.                  !    ! 00510000
+      *050499!RM ! Changed acc. to new db layout                 !LG10! 00520000
+      *170399!HLR! New module                                    !LG10! 00530000
+      *################################################################*00540000
+       Environment Division.                                            00550000
+       Configuration Section.                                           00560000
+       Special-Names.                                                   00570000
+           Decimal-Point Is Comma.                                      00580000
+      *                                                                 00590000
+      *################################################################*00600000
+       Data Division.                                                   00610000
+       Working-Storage Section.                                         00620000
+      *                                                                 00630000
+       01  Filler.                                                      00640000
+      *                                                                 00650000
+           05  W-Table-Name              Pic  X(18) Value               00660000
+                                                   'TF_Sys_Code       '.00670000
+      *                                                                 00680000
+           05  W-IO-Length               Pic S9(04)              Comp.  00690000
+           05  W-Tally                   Pic S9(05)              Comp.  00700000
+      *                                                                 00710000
+           05  WD-Length                 Pic  Z.ZZ9.                    00720000
+           05  WD-Fin-Inst-Id            Pic  9(18).                    00730000
+      *                                                                 00740000
+           05  Ind-WS-Put                Pic S9(04)              Comp.  00750000
+           05  Ind-WS                    Pic S9(04)              Comp.  00760000
+           05  W-Max-Occ-WS-Tab          Pic S9(04)              Comp.  00770000
+      *                                                                 00780000
+      *    This field is needed because of the old interfaces used to   00790000
+      *    access Fin-Inst-ID and Customer ID.                          00800000
+           05  W-Tmp-Konsern-Nr          Pic  9(04).                    00810000
+      *                                                                 00820000
+           05  Filler.                                                  00830000
+               10  W-Fin-Inst-No         Pic  X(18).                    00840000
+               10  W-Fin-Inst-ID         Pic  9(18)              Comp-3.00850000
+      *                                                                 00860000
+           05  W-Input-Action            Pic  X(10).                    00870000
+             88  SW-IA-Initialize                   Value 'INITIALIZE'. 00880000
+      *                                                                 00890000
+      *----------------------------------------------------------------*00900000
+      * Counters, used on cursor read, to return row no. and total      00910000
+      * no. of rows.                                                    00920000
+      * Total no. of rows is only returned when -In-Count is set on     00930000
+      * the Get-1st-call.                                               00940000
+      *                                                                 00950000
+           05  WC-Counters.                                             00960000
+               10  WC-Row-No             Pic S9(11)              Comp-3.00970000
+               10  WC-Total-No-Of-Rows   Pic S9(11)              Comp-3.00980000
+      *                                                                 00990000
+      *----------------------------------------------------------------*01000000
+      * Switches used for selecting the correct cursor:                 01010000
+      *                                                                 01020000
+           05  SW-Cursor-Code.                                          01030000
+               10  SW-CC-Type            Pic  X(01).                    01040000
+                 88  SW-Use-Type                    Value 'T'.          01050000
+               10  SW-CC-Fin-Inst        Pic  X(01).                    01060000
+                 88  SW-Use-FI                      Value 'F'.          01070000
+               10  SW-CC-Contr-Type      Pic  X(01).                    01080000
+                 88  SW-Use-Ct                      Value 'C'.          01090000
+               10  SW-CC-Code            Pic  X(01).                    01100000
+                 88  SW-Use-Code                    Value 'C'.          01110000
+      *                                                                 01120000
+           05  Filler                    Redefines SW-Cursor-Code       01130000
+                                         Pic  X(04).                    01140000
+             88  SW-Use-Ty-Fi-Asc                   Value 'TF  '.       01150000
+             88  SW-Use-Ty-Fi-Co-Asc                Value 'TF C'.       01160000
+             88  SW-Use-Ty-Fi-Ct-Co-Asc             Value 'TFCC'.       01170000
+      *                                                                 01180000
+      *----------------------------------------------------------------*01190000
+      * These fields are used for SQL qualification:                    01200000
+      *                                                                 01210000
+           05  W-DB-Key.                                                01220000
+               10  W-DB-Type             Pic  X(20).                    01230000
+               10  W-DB-Fin-Inst-Id      Pic S9(18)             Comp-3. 01240000
+               10  W-DB-Contr-Type       Pic  X(03).                    01250000
+               10  W-DB-Code             Pic  X(20).                    01260000
+      *                                                                 01270000
+      *----------------------------------------------------------------*01280000
+      * These fields are used for comparison with the WS-fields.        01290000
+      *                                                                 01300000
+           05  WE-Cursor-Info.                                          01310000
+             07  WE-Key.                                                01320000
+               10  WE-Type               Pic  X(20).                    01330000
+               10  WE-Fin-Inst-No        Pic  X(18).                    01340000
+               10  WE-Fin-Inst-Id        Pic S9(18)             Comp-3. 01350000
+               10  WE-Contr-Type         Pic  X(03).                    01360000
+               10  WE-Code               Pic  X(20).                    01370000
+             07  WE-Code-Sequence        Pic  X(01).                    01380000
+               88  WE-CS-Ascending                  Value 'A'.          01390000
+               88  WE-CS-Descending                 Value 'D'.          01400000
+      *                                                                 01410000
+      *----------------------------------------------------------------*01420000
+      * Storage, and switches for identifying the content:              01430000
+      * The cursor info is used to verify that the get-next has the     01440000
+      * same qualification as the get-1st.                              01450000
+      *                                                                 01460000
+       01  W-Storage.                                                   01470000
+      *                                                                 01480000
+           05  WS-Cursor-Info.                                          01490000
+             07  WS-Key.                                                01500000
+
+## Outbound connections (this node calls/reads/writes)
+- call -> F5879010
+- call -> F7918030
+- read -> ds:TF_Sys_Code
+
+## Inbound connections (called/read/written by)
+- F115L150 -> call
+- FTFRL120 -> call

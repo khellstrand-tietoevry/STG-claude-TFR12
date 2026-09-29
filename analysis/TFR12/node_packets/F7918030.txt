@@ -1,0 +1,175 @@
+# Node packet: F7918030
+Kind: module
+Domain: GSM Error & Abend Handling
+Entry point: False
+LOC (full file): 841
+
+## First 150 lines of src/F7918030.src (header + start of Data Division)
+       Identification Division.                                         00010099
+       Program-ID. F7918030.                                            00020099
+       Author.     Rune Mesel.                                          00030099
+      *################################################################*00040099
+      *                                                                 00050099
+      * Interface for henting av korrekt feilmelding                    00060099
+      *                                                                 00070099
+      *                                                                 00080099
+      * Et typisk kall vil se slik ut :                                 00090099
+      *                                                                 00100099
+      *    Initialize                          R7918030-Feilmelding     00110099
+      *    Set   R7918030-Versjon        To    True                     00120099
+      *    Move  &Logonid#               To    R7918030-In-Logonid      00130099
+      *    Move  &Terminal#              To    R7918030-In-Terminal     00140099
+      *    Move  &Sysident#              To    R7918030-In-System       00150099
+      *                                                                 00160099
+      * eventuelt:                                                      00170099
+      *    Move  &konsern-nr#            To    R7918030-In-Konsern-Nr   00180099
+      *                                                                 00190099
+      * eventuelt: (NO er default)                                      00200099
+      *    Move  &språk - ISO-kode#      To    R7918030-In-Spraak       00210099
+      *                                                                 00220099
+      * eventuelt:                                                      00230099
+      *    Set   R7918030-In-Logging-Ja  To    True                     00240099
+      *                                                                 00250099
+      *    Move  &Meldingskode#          To    R7918030-In-Meldingskode 00260099
+      *    Move  &Meldingstekst#         To    R7918030-In-Meldingstekst00270099
+      *                                                                 00280099
+      *    Call  'F7918030'              Using R7918030-Feilmelding     00290099
+      *    End-Call                                                     00300099
+      *                                                                 00310099
+      *################################################################*00320099
+      * Dato ! Si! Endringens art                                ! 3A ! 00330099
+      *---------------------------------------------------------------- 00340099
+      *200125!SM ! Handle Low values in variable data field      !    ! 00350099
+      *230124!SM ! OptiMIPS - Search most frequent occuring error!CMAS! 00351099
+      *      !   ! codes from lighter version of copybook        !1551! 00360099
+      *      !   ! R791ERDL instead of R791ERDT                  !    ! 00370099
+      *      !   ! Access DB2 to fetch other error messages      !    ! 00380099
+      *      !   ! instead of the copy area R791ERDT.            !    ! 00390099
+      *090209!HLR! Switched from FD_Feilmelding to PO_Feilmelding!V09 ! 00400099
+      *181002!HLR! Laget Copy-versjon av DB2-tabellen.           !    ! 00410099
+      *      !   ! Gjør først oppslag i Copy. Hvis raden ikke    !    ! 00420099
+      *      !   ! finnes i Copy gjøres oppslag i DB2.           !    ! 00430099
+      *      !   ! REXX POGENMEX brukes for Copy-generering.     !    ! 00440099
+      *290802!HLR! NotFound på meldingstekst displayes nå også   !    ! 00450099
+      *      !   ! i batch, ikke bare i CICS.                    !    ! 00460099
+      *100198!HLR! Utvidet med tabell for symbolske variabler,   !JM93! 00470099
+      *      !   ! samt språk og konsern-nr.                     !    ! 00480099
+      *      !   ! Dette har betinget en del omskriving.         !    ! 00490099
+      *120695!RM ! Ny modul                                      !    ! 00500099
+      *################################################################*00510099
+       Environment Division.                                            00520099
+       Configuration Section.                                           00530099
+       Special-Names.                                                   00540099
+           Decimal-Point is comma.                                      00550099
+      *                                                                 00560099
+      *################################################################*00570099
+       Data Division.                                                   00580099
+       Working-Storage Section.                                         00590099
+      *                                                                 00600099
+       01  W-Felter.                                                    00610099
+      *                                                                 00620099
+           05  F7919220                  Pic  X(08) Value 'F7919220'.   00630099
+      *                                                                 00640099
+           05  W-IO-Length               Pic S9(04)              Comp.  00650099
+      *                                                                 00660099
+           05  W-Max-Occ-Var-Tab         Pic S9(04)              Comp.  00670099
+           05  Ind-Var                   Pic S9(04)              Comp.  00680099
+      * CMAS-1551-E772288-START                                         00690099
+           05  W-Max-Occ-Errl-Tab        Pic  S9(04)             Comp.  00700099
+           05  I-Err-Msg                 Pic  S9(04)             Comp.  00710099
+           05  Ind-Msg                   Pic  S9(04)             Comp.  00720099
+      * CMAS-1551-E772288-END                                           00730099
+      *                                                                 00740099
+           05  WD-SQLcode                Pic -999.                      00750099
+           05  WD-LoggTekst              Pic  X(100).                   00760099
+      *                                                                 00770099
+      *----------------------------------------------------------------*00780099
+      * Følgende felter benyttes for ekspandering av meldings-tekst:    00790099
+      *                                                                 00800099
+           05  W-Var-Felter.                                            00810099
+             10  W-Pos                   Pic S9(04)              Comp.  00820099
+             10  W-Pos-Fra               Pic S9(04)              Comp.  00830099
+             10  W-Pos-Til               Pic S9(04)              Comp.  00840099
+             10  W-Pos-Key               Pic S9(04)              Comp.  00850099
+             10  W-Pos-Var               Pic S9(04)              Comp.  00860099
+      *                                                                 00870099
+             10  W-Fra-Tekst             Pic  X(120).                   00880099
+             10  W-Til-Tekst             Pic  X(120).                   00890099
+             10  W-Var-Key               Pic  X(120).                   00900099
+             10  W-Var-Data              Pic  X(120).                   00910099
+      *                                                                 00920099
+             10  Filler                  Pic  X(01).                    00930099
+               88  Sw-Tekst                   Value 'T'.                00940099
+               88  Sw-Key                     Value 'K'.                00950099
+      *                                                                 00960099
+             10  Filler                  Pic  X(04).                    00970099
+               88  Sw-Var-OK                  Value 'OK'.               00980099
+               88  Sw-Var-Feil                Value 'Feil'.             00990099
+      *                                                                 01000099
+           05  W-Kvalifisering.                                         01010099
+             10  W-Konsern-Nr            Pic  9(04).                    01020099
+             10  W-Meldingskode          Pic  X(30).                    01030099
+             10  W-Spraak                Pic  X(02).                    01040099
+      *                                                                 01050099
+      *----------------------------------------------------------------*01060099
+      * Områder til bruk ved database-aksesser.                         01070099
+      *                                                                 01080099
+           Exec Sql Include R791POFM     End-exec.                      01090099
+           Exec Sql Include SQLCA        End-exec.                      01100099
+      *                                                                 01110099
+      *----------------------------------------------------------------*01120099
+      * Copy-område-versjon av FD_Feilmelding.                          01130099
+      *                                                                 01140099
+      * CMAS-1551-E772288-START                                         01150099
+      *Copy R791ERDT.                                                   01160099
+      *                                                                 01170099
+      * Copy-area light version of PO_Feilmelding.                      01180099
+       Copy R791ERDL.                                                   01190099
+      * CMAS-1551-E772288-END                                           01200099
+      *                                                                 01210099
+       01  W-R791ERDC-Key.                                              01220099
+           05  W-R791ERDC-FK-OAKO-ID     Pic  9(18).                    01230099
+           05  W-R791ERDC-Meldingskode   Pic  X(30).                    01240099
+WAIT  *    05  W-R791ERDC-System         Pic  X(02).                    01250099
+           05  W-R791ERDC-Spraak         Pic  X(02).                    01260099
+      *                                                                 01270099
+      *----------------------------------------------------------------*01280099
+      * Internt område:                                                 01290099
+      *                                                                 01300099
+       01  W-Int-IO-Area.                                               01310099
+           Copy R7918030.                                               01320099
+      *                                                                 01330099
+      *----------------------------------------------------------------*01340099
+      * Diverse copy-områder:                                           01350099
+      *                                                                 01360099
+       Copy R7919220.                                                   01370099
+       Copy R7919999.                                                   01380099
+      *                                                                 01390099
+      *################################################################.01400099
+       Linkage Section.                                                 01410099
+      *                                                                 01420099
+       01  L-Ext-IO-Area                 Pic  X(2048).                  01430099
+      *                                                                 01440099
+      *################################################################.01450099
+       Procedure Division                Using L-Ext-IO-Area.           01460099
+      *                                                                 01470099
+       A000-Main                         Section.                       01480099
+      *                                                                 01490099
+
+## Outbound connections (this node calls/reads/writes)
+- read -> ds:PO_Feilmelding
+
+## Inbound connections (called/read/written by)
+- F115ICA0 -> call
+- F115ICH0 -> call
+- F115ICT0 -> call
+- F115IHI0 -> call
+- F115IMC0 -> call
+- F115IPA0 -> call
+- F115IPC0 -> call
+- F115ISC0 -> call
+- F115ISR0 -> call
+- F115L060 -> call
+- F115L070 -> call
+- F115L150 -> call
+- FTFRH120 -> call

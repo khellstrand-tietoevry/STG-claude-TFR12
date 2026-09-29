@@ -1,0 +1,169 @@
+# Node packet: FTFRL120
+Kind: module
+Domain: Servo Orchestration
+Entry point: False
+LOC (full file): 1551
+
+## First 150 lines of src/FTFRL120.src (header + start of Data Division)
+       Identification Division.                                         00010099
+       Program-Id. FTFRL120.                                            00020099
+       Author. z1132hb                                                  00030099
+      *################################################################*00040099
+      *                                                                *00050099
+      * Servo - logilevel   / L-module - Logic module                  *00060099
+      * uses STG, in accordance with new Servo Standards.              *00070099
+      *                                                                *00080099
+      * TFR12/01 - Les omkostninger                                    *00090099
+      *                                                                *00100099
+      * Kode between <META> and </META> tags must not be modified. Do  *00110099
+      * your modifications in the specified user sections !            *00120099
+      *                                                                *00130099
+      *################################################################*00140099
+      * Date ! Si! Type of change                                ! 3A !*00150099
+      *------+---+-----------------------------------------------+----+*00160099
+      *160312!NDL! Added Charge-Text                             !    !*00170099
+      *------+---+-----------------------------------------------+----+*00170199
+      *081003!NDL! Added presenting banks charges when accept-ILU!LO18!*00170299
+      *------+---+-----------------------------------------------+----+*00171099
+      *030813!LG ! Op-Ty SHOW-AGENT gives Agent-commission       !LO18!*00172099
+      *------+---+-----------------------------------------------+----+*00180099
+      *010702!NDL! Nye beregninger rundt prosent ved pct of CA   !LO18!*00190099
+      *------+---+-----------------------------------------------+----+*00200099
+      *010103!LG ! New items 310,368,369,376 and 377             !LR02!*00210099
+      *------+---+-----------------------------------------------+----+*00220099
+      *060900!NDL! Removed code that's not in use                !LR02!*00230099
+      *------+---+-----------------------------------------------+----+*00240099
+      *990315!&&&! New module                                    !&&&&!*00250099
+      *################################################################*00260099
+       Environment Division.                                            00270099
+       Configuration Section.                                           00280099
+       Special-Names.                                                   00290099
+           Decimal-Point Is Comma.                                      00300099
+      *################################################################*00310099
+       Data Division.                                                   00320099
+       Working-Storage Section.                                         00330099
+      *                                                                 00340099
+       01  W-Work-Fields.                                               00350099
+      *                                                                 00360099
+      *<META WA-START>                                                  00370099
+           05  Filler                     Pic   X(08) Value 'WA-START'. 00380099
+      *</META>                                                          00390099
+      *                                                                 00400099
+      *    User work variables can be placed between here               00410099
+      *                                                                 00420099
+           05  WA-Amount-Display          Pic   99999999v999.           00430099
+           05  WA-Perc-Display            Pic   999v999.                00440099
+           05  WA-lest                    Pic   9999.                   00450099
+           05  WA-Ind                     Pic  S9(04) Comp.             00460099
+           05  WA-Ind-Out                 Pic  S9(04) Comp.             00470099
+           05  WA-Count-Rows              Pic  S9(04) Comp.             00480099
+           05  WA-Difference              Pic  S9(04) Comp.             00490099
+           05  WA-3m-Periods              Pic   9(02).                  00500099
+           05  WS-PA-or-CA-Amount         Pic  S9(15)V9(03) Comp-3.     00510099
+      *                                                                 00520099
+           05  Ws-SC-Code                 Pic  X(20).                   00530099
+           05  WA-Access-Text-Field       Pic  X(01).                   00531099
+               88  SW-Access-Text               Value 'Y'.              00550099
+           05  WA-Access-Am-Base          Pic  X(01).                   00550199
+               88  SW-Access-AM-Base            Value 'Y'.              00550399
+      *                                                                 00551099
+           05  WA-Actual-Work-Switch      Pic  S9.                      00552099
+               88  SW-Actual                    Value +1.               00553099
+               88  SW-Work                      Value +2.               00554099
+      *                                                                 00560099
+           05  WA-Duplicate-Row-Switch    Pic  S9.                      00570099
+               88  SW-Write-New                 Value +0.               00580099
+               88  SW-Ignore                    Value +1.               00590099
+               88  SW-Overwrite                 Value +2.               00600099
+      *                                                                 00610099
+           05  WA-Charge.                                               00620099
+               10  WA-Charge-Type         Pic   X(20).                  00630099
+               10  WA-Prev-Charge-Type    Pic   X(20).                  00640099
+               10  WA-Description         Pic   X(200).                 00650099
+               10  WA-Selected            Pic   X(01).                  00660099
+               10  WA-Prev-Selected       Pic   X(01).                  00670099
+               10  WA-Amount              Pic  S9(14)V9(03) Comp-3.     00680099
+               10  WA-Currency            Pic   X(03).                  00690099
+               10  WA-Paying-Party        Pic   X(20).                  00700099
+               10  WA-Percent-Comm        Pic   9(03)V9(03).            00710099
+               10  WA-Period              Pic   9(02).                  00720099
+               10  WA-Percent             Pic   X(01).                  00730099
+                   88  SW-Percent-Reg           Value 'P'.              00740099
+               10  WA-Charge-Text         Pic   X(30).                  00741099
+      *                                                                 00750099
+           05  WA-Read.                                                 00760099
+               10  WA-No-Read             Pic   9(04).                  00770099
+               10  WA-Read-From           Pic   9(04).                  00780099
+               10  WA-Read-To             Pic   9(04).                  00790099
+      *                                                                 00800099
+      *<META WA-STOP>                                                   00810099
+           05  Filler                     Pic   X(08) Value 'WA-STOP '. 00820099
+      *</META>                                                          00830099
+      *                                                                 00840099
+      *----------------------------------------------------------------*00850099
+      *                                                                 00860099
+      * Misc. copy books:                                               00870099
+      *                                                                 00880099
+      *01  Filler.                                                      00890099
+      *                                                                 00900099
+      *<META MISC-COPY1>                                                00910099
+      *</META>                                                          00920099
+      *<META MISC-COPY2>                                                00930099
+      *</META>                                                          00940099
+      *                                                                 00950099
+      *    Place your copybooks below here                              00960099
+      *                                                                 00970099
+      * DBI TF_Contract-Amount.                                         00980099
+           Copy R115ICA0.                                               00990099
+      *                                                                 01000099
+      * DBI TF_Part-Amount.                                             01010099
+           Copy R115IPA0.                                               01020099
+      *                                                                 01030099
+      * DBI TF_History.                                                 01040099
+           Copy R115IHI0.                                               01050099
+      *                                                                 01060099
+      * DBI TF_Event_Info.                                              01070099
+           Copy R115IEI0.                                               01080099
+      *                                                                 01090099
+      * DBI TF_Main_Contract.                                           01100099
+           Copy R115IMC0.                                               01110099
+      *                                                                 01120099
+      * DBI TF_Sys_Code.                                                01130099
+           Copy R115ISC0.                                               01140099
+      *                                                                 01150099
+      * LMOD TF List/compute total charges.                             01160099
+           Copy R115L070.                                               01170099
+      *                                                                 01180099
+      * LMOD TF/POP.                                                    01190099
+           Copy R115L150.                                               01200099
+      *                                                                 01210099
+      * GSM Date intervals.                                             01220099
+       Copy R7919020.                                                   01230099
+      *                                                                 01240099
+      *################################################################.01250099
+       Linkage Section.                                                 01260099
+      *                                                                 01270099
+      * Fixed header from STG                                           01280099
+      *                                                                 01290099
+       01  L-STG-Header.                                                01300099
+           Copy R400CH02.                                               01310099
+      *                                                                 01320099
+      * Function data                                                   01330099
+      *                                                                 01340099
+       01  L-Data.                                                      01350099
+           Copy RTFRE120.                                               01360099
+      *                                                                 01370099
+      * Standard error area                                             01380099
+      *                                                                 01390099
+
+## Outbound connections (this node calls/reads/writes)
+- call -> F115ICA0
+- call -> F115IHI0
+- call -> F115IMC0
+- call -> F115IPA0
+- call -> F115ISC0
+- call -> F115L070
+- call -> F115L150
+
+## Inbound connections (called/read/written by)
+- FTFRH120 -> call

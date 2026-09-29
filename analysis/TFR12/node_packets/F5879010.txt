@@ -1,0 +1,171 @@
+# Node packet: F5879010
+Kind: module
+Domain: Customer/Org Master Data
+Entry point: False
+LOC (full file): 827
+
+## First 150 lines of src/F5879010.src (header + start of Data Division)
+       Identification Division.                                         00010000
+       Program-ID. F5879010.                                            00020000
+       Author. Henning Langfeldt Rødland.                               00030000
+      *################################################################*00040000
+      *                                                                 00050000
+      * EDB iHUB Organization                                           00060000
+      *                                                                 00070000
+      * Temporary version of the DB interface for table OA_Konsern.     00080000
+      * The OA tables has been replaced by iHUB Org, so instead         00090000
+      * of accessing DB2 directly, this "clutched" DBI calls            00100000
+      * the new DBI's of iHUB Org.                                      00110000
+      *                                                                 00120000
+      *################################################################*00130000
+      * Date   ! Si! Change description                          ! 3A ! 00140000
+      *------+---+-----------------------------------------------+----+ 00141016
+MIPS  *020621!OBJ! Recompiled to version 6.3 (OptiMIPS)          !    ! 00141017
+      *190915!MH ! Rekomp cob 4.2 - teknisk gjeld  Lev#10        !2019! 00142016
+      *---------------------------------------------------------------- 00150000
+      *20090609!HLR! New module, based on the old DBI            !IHUB! 00160000
+      *20091113!HLR! Uses Group instead of W-Package as input    !IHUB! 00170009
+      *        !   ! to iHUB Org's PackageSet.                   !    ! 00180009
+      *################################################################*00190000
+       Environment Division.                                            00200000
+       Configuration Section.                                           00210000
+       Special-Names.                                                   00220000
+           Decimal-Point Is Comma.                                      00230000
+      *                                                                 00240000
+      *################################################################*00250000
+       Data Division.                                                   00260000
+       Working-Storage Section.                                         00270000
+      *                                                                 00280000
+       01  W-Constants.                                                 00290000
+      *                                                                 00300000
+           05  WC-Program-ID             Pic  X(08) Value 'F5879010'.   00310000
+           05  WC-System-ID              Pic  X(02) Value 'OA'.         00320000
+      *                                                                 00330000
+           05  WC-DB2-System-ID          Pic  X(02) Value 'OR'.         00340000
+      *                                                                 00350000
+           05  WC-Use-Copy               Pic  X(01) Value 'Y'.          00360000
+             88  WC-Use-Copy-No                     Value 'N'.          00370000
+             88  WC-Use-Copy-Yes                    Value 'Y'.          00380000
+      *                                                                 00390000
+           05  WC-Dynamic-Calls.                                        00400002
+             10  BZXOJOR0                Pic  X(08) Value 'BZXOJOR0'.   00410002
+             10  BZXOJNA0                Pic  X(08) Value 'BZXOJNA0'.   00420002
+      *                                                                 00430002
+      *----------------------------------------------------------------*00440000
+      *                                                                 00450000
+       01  Filler.                                                      00460000
+      *                                                                 00470000
+           05  W-Indexes.                                               00480000
+             10  Ind-Key                 Pic S9(04)              Comp.  00490000
+             10  W-Max-Occ-Key-Tbl       Pic S9(04)              Comp.  00500000
+      *                                                                 00510000
+             10  Ind-Data                Pic S9(04)              Comp.  00520000
+             10  W-Max-Occ-Data-Tbl      Pic S9(04)              Comp.  00530000
+      *                                                                 00540000
+      *................................................................*00550000
+      *                                                                 00560000
+           05  W-Switches.                                              00570000
+             10  SW-Select-By            Pic  X(01).                    00580000
+               88  SW-Select-By-ID                  Value 'I'.          00590000
+               88  SW-Select-By-No                  Value 'N'.          00600000
+      *                                                                 00610000
+             10  SW-Select-On            Pic  X(01).                    00620000
+               88  SW-Select-On-Copy                Value 'C'.          00630000
+               88  SW-Select-On-DB2                 Value 'D'.          00640000
+      *                                                                 00650000
+      *................................................................*00660000
+      *                                                                 00670000
+      *    05  W-Accumulators.                                          00680000
+      *      10  WA-Field                Pic  9(15).                    00690000
+      *                                                                 00700000
+      *................................................................*00710000
+      *                                                                 00720000
+      *    05  W-Display-Fields.                                        00730000
+      *      10  WD-Field                Pic  zz9.                      00740000
+      *                                                                 00750000
+      *................................................................*00760000
+      *                                                                 00770000
+      *    05  W-Storage-Fields.                                        00780000
+      *      10  WS-Field                Pic  9(04).                    00790000
+      *                                                                 00800000
+      *................................................................*00810000
+      *                                                                 00820000
+           05  W-Work-Fields.                                           00830000
+      *                                                                 00840000
+             10  W-IO-Length             Pic S9(04)              Comp.  00850000
+             10  W-Package               Pic  X(05) Value Space.        00860000
+      *                                                                 00870000
+             10  W-Fin-Inst-No           Pic  9(04).                    00880000
+             10  W-Search-Date           Pic  9(08).                    00890000
+      *                                                                 00900000
+             10  W-Ext-Fields.                                          00910007
+               15  W-Ext-GRP             Pic  X(03).                    00920007
+               15  W-Ext-SGRP            Pic  9(04).                    00930007
+               15  W-Ext-UPDC            Pic  9(04).                    00940007
+               15  W-Ext-MRR             Pic  99,999.                   00950007
+      *                                                                 00960000
+             10  WT-Data-Table.                                         00970000
+               15  WT-Data-Element       Occurs 10 Times.               00980000
+                 20  WT-Data-Key         Pic  X(15).                    00990000
+                 20  WT-Data-Value       Pic  X(15).                    01000000
+      *                                                                 01010000
+      *-----------------------------------------------------------------01020000
+      * Internal IO area                                                01030000
+      *                                                                 01040000
+       01  W-Int-IO-Area.                                               01050000
+           Copy R5879010.                                               01060000
+      *                                                                 01070000
+       01  Filler.                                                      01080000
+           Copy R587901T.                                               01090000
+      *                                                                 01100000
+      *-----------------------------------------------------------------01110000
+      * iHUB Org DBI                                                    01120000
+      *                                                                 01130000
+       01  Filler.                                                      01140000
+           Copy BZXOJOR0.                                               01150000
+      *                                                                 01160000
+       01  Filler.                                                      01170000
+           Copy BZXOJNA0.                                               01180000
+      *                                                                 01190000
+      *-----------------------------------------------------------------01200000
+      * Misc. external modules                                          01210000
+      *                                                                 01220000
+       01  Filler.                                                      01230000
+           Copy R7918110.                                               01240000
+      *                                                                 01250000
+       Copy R7919100.                                                   01260008
+      *                                                                 01270008
+      *-----------------------------------------------------------------01280000
+      * Error Handling                                                  01290000
+      *                                                                 01300000
+       01  Filler.                                                      01310000
+           Copy R791ERR0.                                               01320000
+      *                                                                 01330000
+       Copy R791ERRX.                                                   01340000
+      *                                                                 01350000
+      *################################################################*01360000
+       Linkage Section.                                                 01370000
+      *                                                                 01380000
+       01  L-Ext-IO-Area                 Pic  X(1024).                  01390000
+      *                                                                 01400000
+       Copy R7919999.                                                   01410000
+      *                                                                 01420000
+      *################################################################*01430000
+       Procedure Division                Using L-Ext-IO-Area            01440000
+                                               R7919999-Error.          01450000
+      *                                                                 01460000
+       A000-Main                         Section.                       01470000
+
+## Outbound connections (this node calls/reads/writes)
+- call -> F7919100
+
+## Inbound connections (called/read/written by)
+- F115ICA0 -> call
+- F115ICH0 -> call
+- F115ICT0 -> call
+- F115IHI0 -> call
+- F115IMC0 -> call
+- F115IPA0 -> call
+- F115IPC0 -> call
+- F115ISC0 -> call
+- F115ISR0 -> call

@@ -1,0 +1,170 @@
+[
+ {
+  "name": "FTFRH120",
+  "domain": "Servo Orchestration",
+  "files": [
+   "src/FTFRH120.src"
+  ],
+  "loc": 384
+ },
+ {
+  "name": "FTFRK120",
+  "domain": "Servo Orchestration",
+  "files": [
+   "src/FTFRK120.src"
+  ],
+  "loc": 976
+ },
+ {
+  "name": "FTFRL120",
+  "domain": "Servo Orchestration",
+  "files": [
+   "src/FTFRL120.src"
+  ],
+  "loc": 1551
+ },
+ {
+  "name": "F115L060",
+  "domain": "Charge Calculation & Listing",
+  "files": [
+   "src/F115L060.src"
+  ],
+  "loc": 1585
+ },
+ {
+  "name": "F115L070",
+  "domain": "Charge Calculation & Listing",
+  "files": [
+   "src/F115L070.src"
+  ],
+  "loc": 1018
+ },
+ {
+  "name": "F115L150",
+  "domain": "Charge Calculation & Listing",
+  "files": [
+   "src/F115L150.src"
+  ],
+  "loc": 728
+ },
+ {
+  "name": "F115ICA0",
+  "domain": "Charge/Contract DBI Layer",
+  "files": [
+   "src/F115ICA0.src"
+  ],
+  "loc": 1266
+ },
+ {
+  "name": "F115ICH0",
+  "domain": "Charge/Contract DBI Layer",
+  "files": [
+   "src/F115ICH0.src"
+  ],
+  "loc": 1395
+ },
+ {
+  "name": "F115ICT0",
+  "domain": "Charge/Contract DBI Layer",
+  "files": [
+   "src/F115ICT0.src"
+  ],
+  "loc": 1143
+ },
+ {
+  "name": "F115IHI0",
+  "domain": "Charge/Contract DBI Layer",
+  "files": [
+   "src/F115IHI0.src"
+  ],
+  "loc": 1383
+ },
+ {
+  "name": "F115IMC0",
+  "domain": "Charge/Contract DBI Layer",
+  "files": [
+   "src/F115IMC0.src"
+  ],
+  "loc": 1458
+ },
+ {
+  "name": "F115IPA0",
+  "domain": "Charge/Contract DBI Layer",
+  "files": [
+   "src/F115IPA0.src"
+  ],
+  "loc": 1417
+ },
+ {
+  "name": "F115IPC0",
+  "domain": "Charge/Contract DBI Layer",
+  "files": [
+   "src/F115IPC0.src"
+  ],
+  "loc": 1476
+ },
+ {
+  "name": "F115ISC0",
+  "domain": "Charge/Contract DBI Layer",
+  "files": [
+   "src/F115ISC0.src"
+  ],
+  "loc": 1180
+ },
+ {
+  "name": "F115ISR0",
+  "domain": "Charge/Contract DBI Layer",
+  "files": [
+   "src/F115ISR0.src"
+  ],
+  "loc": 1580
+ },
+ {
+  "name": "F5879010",
+  "domain": "Customer/Org Master Data",
+  "files": [
+   "src/F5879010.src"
+  ],
+  "loc": 827
+ },
+ {
+  "name": "F7919070",
+  "domain": "Date & Time Utilities",
+  "files": [
+   "src/F7919070.src"
+  ],
+  "loc": 383
+ },
+ {
+  "name": "F7919100",
+  "domain": "Date & Time Utilities",
+  "files": [
+   "src/F7919100.src"
+  ],
+  "loc": 1287
+ },
+ {
+  "name": "F7919270",
+  "domain": "Date & Time Utilities",
+  "files": [
+   "src/F7919270.src"
+  ],
+  "loc": 627
+ },
+ {
+  "name": "F7918030",
+  "domain": "GSM Error & Abend Handling",
+  "files": [
+   "src/F7918030.src"
+  ],
+  "loc": 841
+ },
+ {
+  "name": "F791TRAC",
+  "domain": "GSM Trace/MQ/CICS Diagnostics",
+  "files": [
+   "src/F791TRAC.src"
+  ],
+  "loc": 525
+ }
+]

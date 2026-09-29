@@ -1,0 +1,166 @@
+# Node packet: F115L070
+Kind: module
+Domain: Charge Calculation & Listing
+Entry point: False
+LOC (full file): 1018
+
+## First 150 lines of src/F115L070.src (header + start of Data Division)
+       Identification Division.                                         00010099
+       Program-ID. F115L070.                                            00020099
+       Author.  Hallvard Barman.                                        00030099
+      *################################################################*00040099
+      *                                                                 00050099
+      * FD Trade Finance                                                00060099
+      *                                                                 00070099
+      *                                                                 00080099
+      * Lists charges. The amounts/percentages presented have been      00090099
+      * computed from occurences on TF_Main_Charge and TF_Part_Charge   00100099
+      * in accordance with the "Method_Of_Calculation" pertaining to    00110099
+      * each particular charge type.                                    00120099
+      *                                                                 00130099
+      * As "-In-Action", use "-In-Add" if you need figures for          00140099
+      * presentation to the end user or for settlement.                 00150099
+      *                                                                 00160099
+      * Use "-In-Subtract" if you need to modify input figures from the 00170099
+      * end user in connection with updates of TF_Main_Charge and/or    00180099
+      * TF_Part_Charge.                                                 00190099
+      *                                                                 00200099
+      * NB! This module does not present the figures as they appear from00210099
+      * any of the two database tables. If you need figures that have   00220099
+      * NOT been modified, use module F115L060!                         00230099
+      *                                                                 00240099
+      *################################################################*00250099
+      * Date ! Si! Change description                            ! 3A ! 00260099
+      *------+---+-----------------------------------------------+----+ 00270099
+      *191001!NDL! % av type PA feilretting                      !LO18! 00280099
+      *------+---+-----------------------------------------------+----+ 00290099
+      *170901!NDL! Agent Commision - Feilretting                 !LO18! 00300099
+      *------+---+-----------------------------------------------+----+ 00310099
+      *110901!NDL! Feilrettinger, beregner % av PA utfra rate    !LM04! 00320099
+      *------+---+-----------------------------------------------+----+ 00330099
+      *300699!HB ! New module                                    !LG10! 00340099
+      *################################################################*00350099
+       Environment Division.                                            00360099
+       Configuration Section.                                           00370099
+       Special-Names.                                                   00380099
+           Decimal-Point Is Comma.                                      00390099
+      *                                                                 00400099
+      *################################################################*00410099
+       Data Division.                                                   00420099
+       Working-Storage Section.                                         00430099
+      *                                                                 00440099
+       01  W-IO-Length                   Pic S9(04)              Comp.  00450099
+      *                                                                 00460099
+       01  W-Fields.                                                    00470099
+      *                                                                 00480099
+         05  W-Ind1                      Pic S9(04)              Comp.  00490099
+         05  W-Ind2                      Pic S9(04)              Comp.  00500099
+      *                                                                 00510099
+         05  WS-Display-Am1              Pic  zzzzzz9999v999.           00520099
+         05  WS-Display-Am2              Pic  zzzzzz9999v999.           00530099
+      *                                                                 00540099
+         05  WS-CA-or-PA-Amount          Pic  S9(15)V9(03)       Comp-3.00550099
+         05  WS-Charge-Amount            Pic  S9(15)V9(03)       Comp-3.00560099
+         05  WS-Percent                  Pic  S9(03)V9(03).             00570099
+      *                                                                 00580099
+         05  SW-Tables-Read              Pic S9                  Comp-3.00590099
+           88  SW-Read-Main-Part             Value +1.                  00600099
+           88  SW-Read-Main-Only             Value +2.                  00610099
+           88  SW-Read-Part-Only             Value +3.                  00620099
+      *                                                                 00630099
+      *----------------------------------------------------------------*00640099
+      * Internal area:                                                  00650099
+      *                                                                 00660099
+       01  W-Int-IO-Area.                                               00670099
+           Copy R115L070.                                               00680099
+      *                                                                 00690099
+      *----------------------------------------------------------------*00700099
+      * Assorted copy-areas:                                            00710099
+      *                                                                 00720099
+       01  W-R115L060.                                                  00730099
+         02  W-R115L060-Work.                                           00740099
+             Copy R115L060.                                             00750099
+         02  W-R115L060-Main.                                           00760099
+             Copy R115L060.                                             00770099
+         02  W-R115L060-Part.                                           00780099
+             Copy R115L060.                                             00790099
+      *                                                                 00800099
+             Copy R115IPA0.                                             00810099
+             Copy R115ICA0.                                             00820099
+      *                                                                 00830099
+      * Get error message.                                              00840099
+       01  Filler.                                                      00850099
+           Copy R7918030.                                               00860099
+      *                                                                 00870099
+      * External data.                                                  00880099
+       Copy R115X000.                                                   00890099
+      *                                                                 00900099
+      *################################################################.00910099
+       Linkage Section.                                                 00920099
+      *                                                                 00930099
+       01  L-Ext-IO-Area                 Pic  X(11328).                 00940099
+      *                                                                 00950099
+      * Error handling.                                                 00960099
+       Copy R7919999.                                                   00970099
+      *                                                                 00980099
+      *################################################################.00990099
+       Procedure Division                Using L-Ext-IO-Area            01000099
+                                               R7919999-Error-Area.     01010099
+      *                                                                 01020099
+       A000-Main                         Section.                       01030099
+      *                                                                 01040099
+           Perform B000-Initialize                                      01050099
+      *                                                                 01060099
+           Perform ZI00-Konv-Input-Version                              01070099
+           Perform C000-Interface                                       01080099
+           Perform ZO00-Konv-Output-Version                             01090099
+      *                                                                 01100099
+           Goback                                                       01110099
+           .                                                            01120099
+      *################################################################*01130099
+       B000-Initialize                   Section.                       01140099
+      *                                                                 01150099
+           Set   R7919999-Return-OK      To    True                     01160099
+           Initialize                          W-Fields                 01170099
+           Initialize                          W-R115L060               01180099
+           .                                                            01190099
+      *################################################################.01200099
+       C000-Interface                    Section.                       01210099
+      *                                                                 01220099
+           Evaluate True also True                                      01230099
+             When R115L070-In-Add                                       01240099
+             also R115L070-In-PA-Seq-No  =     +0                       01250099
+               Perform C100-Initialize-Output                           01260099
+               Perform C200-Qualify-Read                                01270099
+               Perform C300-Read-Main-Charge                            01280099
+               Set   SW-Read-Main-Only   To    True                     01290099
+               Perform D000-Pre-Process-Charges                         01300099
+               Perform J000-Output-Fields                               01310099
+      *                                                                 01320099
+             When R115L070-In-Add                                       01330099
+             also R115L070-In-PA-Seq-No  not = +0                       01340099
+               Perform C100-Initialize-Output                           01350099
+               Perform C200-Qualify-Read                                01360099
+               If R115L070-In-Operation-Type(1:6)                       01370099
+                                         =     'AMEND-'                 01380099
+                 Perform C400-Read-Part-Charge                          01390099
+                 Set   SW-Read-Part-Only   To    True                   01400099
+                 Perform D000-Pre-Process-Charges                       01410099
+               Else                                                     01420099
+      * Feilretting NDL, 19.10.01, må si fra hvilken rate vi er på      01430099
+                 Move R115L070-In-Pa-Seq-No                             01440099
+                                           To    R115L060-In-Check-Pa   01450099
+                                           in    W-R115L060-Main        01460099
+                 Perform C300-Read-Main-Charge                          01470099
+                 Perform C400-Read-Part-Charge                          01480099
+                 Set   SW-Read-Main-Part   To    True                   01490099
+                 Perform D000-Pre-Process-Charges                       01500099
+
+## Outbound connections (this node calls/reads/writes)
+- call -> F115ICA0
+- call -> F115IPA0
+- call -> F115L060
+- call -> F7918030
+
+## Inbound connections (called/read/written by)
+- FTFRL120 -> call

@@ -1,0 +1,739 @@
+{
+  "system": "STG/TFR12",
+  "root": {
+    "id": "sys",
+    "name": "STG/TFR12",
+    "kind": "system",
+    "children": [
+      {
+        "id": "dom:orchestration",
+        "name": "Servo Orchestration",
+        "kind": "domain",
+        "children": [
+          {
+            "id": "FTFRH120",
+            "name": "FTFRH120",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 384,
+            "file": "src/FTFRH120.src",
+            "description": "FTFRH120 is the H-module main entry point for function TFR12/01 - ReadCharge, part of the Servo Orchestration domain, built on the STG (Servo) standard. In section A000-Main it performs B000-Initialize, then C000-Call-K-Module and D000-Call-L-Module, which call subordinate modules FTFRK120 and FTFRL120, passing L-STG-Header and L-Input; it also calls F7918030 and F791TRAC for trace logging and error handling, using working storage RTFRE120 and error structure R7919999. It has no inbound callers within this repo \u2014 it is the service's entry point."
+          },
+          {
+            "id": "FTFRK120",
+            "name": "FTFRK120",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 976,
+            "file": "src/FTFRK120.src",
+            "description": "FTFRK120 is a Servo Orchestration control module (STG-based, TFR12 \"Les omkostninger\") invoked as a K-module to enforce input control logic. Its main flow (A000-Main) performs B000-Initialize, C000-Input-Control, D000-Prepare-DB-Read, and E000-Control-Base, with C000-Input-Control further running validation sections for mandatory fields, out fields, permitted values, default values, and dependencies. It copies R400CH02 (STG header), RTFRE120 (function data), R7919999 (standard error area), and R7919040. It is called by FTFRH120."
+          },
+          {
+            "id": "FTFRL120",
+            "name": "FTFRL120",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 1551,
+            "file": "src/FTFRL120.src",
+            "description": "FTFRL120 is a Servo Logic (L-module) module in the Servo Orchestration domain implementing TFR12/01 (\"Les omkostninger\" \u2014 read charges), computing and listing trade finance charges (WA-Charge fields including Charge-Type, Amount, Currency, Percent-Comm, Charge-Text) against contract, part-amount, history, event, main-contract, and sys-code data. It calls F115ICA0, F115IPA0, F115IHI0, F115IMC0, F115ISC0, F115L070, and F115L150, and is itself called by FTFRH120."
+          }
+        ]
+      },
+      {
+        "id": "dom:calc",
+        "name": "Charge Calculation & Listing",
+        "kind": "domain",
+        "children": [
+          {
+            "id": "F115L060",
+            "name": "F115L060",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 1585,
+            "file": "src/F115L060.src",
+            "description": "F115L060 is a non-entry-point module in the Charge Calculation & Listing domain that lists or sums total charges for a trade finance contract: if a part-amount number is supplied it reads charges from table TF_Part_Charge, otherwise it reads from TF_Main_Charge. It calls F115ICA0, F115ICH0, F115ICT0, F115IPA0, F115IPC0, and F115ISR0 for data access (TF_Contract_Amount, TF_Main_Charge, TF_Sys_Charge_Type, TF_Part_Amount, TF_Part_Charge, TF_Sys_Code_Rel), plus F115L150, F7918030 and F7919070."
+          },
+          {
+            "id": "F115L070",
+            "name": "F115L070",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 1018,
+            "file": "src/F115L070.src",
+            "description": "F115L070 is a module in the Charge Calculation & Listing domain that lists trade finance charges, computing presented amounts/percentages from TF_Main_Charge and TF_Part_Charge occurrences per each charge's Method_Of_Calculation, offering figures for end-user display/settlement or for updating those tables. Structured via section A000-Main invoking B000-Initialize, C000-Interface (C100-Initialize-Output, C200-Qualify-Read, C300-Read-Main-Charge, C400-Read-Part-Charge, D000-Pre-Process-Charges, J000-Output-Fields). It calls F115ICA0, F115IPA0, F115L060, and F7918030, and is called by FTFRL120."
+          },
+          {
+            "id": "F115L150",
+            "name": "F115L150",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 728,
+            "file": "src/F115L150.src",
+            "description": "F115L150 is a module in the Charge Calculation & Listing domain that reads POP (product/price) data to calculate charges \u2014 percentages, min/max charge amounts, and currency conversion differences \u2014 against a trade finance contract, orchestrated through paragraphs like B000-Initialize, C000-Interface, C200-Read-Sys-Code, C300-Read-Sys-Charge-Type, C400-Read-1st-Prod-Tjen-Pris, and C500-Read-Contract-Amount. It calls F115ICA0, F115ICT0, F115IPA0, F115ISC0, and F7918030. It is called by F115L060 and FTFRL120."
+          }
+        ]
+      },
+      {
+        "id": "dom:dbi",
+        "name": "Charge/Contract DBI Layer",
+        "kind": "domain",
+        "children": [
+          {
+            "id": "F115ICA0",
+            "name": "F115ICA0",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 1266,
+            "file": "src/F115ICA0.src",
+            "description": "F115ICA0 is a DBI (database interface) module in the Charge/Contract layer that provides all database access to the TF_Contract_Amount table, supporting single-occurrence selects or qualified multi-row reads (via -In-Get-1st/-In-Get-Next) filtered by fields such as Fin-Inst-ID, Contract-Type, Contract-No, and Currency, with a switchable target between the actual table and TF_Work_CA. It calls F5879010 and F7918030, reads ds:TF_Contract_Amount, and is called by F115L060, F115L070, F115L150, and FTFRL120."
+          },
+          {
+            "id": "F115ICH0",
+            "name": "F115ICH0",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 1395,
+            "file": "src/F115ICH0.src",
+            "description": "F115ICH0 is the database interface (DBI) module for table TF_Main_Charge, providing standardized read access \u2014 single-occurrence selects or multi-occurrence cursor reads (via -In-Get-1st/-In-Get-Next) \u2014 to Trade Finance charge records, qualified by keys such as Fin-Inst-ID, Contract-Type, Contract-No, Related-Party, and Charge-Type, with the option to target the actual table (SW-Table-Actual) or a work version (SW-Table-Work, TF_Work_CH). It calls F5879010 and F7918030, reads ds:TF_Main_Charge, and is itself called by F115L060."
+          },
+          {
+            "id": "F115ICT0",
+            "name": "F115ICT0",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 1143,
+            "file": "src/F115ICT0.src",
+            "description": "F115ICT0 is a Trade Finance DBI-layer module providing all database access to table TF_Sys_Charge_Type, supporting selection of a single occurrence or cursor-style reading of multiple occurrences (via In-Get-1st/In-Get-Next) qualified by key fields such as CT-Type, Fin-Inst-Id, and Regno. It reads the ds:TF_Sys_Charge_Type data store, and calls modules F5879010 and F7918030. It is called by F115L060 and F115L150."
+          },
+          {
+            "id": "F115IHI0",
+            "name": "F115IHI0",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 1383,
+            "file": "src/F115IHI0.src",
+            "description": "F115IHI0 is the DBI (database interface) module for Trade Finance's TF_History table, providing selective read access (single occurrence or Get-1st/Get-Next cursor reads) qualified by keys such as Fin-Inst-ID, Contract-Type, Contract-No, CA-Currency, PA-Seq-No, and TR-Seq-No. It calls F5879010 and F7918030, and reads the ds:TF_History table. It is called by FTFRL120."
+          },
+          {
+            "id": "F115IMC0",
+            "name": "F115IMC0",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 1458,
+            "file": "src/F115IMC0.src",
+            "description": "F115IMC0 is the Charge/Contract DBI layer module providing the sole database access interface for table TF_Main_Contract, supporting select of a single occurrence or multiple occurrences via -In-Get-1st/-In-Get-Next using various key-field combinations (financial institution, customer, contract type, contract number, status). It calls F5879010, F7918030, F7919100, and F7919270, reads the ds:TF_Main_Contract data store, and is itself called by FTFRL120."
+          },
+          {
+            "id": "F115IPA0",
+            "name": "F115IPA0",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 1417,
+            "file": "src/F115IPA0.src",
+            "description": "F115IPA0 is a data-interface module in the Charge/Contract DBI Layer that provides all database access to table TF_Part_Amount (and its work equivalent TF_Work_PA), supporting single-occurrence Select reads as well as multi-row cursor reads (via -In-Get-1st/-In-Get-Next) qualified by fields like Fin-Inst-ID, Contract-Type, Contract-No, PA-Seq-No, and CA-Currency. It reads dataset TF_Part_Amount, and calls F5879010, F7918030, and F7919100. It is called by F115L060, F115L070, F115L150, and FTFRL120."
+          },
+          {
+            "id": "F115IPC0",
+            "name": "F115IPC0",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 1476,
+            "file": "src/F115IPC0.src",
+            "description": "F115IPC0 is the database interface (DBI) module for table TF_Part_Charge, providing read access for a specific occurrence or a range of occurrences (qualified by from/to values) in the Charge/Contract DBI layer, with support for select and get-1st/get-next cursor-style calls plus optional row-count return. It reads ds:TF_Part_Charge, calls F5879010 and F7918030, and is itself called by F115L060."
+          },
+          {
+            "id": "F115ISC0",
+            "name": "F115ISC0",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 1180,
+            "file": "src/F115ISC0.src",
+            "description": "F115ISC0 is a database interface (DBI) module in the Charge/Contract DBI Layer that provides all database access to the TF_Sys_Code table, supporting single-occurrence Select reads as well as multi-occurrence cursor reads (via In-Get-1st followed by In-Get-Next) qualified by key fields like type, financial institution, and contract type. It calls F5879010 and F7918030, reads table TF_Sys_Code, and is itself called by F115L150 and FTFRL120."
+          },
+          {
+            "id": "F115ISR0",
+            "name": "F115ISR0",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 1580,
+            "file": "src/F115ISR0.src",
+            "description": "F115ISR0 is a database-interface (DBI) module in the Charge/Contract DBI Layer that provides all database access to table TF_Sys_Code_Rel, supporting select of a single occurrence or sequential retrieval of several via -In-Get-1st/-In-Get-Next, qualifiable by from/to system-type, system-code, relation-type, and financial-institution key fields. It calls F5879010 and F7918030, reads the ds:TF_Sys_Code_Rel data store, and is itself called by F115L060."
+          }
+        ]
+      },
+      {
+        "id": "dom:customer",
+        "name": "Customer/Org Master Data",
+        "kind": "domain",
+        "children": [
+          {
+            "id": "F5879010",
+            "name": "F5879010",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 827,
+            "file": "src/F5879010.src",
+            "description": "F5879010 is a temporary DBI module in the Customer/Org Master Data domain that stands in for the old OA_Konsern table access, redirecting lookups to the newer iHUB Org interfaces BZXOJOR0 and BZXOJNA0 (dynamic calls, external to this repo) instead of hitting DB2 directly. It copies data structures R5879010, R587901T, BZXOJOR0, BZXOJNA0, R7918110, R7919100, R791ERR0, and R791ERRX. It calls out to F7919100, and is itself called by nine modules: F115ICA0, F115ICH0, F115ICT0, F115IHI0, F115IMC0, F115IPA0, F115IPC0, F115ISC0, and F115ISR0."
+          }
+        ]
+      },
+      {
+        "id": "dom:datetime",
+        "name": "Date & Time Utilities",
+        "kind": "domain",
+        "children": [
+          {
+            "id": "F7919070",
+            "name": "F7919070",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 383,
+            "file": "src/F7919070.src",
+            "description": "F7919070 is a general-purpose date/time utility that retrieves the machine timestamp (year, month, day, hour, minute, second, hundredths), including a DB2-formatted timestamp with microseconds, so calling programs obtain the current date and time. Internally it runs section A000-Main, performing ZI00-Konv-Input-Versjon, F7919070-Timestamp (B000-Initialize, C000-Beregning), and ZO00-Konv-Output-Versjon, using copybooks R7919070, R7919999, and R791907G. It is called by F115L060, F7919100, and F791TRAC."
+          },
+          {
+            "id": "F7919100",
+            "name": "F7919100",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 1287,
+            "file": "src/F7919100.src",
+            "description": "F7919100 is a general-purpose date-conversion module that accepts a date in one of several formats and returns it converted into multiple date formats (AMD9, DMA9, AMD7, DMA7, Julian, DB2, A4D3, A2D3), using working-storage fields like W-Dato-AMD9, W-Dato-DB2, and W-Splitt-DB2 with redefinitions for ISO, EUR, and USA DB2 date layouts. It calls F7919070, and is itself called by F115IMC0, F115IPA0, and F5879010."
+          },
+          {
+            "id": "F7919270",
+            "name": "F7919270",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 627,
+            "file": "src/F7919270.src",
+            "description": "F7919270 is a general-purpose timestamp conversion module (Date & Time Utilities) that converts between date/time representations, accepting a date, time (Tid-TMS/Tid-TMSH), optional microseconds, a full timestamp, or a DB2 timestamp, and returning all equivalent fields via the F7919270-Ext-IO-Area and R7919999-Error linkage parameters. Its main logic (A000-Main) performs ZI00-Konv-Input-Versjon and F7919270-Konv-Timestamp. It is called by F115IMC0."
+          }
+        ]
+      },
+      {
+        "id": "dom:error",
+        "name": "GSM Error & Abend Handling",
+        "kind": "domain",
+        "children": [
+          {
+            "id": "F7918030",
+            "name": "F7918030",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 841,
+            "file": "src/F7918030.src",
+            "description": "F7918030 is a shared module (GSM Error & Abend Handling) that retrieves the correct error message text for a given message code, returning it via the R7918030 copy-area structure. It includes copybooks R791POFM, SQLCA, R791ERDL, R7918030, R7919220, and R7919999, and reads from data source PO_Feilmelding. Its Procedure Division entry is section A000-Main. It is not an entry point, and is called by F115ICA0, F115ICH0, F115ICT0, F115IHI0, F115IMC0, F115IPA0, F115IPC0, F115ISC0, F115ISR0, F115L060, F115L070, F115L150, and FTFRH120."
+          }
+        ]
+      },
+      {
+        "id": "dom:trace",
+        "name": "GSM Trace/MQ/CICS Diagnostics",
+        "kind": "domain",
+        "children": [
+          {
+            "id": "F791TRAC",
+            "name": "F791TRAC",
+            "kind": "module",
+            "language": "cobol",
+            "loc": 525,
+            "file": "src/F791TRAC.src",
+            "description": "F791TRAC is a GSM diagnostic trace module that writes trace information for the system, detecting its runtime environment (CICS, IMS, or BATCH) and populating a trace header (R791DBGH) with job name, transaction ID, and task number accordingly. It runs through paragraphs B000-Initialize, B100-Kontroll, and C000-Behandling under the F791TRAC-Interface section, calling F7919220 to obtain job information, F791CICS to retrieve CICS EIB data, and F7919070. It uses copybooks R791DBGH, R791MQS0, R791MQSH, R791TRAC, R7919070, R7919220, R7919310, R7919330, R791CICS, R7919999, and R791TRAG. It is called by FTFRH120."
+          }
+        ]
+      },
+      {
+        "id": "dom:data",
+        "name": "Data stores",
+        "kind": "domain",
+        "children": [
+          {
+            "id": "ds:TF_Contract_Amount",
+            "name": "TF_Contract_Amount",
+            "kind": "datastore",
+            "description": "TF_Contract_Amount appears to be a DB2 table holding trade finance contract amount data (inferred from its name), likely tracking monetary values associated with trade finance contracts. Its only recorded connection is read access from module F115ICA0; no modules write to it."
+          },
+          {
+            "id": "ds:TF_Main_Charge",
+            "name": "TF_Main_Charge",
+            "kind": "datastore",
+            "description": "TF_Main_Charge is a DB2 datastore that appears to hold main charge data for trade finance transactions (inferred from its name; no columns are documented). The only recorded interaction is a read by module F115ICH0, with no modules shown writing to it."
+          },
+          {
+            "id": "ds:TF_Sys_Charge_Type",
+            "name": "TF_Sys_Charge_Type",
+            "kind": "datastore",
+            "description": "TF_Sys_Charge_Type is a DB2 table that appears to hold system-defined trade finance charge type reference data (inferred from its name). It has no outbound connections and is read only by module F115ICT0, indicating it functions as a lookup/reference source consumed by that program."
+          },
+          {
+            "id": "ds:TF_History",
+            "name": "TF_History",
+            "kind": "datastore",
+            "description": "TF_History is a DB2 datastore that appears to hold historical trade finance records (inferred from the table name and domain), logging past states or events for downstream reference. It is read by module F115IHI0, with no other modules recorded as reading or writing this table."
+          },
+          {
+            "id": "ds:TF_Main_Contract",
+            "name": "TF_Main_Contract",
+            "kind": "datastore",
+            "description": "TF_Main_Contract is a DB2 datastore that appears to hold core trade finance contract data (inferred from the table name). It has a single known consumer: module F115IMC0, which reads from it. No modules are recorded as writing to this table."
+          },
+          {
+            "id": "ds:TF_Part_Amount",
+            "name": "TF_Part_Amount",
+            "kind": "datastore",
+            "description": "TF_Part_Amount is a DB2 datastore that appears to hold partial-amount data related to trade finance transactions (inferred from the table name). It is read by module F115IPA0, with no other modules or outbound connections recorded."
+          },
+          {
+            "id": "ds:TF_Part_Charge",
+            "name": "TF_Part_Charge",
+            "kind": "datastore",
+            "description": "TF_Part_Charge appears to be a DB2 table holding trade finance partial charge data (inferred from its name). It is read by module F115IPC0; no modules writing to it are recorded, and no outbound connections exist."
+          },
+          {
+            "id": "ds:TF_Sys_Code",
+            "name": "TF_Sys_Code",
+            "kind": "datastore",
+            "description": "TF_Sys_Code is a DB2 datastore that, based on its name, appears to hold system-level reference or configuration codes used by the trade finance application. It is only read, not written, by module F115ISC0, suggesting it functions as a static lookup table for that program."
+          },
+          {
+            "id": "ds:TF_Sys_Code_Rel",
+            "name": "TF_Sys_Code_Rel",
+            "kind": "datastore",
+            "description": "TF_Sys_Code_Rel appears to be a DB2 reference/code table holding system code relationship data (inferred from its name \u2014 likely mapping or relating system codes used elsewhere in processing). It has no outbound connections and is read by one module, F115ISR0."
+          },
+          {
+            "id": "ds:PO_Feilmelding",
+            "name": "PO_Feilmelding",
+            "kind": "datastore",
+            "description": "PO_Feilmelding appears to be a DB2 table holding error/fault message records (\"Feilmelding\" is Norwegian for error message), inferred solely from the table name. Per the packet, it is read only by module F7918030, with no write access recorded."
+          }
+        ]
+      }
+    ]
+  },
+  "edges": [
+    {
+      "source": "F115ICA0",
+      "target": "F5879010",
+      "kind": "call"
+    },
+    {
+      "source": "F115ICA0",
+      "target": "F7918030",
+      "kind": "call"
+    },
+    {
+      "source": "F115ICH0",
+      "target": "F5879010",
+      "kind": "call"
+    },
+    {
+      "source": "F115ICH0",
+      "target": "F7918030",
+      "kind": "call"
+    },
+    {
+      "source": "F115ICT0",
+      "target": "F5879010",
+      "kind": "call"
+    },
+    {
+      "source": "F115ICT0",
+      "target": "F7918030",
+      "kind": "call"
+    },
+    {
+      "source": "F115IHI0",
+      "target": "F5879010",
+      "kind": "call"
+    },
+    {
+      "source": "F115IHI0",
+      "target": "F7918030",
+      "kind": "call"
+    },
+    {
+      "source": "F115IMC0",
+      "target": "F5879010",
+      "kind": "call"
+    },
+    {
+      "source": "F115IMC0",
+      "target": "F7918030",
+      "kind": "call"
+    },
+    {
+      "source": "F115IMC0",
+      "target": "F7919100",
+      "kind": "call"
+    },
+    {
+      "source": "F115IMC0",
+      "target": "F7919270",
+      "kind": "call"
+    },
+    {
+      "source": "F115IPA0",
+      "target": "F5879010",
+      "kind": "call"
+    },
+    {
+      "source": "F115IPA0",
+      "target": "F7918030",
+      "kind": "call"
+    },
+    {
+      "source": "F115IPA0",
+      "target": "F7919100",
+      "kind": "call"
+    },
+    {
+      "source": "F115IPC0",
+      "target": "F5879010",
+      "kind": "call"
+    },
+    {
+      "source": "F115IPC0",
+      "target": "F7918030",
+      "kind": "call"
+    },
+    {
+      "source": "F115ISC0",
+      "target": "F5879010",
+      "kind": "call"
+    },
+    {
+      "source": "F115ISC0",
+      "target": "F7918030",
+      "kind": "call"
+    },
+    {
+      "source": "F115ISR0",
+      "target": "F5879010",
+      "kind": "call"
+    },
+    {
+      "source": "F115ISR0",
+      "target": "F7918030",
+      "kind": "call"
+    },
+    {
+      "source": "F115L060",
+      "target": "F115ICA0",
+      "kind": "call"
+    },
+    {
+      "source": "F115L060",
+      "target": "F115ICH0",
+      "kind": "call"
+    },
+    {
+      "source": "F115L060",
+      "target": "F115ICT0",
+      "kind": "call"
+    },
+    {
+      "source": "F115L060",
+      "target": "F115IPA0",
+      "kind": "call"
+    },
+    {
+      "source": "F115L060",
+      "target": "F115IPC0",
+      "kind": "call"
+    },
+    {
+      "source": "F115L060",
+      "target": "F115ISR0",
+      "kind": "call"
+    },
+    {
+      "source": "F115L060",
+      "target": "F115L150",
+      "kind": "call"
+    },
+    {
+      "source": "F115L060",
+      "target": "F7918030",
+      "kind": "call"
+    },
+    {
+      "source": "F115L060",
+      "target": "F7919070",
+      "kind": "call"
+    },
+    {
+      "source": "F115L070",
+      "target": "F115ICA0",
+      "kind": "call"
+    },
+    {
+      "source": "F115L070",
+      "target": "F115IPA0",
+      "kind": "call"
+    },
+    {
+      "source": "F115L070",
+      "target": "F115L060",
+      "kind": "call"
+    },
+    {
+      "source": "F115L070",
+      "target": "F7918030",
+      "kind": "call"
+    },
+    {
+      "source": "F115L150",
+      "target": "F115ICA0",
+      "kind": "call"
+    },
+    {
+      "source": "F115L150",
+      "target": "F115ICT0",
+      "kind": "call"
+    },
+    {
+      "source": "F115L150",
+      "target": "F115IPA0",
+      "kind": "call"
+    },
+    {
+      "source": "F115L150",
+      "target": "F115ISC0",
+      "kind": "call"
+    },
+    {
+      "source": "F115L150",
+      "target": "F7918030",
+      "kind": "call"
+    },
+    {
+      "source": "F5879010",
+      "target": "F7919100",
+      "kind": "call"
+    },
+    {
+      "source": "F7919100",
+      "target": "F7919070",
+      "kind": "call"
+    },
+    {
+      "source": "F791TRAC",
+      "target": "F7919070",
+      "kind": "call"
+    },
+    {
+      "source": "FTFRH120",
+      "target": "F7918030",
+      "kind": "call"
+    },
+    {
+      "source": "FTFRH120",
+      "target": "F791TRAC",
+      "kind": "call"
+    },
+    {
+      "source": "FTFRH120",
+      "target": "FTFRK120",
+      "kind": "call"
+    },
+    {
+      "source": "FTFRH120",
+      "target": "FTFRL120",
+      "kind": "call"
+    },
+    {
+      "source": "FTFRL120",
+      "target": "F115ICA0",
+      "kind": "call"
+    },
+    {
+      "source": "FTFRL120",
+      "target": "F115IHI0",
+      "kind": "call"
+    },
+    {
+      "source": "FTFRL120",
+      "target": "F115IMC0",
+      "kind": "call"
+    },
+    {
+      "source": "FTFRL120",
+      "target": "F115IPA0",
+      "kind": "call"
+    },
+    {
+      "source": "FTFRL120",
+      "target": "F115ISC0",
+      "kind": "call"
+    },
+    {
+      "source": "FTFRL120",
+      "target": "F115L070",
+      "kind": "call"
+    },
+    {
+      "source": "FTFRL120",
+      "target": "F115L150",
+      "kind": "call"
+    },
+    {
+      "source": "F115ICA0",
+      "target": "ds:TF_Contract_Amount",
+      "kind": "read"
+    },
+    {
+      "source": "F115ICH0",
+      "target": "ds:TF_Main_Charge",
+      "kind": "read"
+    },
+    {
+      "source": "F115ICT0",
+      "target": "ds:TF_Sys_Charge_Type",
+      "kind": "read"
+    },
+    {
+      "source": "F115IHI0",
+      "target": "ds:TF_History",
+      "kind": "read"
+    },
+    {
+      "source": "F115IMC0",
+      "target": "ds:TF_Main_Contract",
+      "kind": "read"
+    },
+    {
+      "source": "F115IPA0",
+      "target": "ds:TF_Part_Amount",
+      "kind": "read"
+    },
+    {
+      "source": "F115IPC0",
+      "target": "ds:TF_Part_Charge",
+      "kind": "read"
+    },
+    {
+      "source": "F115ISC0",
+      "target": "ds:TF_Sys_Code",
+      "kind": "read"
+    },
+    {
+      "source": "F115ISR0",
+      "target": "ds:TF_Sys_Code_Rel",
+      "kind": "read"
+    },
+    {
+      "source": "F7918030",
+      "target": "ds:PO_Feilmelding",
+      "kind": "read"
+    }
+  ],
+  "entryPoints": [
+    "FTFRH120"
+  ],
+  "deadEnds": [],
+  "observations": [
+    "F5879010: `Call BZXOJOR0` is dynamic in form but constant in practice \u2014 BZXOJOR0 is a data item Value-initialized to its own name ('BZXOJOR0'), calling program BZXOJOR0 unconditionally (not in this repo slice: external).",
+    "F5879010: `Call BZXOJNA0` is dynamic in form but constant in practice \u2014 BZXOJNA0 is a data item Value-initialized to its own name ('BZXOJNA0'), calling program BZXOJNA0 unconditionally (not in this repo slice: external).",
+    "F7918030: `Call F7919220` is dynamic in form but constant in practice \u2014 F7919220 is a data item Value-initialized to its own name ('F7919220'), calling program F7919220 unconditionally (not in this repo slice: external).",
+    "Single entry point: FTFRH120 \u2014 everything else in this slice is reached only from inside the repo; the external Servo/JCL/CICS dispatcher that invokes it is outside this extract.",
+    "The 9-module DBI layer (dom:dbi) is a fan-out/fan-in hub: called from both the orchestration layer (FTFRL120) and the calculation layer (F115L060/L070/L150), and every module funnels errors through the single F7918030 (dom:error) node \u2014 a structural single point of failure for error handling.",
+    "Shared-copybook coupling: R7919999 (21 modules), R7918030 (14 modules), R115X000 (12 modules), R5879010 (10 modules), R7919100 (9 modules) \u2014 a change to one of these ripples across most of the codebase.",
+    "F5879010 (Customer/Org Master Data) does not touch its own logical table (OA_Konsern) directly: it is a stub that forwards to external iHUB-Org DBI programs (BZXOJOR0/BZXOJNA0, dynamic calls, not present in this repo slice) \u2014 the real data dependency lives outside this extract."
+  ],
+  "flows": [
+    {
+      "name": "Read a contract's trade-finance charges",
+      "persona": "A bank operator viewing a trade-finance contract's charges",
+      "description": "An operator (or an upstream online screen) asks TFR12 to read the charges booked against one contract, and gets back a calculated, presentable list.",
+      "steps": [
+        {
+          "label": "Request enters the service",
+          "nodes": [
+            "FTFRH120"
+          ]
+        },
+        {
+          "label": "Input is validated (mandatory fields, permitted values, institution check)",
+          "nodes": [
+            "FTFRK120"
+          ]
+        },
+        {
+          "label": "Business logic reads the contract and its charge rows",
+          "nodes": [
+            "FTFRL120",
+            "F115IMC0",
+            "F115ICA0",
+            "F115ICH0"
+          ]
+        },
+        {
+          "label": "Charges are listed and amounts computed per method-of-calculation",
+          "nodes": [
+            "F115L060",
+            "F115L070",
+            "F115L150",
+            "F115IPA0",
+            "F115IPC0"
+          ]
+        },
+        {
+          "label": "System/product access codes and history are resolved",
+          "nodes": [
+            "F115ISC0",
+            "F115ISR0",
+            "F115IHI0"
+          ]
+        },
+        {
+          "label": "Response is assembled and returned",
+          "nodes": [
+            "FTFRL120",
+            "FTFRH120"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Diagnose a failed charge read",
+      "persona": "A support engineer investigating a production abend or error response",
+      "description": "Something goes wrong mid-read (a lookup fails, a code is invalid); the error path builds a message and, if trace is enabled, a diagnostic record.",
+      "steps": [
+        {
+          "label": "A DBI or calculation module hits an error condition",
+          "nodes": [
+            "F115ICA0",
+            "F115L060"
+          ]
+        },
+        {
+          "label": "Error is escalated to the shared GSM error handler",
+          "nodes": [
+            "F7918030"
+          ]
+        },
+        {
+          "label": "Localized error text is looked up",
+          "nodes": [
+            "F7918030"
+          ]
+        },
+        {
+          "label": "If trace is on, the full request/response is written to the MQ trace queue",
+          "nodes": [
+            "FTFRH120",
+            "F791TRAC"
+          ]
+        },
+        {
+          "label": "Abend/error status is returned to the caller",
+          "nodes": [
+            "FTFRH120"
+          ]
+        }
+      ]
+    }
+  ]
+}

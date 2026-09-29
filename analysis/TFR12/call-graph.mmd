@@ -1,0 +1,34 @@
+graph TD
+    D1["Servo Orchestration<br/>FTFRH120 (entry point) . FTFRK120 . FTFRL120"]:::entry
+    D2["Charge Calculation & Listing<br/>F115L060 . F115L070 . F115L150"]
+    D3["Charge/Contract DBI Layer<br/>9 modules, one per DB2 table"]
+    D4["Customer/Org Master Data<br/>F5879010"]
+    D5["Date & Time Utilities<br/>F7919070 . F7919100 . F7919270"]
+    D6["GSM Error & Abend Handling<br/>F7918030"]
+    D7["GSM Trace/MQ/CICS Diagnostics<br/>F791TRAC"]
+    DATA[("Data stores<br/>9 DB2 tables + PO_Feilmelding")]
+
+    D1 -->|"FTFRH120 -> FTFRK120, FTFRL120"| D1
+    D1 -->|"FTFRL120 calls 5 DBI modules directly"| D3
+    D1 -->|"FTFRL120 -> F115L070, F115L150"| D2
+    D1 -->|"FTFRH120 -> F7918030 (on error)"| D6
+    D1 -->|"FTFRH120 -> F791TRAC (if trace on)"| D7
+
+    D2 -->|"F115L070 -> F115L060, F115L060 -> F115L150"| D2
+    D2 -->|"L060/L070/L150 read 6 DBI tables"| D3
+    D2 -->|"F115L060 -> F7919070"| D5
+    D2 -->|"all 3 modules on error"| D6
+
+    D3 -->|"every DBI module -> F5879010"| D4
+    D3 -->|"every DBI module -> F7918030"| D6
+    D3 -->|"F115IMC0/F115IPA0 -> date utils"| D5
+    D3 -->|"every DBI module reads its own table"| DATA
+
+    D4 -->|"F5879010 -> F7919100"| D5
+
+    D5 -->|"F7919100 -> F7919070"| D5
+
+    D6 -->|"F7918030 reads its own table"| DATA
+    D7 -->|"F791TRAC -> F7919070"| D5
+
+    classDef entry fill:#cc785c,color:#fff,stroke:#333,stroke-width:2px;

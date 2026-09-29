@@ -1,0 +1,165 @@
+# Node packet: F115IHI0
+Kind: module
+Domain: Charge/Contract DBI Layer
+Entry point: False
+LOC (full file): 1383
+
+## First 150 lines of src/F115IHI0.src (header + start of Data Division)
+       Identification Division.                                         00010000
+       Program-ID. F115IHI0.                                            00020000
+       Author.  Lars Gaustad.                                           00030000
+      *################################################################*00040000
+      *                                                                 00050000
+      * FD Trade Finance                                                00060000
+      *                                                                 00070000
+      * Interface for all database access on table TF_History.          00080000
+      *                                                                 00090000
+      * The interface kan read one spesific occurence,                  00100000
+      * or several occurences, fully or partly qualified with           00110000
+      * from- and to- values.                                           00120000
+      *                                                                 00130000
+      * When reading several occurences, one must always start with     00140000
+      * -In-Get-1st, and continue with -In-Get-Next.                    00150000
+      *                                                                 00160000
+      * NB!  There are several key-fields, which may be used            00170000
+      *      differently depending on the need.                         00180000
+      *      See seperate description below.                            00190000
+      *                                                                 00200000
+      *                                                                 00210000
+      * An ordinary Select call may look like this:                     00220000
+      *                                                                 00230000
+      *    Initialize                          R115IHI0-History         00240000
+      *    Set   R115IHI0-Version        To    True                     00250000
+      *    Set   R115IHI0-In-Select      To    True                     00260000
+      *                                                                 00270000
+      * One of these:                                                   00280000
+      * 1) Move  &fin-inst-id            To    R115IHI0-In-Fin-Inst-ID  00290000
+      * 2) Move  &fin-inst-no            To    R115IHI0-In-Fin-Inst-No  00300000
+      *                                                                 00310000
+      *    Move  &contract-type          To    R115IHI0-In-Contract-Type00320000
+      *    Move  &contract-no            To    R115IHI0-In-Contract-No  00330000
+      *                                                                 00340000
+      *    Move  &currency (ISO 4217)    To    R115IHI0-In-CA-Currency  00350000
+      *    Move  &part-amount seq.no     To    R115IHI0-In-PA-Seq-No    00360000
+      *                                                                 00370000
+      *    Move  &transaction seq.no     To    R115IHI0-In-TR-Seq-No    00380000
+      *                                                                 00390000
+      *    Call  'F115IHI0'              Using R115IHI0-History         00400000
+      *                                        R7919999-Error-Area      00410000
+      *    End-Call                                                     00420000
+      *                                                                 00430000
+      *    Evaluate True                                                00440000
+      *      When R7919999-Return-Abend                                 00450000
+      *        Move  '&&&&'              To    R7919999-Paragraph       00460000
+      *        Perform Z900-Abend                                       00470000
+      *                                                                 00480000
+      *      When R7919999-Return-Error                                 00490000
+      *        ...not found...                                          00500000
+      *                                                                 00510000
+      *      When R7919999-Return-OK                                    00520000
+      *        ...found...                                              00530000
+      *                                                                 00540000
+      *    End-Evaluate                                                 00550000
+      *                                                                 00560000
+      *################################################################*00570000
+      * Date ! Si! Change description                            ! 3A ! 00580000
+      *------+---+-----------------------------------------------+----+ 00590000
+      *130999!HLR! New module                                    !LG10! 00600000
+      *################################################################*00610000
+       Environment Division.                                            00620000
+       Configuration Section.                                           00630000
+       Special-Names.                                                   00640000
+           Decimal-Point Is Comma.                                      00650000
+      *                                                                 00660000
+      *################################################################*00670000
+       Data Division.                                                   00680000
+       Working-Storage Section.                                         00690000
+      *                                                                 00700000
+       01  Filler.                                                      00710000
+      *                                                                 00720000
+           05  W-Table-Name              Pic  X(18) Value               00730000
+                                                   'TF_History        '.00740000
+      *                                                                 00750000
+           05  W-IO-Length               Pic S9(04)              Comp.  00760000
+           05  W-Tally                   Pic S9(05)              Comp.  00770000
+      *                                                                 00780000
+           05  WD-Length                 Pic  Z.ZZ9.                    00790000
+      *                                                                 00800000
+           05  Ind-WS-Put                Pic S9(04)              Comp.  00810000
+           05  Ind-WS                    Pic S9(04)              Comp.  00820000
+           05  W-Max-Occ-WS-Tab          Pic S9(04)              Comp.  00830000
+      *                                                                 00840000
+           05  Filler.                                                  00850000
+               10  WD-Fin-Inst-ID        Pic  zzzzzzzzzzzzzzzzz9.       00860000
+               10  WD-Contract-No        Pic  9999999.                  00870000
+               10  WD-PA-Seq-No          Pic  zzz9.                     00880000
+               10  WD-TR-Seq-No          Pic  zzz9.                     00890000
+      *                                                                 00900000
+           05  Filler.                                                  00910000
+               10  W-Fin-Inst-No         Pic  X(18).                    00920000
+               10  W-Fin-Inst-ID         Pic S9(18)              Comp-3.00930000
+      *                                                                 00940000
+           05  W-Input-Action            Pic  X(10).                    00950000
+             88  SW-IA-Initialize                   Value 'INITIALIZE'. 00960000
+      *                                                                 00970000
+      *    This field is needed because of the old interfaces used to   00980000
+      *    access Fin-Inst-ID and Customer ID.                          00990000
+           05  W-Tmp-Konsern-Nr          Pic  9(04).                    01000000
+      *                                                                 01010000
+      *----------------------------------------------------------------*01020000
+      * Counters, used on cursor read, to return row no. and total      01030000
+      * no. of rows.                                                    01040000
+      * Total no. of rows is only returned when -In-Count is set on     01050000
+      * the Get-1st-call.                                               01060000
+      *                                                                 01070000
+           05  WC-Counters.                                             01080000
+               10  WC-Row-No             Pic S9(11)              Comp-3.01090000
+               10  WC-Total-No-Of-Rows   Pic S9(11)              Comp-3.01100000
+      *                                                                 01110000
+      *----------------------------------------------------------------*01120000
+      * Switches used for selecting the correct cursor:                 01130000
+      *                                                                 01140000
+           05  SW-Cursor-Code.                                          01150000
+               10  SW-CC-Fin-Inst        Pic  X(01).                    01160000
+                 88  SW-Use-Fin-Inst                Value 'F'.          01170000
+               10  SW-CC-Contract        Pic  X(01).                    01180000
+                 88  SW-Use-Contract                Value 'N'.          01190000
+               10  SW-CC-Part-Amount     Pic  X(01).                    01200000
+                 88  SW-Use-Part-Amount             Value 'P'.          01210000
+               10  SW-CC-Transaction     Pic  X(01).                    01220000
+                 88  SW-Use-Transaction             Value 'T'.          01230000
+      *                                                                 01240000
+           05  Filler                    Redefines SW-Cursor-Code       01250000
+                                         Pic  X(04).                    01260000
+             88  SW-Use-Fi-Asc                      Value 'F   '.       01270000
+             88  SW-Use-Co-Asc                      Value ' N  '.       01280000
+             88  SW-Use-Fi-Co-Asc                   Value 'FN  '.       01290000
+             88  SW-Use-Fi-Co-PA-Asc                Value 'FNP '.       01300000
+             88  SW-Use-Fi-Co-Tr-Asc                Value 'FN T'.       01310000
+             88  SW-Use-Fi-Co-PA-Tr-Asc             Value 'FNPT'.       01320000
+      *                                                                 01330000
+      *----------------------------------------------------------------*01340000
+      * These fields are used for SQL qualification:                    01350000
+      *                                                                 01360000
+           05  W-DB-Key.                                                01370000
+               10  W-DB-Fin-Inst-ID      Pic S9(18)              Comp-3.01380000
+               10  W-DB-Contract-Type    Pic  X(03).                    01390000
+               10  W-DB-From-Contr-No    Pic S9(07)              Comp-3.01400000
+               10  W-DB-To-Contr-No      Pic S9(07)              Comp-3.01410000
+               10  W-DB-CA-Currency      Pic  X(03).                    01420000
+               10  W-DB-From-PA-Seq-No   Pic S9(04)              Comp.  01430000
+               10  W-DB-To-PA-Seq-No     Pic S9(04)              Comp.  01440000
+               10  W-DB-From-TR-Seq-No   Pic S9(04)              Comp.  01450000
+               10  W-DB-To-TR-Seq-No     Pic S9(04)              Comp.  01460000
+      *                                                                 01470000
+      *----------------------------------------------------------------*01480000
+      * These fields are used for comparison with the WS-fields.        01490000
+      *                                                                 01500000
+
+## Outbound connections (this node calls/reads/writes)
+- call -> F5879010
+- call -> F7918030
+- read -> ds:TF_History
+
+## Inbound connections (called/read/written by)
+- FTFRL120 -> call

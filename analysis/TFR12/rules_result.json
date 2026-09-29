@@ -1,0 +1,1479 @@
+{
+  "system": "TFR12",
+  "mode": "lenses",
+  "rounds": 3,
+  "confirmedRules": [
+    {
+      "name": "Percentage-based charge amount derived from Contract or Part Amount",
+      "category": "Calculation",
+      "priority": "P1",
+      "source": "src/F115L060.src:1341-1381",
+      "plainEnglish": "When a trade-finance charge is defined by a commission percentage rather than a fixed amount, the charge is calculated as that percentage of the contract's current original amount (or, if the charge belongs to a specific part/drawdown, of that part amount).",
+      "given": "A charge type whose calculation method is 'percent of Contract Amount' (MethCalc-Pct-Of-CA) with WS-Percent set to 2.500 and the contract's Curr-O-Amount (current original amount) is 100,000.00",
+      "when": "the charge amount is (re)computed because the stored amount is zero and a percentage is present",
+      "then": "WS-Charge-Amount = 100,000.00 * 2.500 / 100 = 2,500.00, rounded (COBOL ROUNDED, round-half-away-from-zero to the amount's decimal places); if the method is 'percent of Part Amount' and a part-amount sequence number is supplied, the Part Amount (R115IPA0-Amount) is used instead of the Contract Amount; if the base amount is zero, the charge amount is forced to zero",
+      "parameters": "Percent base 100 (i.e. percentage expressed as whole number, e.g. 2.5 = 2.5%); rounding = COBOL ROUNDED (half-up)",
+      "edgeCases": [
+        "Base amount (CA or PA) = 0 -> charge amount forced to 0, no divide-by-zero",
+        "Part-amount sequence supplied but zero -> falls back to Contract Amount",
+        "Only triggered when stored charge amount is 0 and a stored percent is non-zero (comment notes this situation 'should never occur' because percentages are meant to live only in the POP pricing table, not on the charge tables themselves)"
+      ],
+      "confidence": "Medium",
+      "smeQuestion": "P0 panel split on whether this is critical to the system's core purpose or a costly-if-wrong rule (Read legacy/STG/TFR12/src/F115L060.src:1341-1381 (paragraph N000-Compute-Charge-Amount) plus its only caller at lines 1059-1061.\n\nFaithfulness: The rule card matches the code exactly. N000-Compute-Charge-Amount (1341-1381) sets WS-CA-Or-PA-Amount from R115ICA0-Curr-O-Amount when R115ICT0-MethCalc-Pct-Of-CA (1347-1351), or from R115IPA0-Amount via M100-Read-Part-Amount when R115ICT0-MethCalc-Pct-Of-PA and a part-amount sequence number is supplied, else falling back to Curr-O-Amount (1353-1362). Then, if the base amount is non-zero, WS-Charge-Amount is computed Rounded = base * WS-Percent / 100 (1366-1373, COBOL ROUNDED = half-away-from-zero); otherwise WS-Charge-Amount is forced to zero (1375-1377). The card's stated trigger (\"stored amount is zero and a percentage is present\") is confirmed at lines 1059-1061: `If WS-Charge-Amount = Zero and WS-Percent not = Zero, Perform N000-Compute-Charge-Amount`. Parameter claims check out against field defs (WS-Percent Pic S9(03)V9(03) Comp-3, WS-Charge-Amount Pic S9(14)V9(02) Comp-3, divisor 100). No credentials present. No instruction-shaped or injection text found in this range; comments are ordinary Norwegian dev/change-log annotations (e.g. lines 1055-1057, 1064-1066) \u2014 flagged as informational only, not followed.\n\nCompliance judgment \u2014 not P0 as cited: The module's own header (lines 6-19) explicitly states F115L060 is a 'Listing/Computation of sum total of charges' that 'presents figures exactly as they appear from' the raw TF_Main_Charge/TF_Part_Charge tables, and warns: 'If you need modified figures for settlement or for presentation to the end user, use module F115L070!' So this program is documented as a non-authoritative internal listing, not the settlement/money-moving path. In addition, the recompute branch at 1059-1061 is guarded by a 1999 comment stating percentages 'skal kun ligge i POP, og aldri registreres p\u00e5 TFs tabeller. Situasjonen under skal derfor ikke kunne oppst\u00e5' (percentages should only live in POP and never be stored on TF tables; the situation below should therefore never be able to occur) \u2014 i.e., by the code's own design this is a defensive fallback for a data state the authors believed should not occur in production, not the primary charge-calculation path. A regulator or auditor would care about the underlying percentage-based charge calculation where it authoritatively drives settlement/GL posting or a transmitted SWIFT charge field, but that authoritative calculation lives elsewhere (per the module's own pointer to F115L070 and upstream charge-posting logic that writes TF_Main_Charge/TF_Part_Charge), not in this listing module's defensive recompute. Treating this specific citation as P0 would misdirect parity-verification effort toward a rarely-exercised, self-disclaimed reporting fallback rather than the actual settlement calculation. Recommend re-pointing the P0 rule card to the module(s) that populate TF_Main_Charge/TF_Part_Charge and/or F115L070, where the equivalent percent-of-amount calculation actually determines money movement or customer/regulatory-facing figures. | Re-derived directly from legacy/STG/TFR12/src/F115L060.src (found under /Users/kristofferhellstrand/git/tfi-workspace/STG-claude-TFR12/legacy/STG/TFR12/src/F115L060.src; the exact path from the citation, src/F115L060.src, does not exist directly under legacy/TFR12 \u2014 it lives one level deeper at legacy/STG/TFR12/src/F115L060.src, a minor path-note but the line numbers 1341-1381 match exactly).\n\nCode at N000-Compute-Charge-Amount (lines 1341-1381):\n- Lines 1346-1362: Evaluate True \u2014 When R115ICT0-MethCalc-Pct-Of-CA moves R115ICA0-Curr-O-Amount to WS-CA-Or-PA-Amount; When R115ICT0-MethCalc-Pct-Of-PA, if R115L060-In-PA-Seq-No not = Zero, reads the part amount (M100-Read-Part-Amount) and moves R115IPA0-Amount to WS-CA-Or-PA-Amount, else falls back to R115ICA0-Curr-O-Amount.\n- Lines 1366-1379: If WS-CA-Or-PA-Amount not = Zero, Compute WS-Charge-Amount Rounded = WS-CA-Or-PA-Amount * WS-Percent / 100; Else Move Zero to WS-Charge-Amount.\n- Field defs confirm decimal scaling: WS-Charge-Amount PIC S9(14)V9(02) COMP-3 (line 76), WS-Percent PIC S9(03)V9(03) COMP-3 (line 79), WS-CA-Or-PA-Amount PIC S9(14)V9(03) COMP-3 (line 59). COBOL ROUNDED with no ROUNDED MODE clause defaults to round-half-away-from-zero at the receiving field's 2 decimal places, matching the card's stated rounding.\n- Trigger condition (caller, lines 1059-1062 in L000-Additional-Info): 'If WS-Charge-Amount = Zero and WS-Percent not = Zero, Perform N000-Compute-Charge-Amount' \u2014 exactly matches the card's stated trigger (\"stored amount is zero and a percentage is present\").\n- The commented-out M000-Compute-Percentage block (lines 1298-1340, explicitly marked '* Not in USE (NDL)') is dead code and was correctly excluded from the rule; the card is based only on the live N000 paragraph.\n\nWorked example check: 100,000.00 \u00d7 2.500 / 100 = 2,500.000 \u2192 rounded to 2 decimals = 2,500.00, exactly as stated, with correct operation order (multiply then divide) matching the Compute statement's literal order.\n\nAll claimed behaviors \u2014 CA vs PA source selection, PA-seq-no gating, zero-base forcing zero, formula, and rounding \u2014 are directly and completely supported by the executable code, not by comments alone. No instruction-shaped or injection text found in the cited range or elsewhere in the file (checked for 'ignore previous', 'SYSTEM:', 'false positive', etc. \u2014 none present). No credentials present in this region.\n\nP0 justification: this paragraph computes the actual monetary charge/commission amount for a trade-finance contract or drawdown when the amount must be derived from a percentage \u2014 a direct, irreversible money calculation (charge amounts flow into totals such as WS-Tot-Charge-Seller/Buyer and WS-Tot-Agent-Commission per lines 1036-1047). An error here (wrong base amount, wrong operand order, missed zero-base guard, or wrong rounding) would misstate a real financial charge to a counterparty, which is costly and not merely a validation \u2014 it is one of the system's core calculations, so P0 is justified.) \u2014 confirm criticality."
+    },
+    {
+      "name": "Minimum/maximum charge caps with percentage recomputation",
+      "category": "Calculation",
+      "priority": "P0",
+      "source": "src/FTFRL120.src:856-935 ; also src/FTFRL120.src:856-942 ; also src/FTFRL120.src:856-942",
+      "plainEnglish": "A charge that would otherwise be computed from the bank's default price list is floored at a configured minimum and capped at a configured maximum; when the amount is adjusted to the floor or cap, the displayed commission percentage is recalculated to match.",
+      "given": "A default (POP-derived) charge amount of 50.00 with Minimum-Charge 100.00 and Maximum-Charge 1,000.00 for the charge type, and a contract/part amount base of 20,000.00",
+      "when": "the system builds default values for a charge that has no stored amount/percentage",
+      "then": "because 50.00 < 100.00 (the minimum) and the computed amount is > 0, the charge amount is raised to 100.00 and, if a percentage existed, the percentage is recomputed as 100.00 * 100 / 20,000.00 = 0.500%; symmetrically, if the default amount exceeds a non-zero maximum, the amount is capped at the maximum and the percentage is recomputed the same way; otherwise the POP-supplied amount and percentage are used unchanged",
+      "parameters": "Minimum-Charge and Maximum-Charge are per-charge-type, per-bank configuration values held in the POP pricing table (R115L150 / TF_POP); Maximum-Charge of 0 is treated as 'no maximum'",
+      "edgeCases": [
+        "Maximum-Charge = 0 means no cap is applied even if amount exceeds it",
+        "Recomputed percentage only happens if a percentage already existed (>0) on the default row; otherwise percentage is forced to 0",
+        "If the min/max-adjusted base amount is 0, the recomputed percentage is forced to 0 instead of dividing by zero"
+      ],
+      "confidence": "High"
+    },
+    {
+      "name": "Duplicate/conflicting charge detection between Main and Part charge records",
+      "category": "Validation",
+      "priority": "P0",
+      "source": "src/F115L070.src:361-421 ; also src/F115L070.src:361-420",
+      "plainEnglish": "The same charge type/role must not carry a non-zero amount on both the adjacent rows being compared (current vs. previous) in both the merged working list and the raw Main_Charge list at once \u2014 if it does, this is treated as a data-integrity error and the transaction aborts rather than silently double-charging.",
+      "given": "Two adjacent charge rows of the same Charge-Type where both the working (merged) charge amount and the Main_Charge amount are non-zero on both rows",
+      "when": "consistency checking runs while pre-processing the charge list",
+      "then": "processing aborts with error code TF-SY-DUPLICATE-CHARGE (abend paragraph D201/D202) rather than producing a total that double-counts the charge",
+      "parameters": "Error codes: TF-SY-DUPLICATE-CHARGE, TF-SY-INCONSISTENCY-VAR1",
+      "edgeCases": [
+        "If paying party differs between Main_ and Part_Charge for the same charge type, Part_Charge's value takes precedence and the other row's amount/percentage is zeroed out (D230/D260)",
+        "Main_Charge and Part_Charge charge-type/role-type must correspond 1:1 by table position; any mismatch aborts with TF-SY-INCONSISTENCY-VAR1"
+      ],
+      "confidence": "Medium",
+      "smeQuestion": "P0 panel doubts spec fidelity: Read legacy/TFR12/src/F115L070.src (symlink legacy/TFR12 -> STG/TFR12, resolving to /Users/kristofferhellstrand/git/tfi-workspace/STG-claude-TFR12/legacy/STG/TFR12/src/F115L070.src), lines 280-459, focusing on the cited D200-Check-Paying-Party section (lines 361-421).\n\nWHAT THE CODE ACTUALLY DOES (lines 363-420):\nD200 is invoked only for adjacent occurrences (W-Ind1 > 1, W-Ind2 = W-Ind1-1) when the Main-and-Part lists are both present (line 316 SW-Read-Main-Part), and only when the two adjacent Charge-Types in the merged Work list match (line 368-370). It then runs a 4-way EVALUATE on (Work(Ind1)!=0, Work(Ind2)!=0, Main(Ind1)!=0, Main(Ind2)!=0):\n  - True/True/Any/Any -> abend D201, msg 'TF-SY-DUPLICATE-CHARGE' (duplicate registered twice on Part_Charge) \u2014 triggers regardless of the Main-list values.\n  - Any/Any/True/True -> abend D202, same msg (duplicate registered twice on Main_Charge) \u2014 triggers regardless of the Work-list values.\n  - True/False/False/True or False/True/True/False -> not an error; D230/D260-Modify-Entries reconciles the paying-party mismatch (Part_Charge takes precedence), no abort.\nSo the two abend triggers are independent OR conditions: either the Work pair alone being non-zero on both rows, OR the Main pair alone being non-zero on both rows, each sufficient by itself. The \"Any\" clauses explicitly mean the other list's values are irrelevant to that branch.\n\nWHERE THE EXTRACTED CARD DIVERGES:\nThe card's plain-English/Given text states the violation requires \"both the working (merged) charge amount and the Main_Charge amount... non-zero on both rows... in both the merged working list and the raw Main_Charge list at once\" \u2014 i.e., an AND of all four flags. That is a narrower, different condition than the code's actual OR-of-two-independent-triggers logic. Under the card's stated condition, a case where only the Work-list pair is duplicated (Main values zero, e.g. True/True/False/False) would NOT be flagged as a violation by the spec, yet the code would abend at D201 in exactly that case. This is a materially incorrect characterization of the trigger logic for a P0 control \u2014 a modernization test suite built strictly from this Given/When/Then would under-test/miss real abend-triggering scenarios.\n\nSeparately, the card's Parameters list bundles 'TF-SY-INCONSISTENCY-VAR1' into this duplicate-charge rule, but that error code actually belongs to the distinct D100-Check-Consistency section (lines 332-359, a Charge-Type/Role-Type field-mismatch check between Main and Part), not to the D200 duplicate-detection logic being described. Conflating the two checks' error codes under one rule card is inaccurate, though the D100 check is a real, separate rule in the same file.\n\nNo prompt-injection-shaped text was found in the cited lines; comments (e.g. lines 386, 398, 410-411, 415-416) are ordinary business commentary, not directives aimed at an AI reviewer.\n\nP0 JUSTIFICATION (compliance lens): This control guards against double-counting a monetary charge (fee) on a trade-finance transaction by aborting processing rather than silently producing a total that double-charges a buyer/seller/agent. Silent removal or weakening of this check would directly risk incorrect money movement/billing with no visible failure \u2014 exactly the kind of financial-integrity control a regulator, auditor, or finance controller would expect to see preserved and would want re-verified after any rewrite. So P0 is justified, but the specific Given/When/Then as written should be corrected to reflect the true OR-based trigger conditions (and the D100/D200 error codes should not be merged) before it is used as the behavior-equivalence contract.\n\nFiles: /Users/kristofferhellstrand/git/tfi-workspace/STG-claude-TFR12/legacy/TFR12/src/F115L070.src (symlink) -> /Users/kristofferhellstrand/git/tfi-workspace/STG-claude-TFR12/legacy/STG/TFR12/src/F115L070.src, lines 296-330 (D000 caller context), 332-359 (D100, related but distinct check), 361-421 (D200, the cited duplicate-charge rule), 423-449 (D230-Modify-Entries reconciliation branch). | Read legacy/STG/TFR12/src/F115L070.src:361-421 (paragraph D200-Check-Paying-Party) directly, plus the surrounding context (D000-Pre-Process-Charges lines 295-330, and D100-Check-Consistency lines 332-359) to confirm data flow.\n\nWhat the code actually does:\n- W-Ind2 = W-Ind1 - 1 (previous row) (363-366).\n- Only proceeds if Charge-Type in the merged Work list matches between the current and previous row (368-370) \u2014 role type is NOT compared here (role-type matching is a separate check in D100, lines 337-345, tied to a different error code TF-SY-INCONSISTENCY-VAR1).\n- A 4-way EVALUATE with ALSO/Any wildcards (374-420):\n  - WHEN True also True also Any also Any \u2192 Work(Ind1)<>0 AND Work(Ind2)<>0, regardless of Main values \u2192 abend D201, TF-SY-DUPLICATE-CHARGE (\"registered twice on Part_Charge\").\n  - WHEN Any also Any also True also True \u2192 Main(Ind1)<>0 AND Main(Ind2)<>0, regardless of Work values \u2192 abend D202, TF-SY-DUPLICATE-CHARGE (\"registered twice on Main_Charge\").\n  - Two more WHEN arms (412-418) handle a \"paying party differs\" case (not an abend) via D230/D260, which the rule card omits entirely.\n- EVALUATE arms are checked top-to-bottom and mutually exclusive: if the Work-list condition is true, D201 fires even when the Main-list condition is also true (D202 is never reached in that case) \u2014 this precedence is not mentioned by the card.\n- Per D000 (301-302), when SW-Read-Main-Part, Work is simply a copy of the Part data, so Work(Ind) duplicates are really Part_Charge duplicates, and Main(Ind) is populated independently by C300-Read-Main-Charge \u2014 the two triggers are genuinely independent conditions, not a single joint condition.\n\nWhere the rule card deviates from the code:\n1. The Plain English and Given clause state the trigger requires non-zero amounts \"in both the merged working list and the raw Main_Charge list at once\" / \"both the working (merged) charge amount and the Main_Charge amount are non-zero on both rows.\" That describes an AND across both lists. The code actually fires on either list's duplication independently (Work-only duplicate \u2192 D201 regardless of Main; Main-only duplicate \u2192 D202 regardless of Work) via the Any/Any wildcards \u2014 an OR-of-two-independent-conditions, not a joint AND condition. This materially understates the trigger surface: a parity test built from this GWT (setting all four amounts non-zero) would pass but would never exercise the far more common single-list-only duplicate scenarios, and would miss verifying D201-vs-D202 precedence.\n2. The card lists TF-SY-INCONSISTENCY-VAR1 as a parameter of this rule, but that error code belongs to D100-Check-Consistency (lines 337-356), which is a separate paragraph outside the cited 361-421 range and checks a different thing (Charge-Type/Role-Type correspondence, not amount duplication). Including it here conflates two distinct checks.\n3. Plain English says \"charge type/role\" must not both carry a non-zero amount, implying Role-Type is part of this comparison; D200 (368-370) only compares Charge-Type, not Role-Type.\n4. The card omits the other two EVALUATE arms (paying-party-differs \u2192 D230/D260, non-abend outcome), which is fine as scope-narrowing but means \"processing aborts\" is not the only outcome of this paragraph \u2014 worth flagging as an incompleteness, though not disqualifying on its own.\n\nNone of this text is instruction-shaped/injection-like; it is ordinary COBOL logic and comments (e.g. \"The same charge has been regstered twice on Part_Charge.\" at 386, and on Main_Charge at 398) \u2014 no injection suspects found.\n\nP0 assessment: this check guards against double-counting a monetary charge in a trade-finance charge-calculation batch (STG_TRADEFINANCE / F115L070), aborting the transaction (abend, paragraphs D201/D202) rather than silently producing a total that double-charges a fee. That is a data-integrity guard directly protecting the correctness of a financial calculation the system exists to perform, and a missed/incorrect version of this rule risks either silent overcharging (money) or an unjustified processing abend \u2014 both costly outcomes. So P0 is justified in principle. However, because the specification's actual trigger condition (AND-across-lists) does not match the code's independent OR-style triggers, this card as written is not a faithful behavior contract and would need correction before being relied on for parity/equivalence testing.\n\nRelevant files:\n- /Users/kristofferhellstrand/git/tfi-workspace/STG-claude-TFR12/legacy/STG/TFR12/src/F115L070.src (lines 295-330 D000-Pre-Process-Charges, 332-359 D100-Check-Consistency, 361-421 D200-Check-Paying-Party, 423-449 D230-Modify-Entries)"
+    },
+    {
+      "name": "Buyer/seller both charged is not allowed (single payer per charge)",
+      "category": "Validation",
+      "priority": "P0",
+      "source": "src/FTFRL120.src:1119-1170 ; also src/FTFRL120.src:1119-1136 ; also src/FTFRL120.src:1120-1173",
+      "plainEnglish": "For a normal (non-ACCEPT-ILC) charge listing, if the same charge type appears twice in a row with both occurrences marked as 'selected' (i.e., both a buyer-side and seller-side charge for the same fee), that is an invalid state and processing aborts; otherwise the second occurrence overwrites, is ignored, or is written fresh according to which sides are actually charged.",
+      "given": "Two consecutive rows for the same charge type where both are flagged Selected='Y'",
+      "when": "the system walks the merged charge list building the output rows",
+      "then": "processing aborts with error TF-SY-DUPLICATE-CHARGE (paragraph I361); if only one of the two rows is selected the later one simply overwrites the earlier placeholder; if neither is selected, any paying party is cleared and the row is overwritten with a blank result",
+      "parameters": "N/A (control-flow policy, not a numeric parameter)",
+      "edgeCases": [
+        "For operation type ACCEPT-ILC a different, more permissive rule set (I330/I345) governs suppression: a customer-charge credited to the bank's own bank is always written; otherwise the previous or new row can be ignored/overwritten depending on prior selection state",
+        "Rows flagged for suppression (SW-Ignore/SW-Overwrite) reduce the running row count so pagination stays consistent"
+      ],
+      "confidence": "Medium",
+      "smeQuestion": "P0 panel doubts spec fidelity: Verified directly against legacy/STG/TFR12/src/FTFRL120.src (the workspace path legacy/TFR12/... does not exist in this checkout; the real file lives at legacy/STG/TFR12/src/FTFRL120.src, 1551 lines total).\n\nCore P0 claim \u2014 CONFIRMED, matches code exactly:\nI360-Normal-Row-Suppression (lines 1120-1173) is only reached for non-ACCEPT-ILC operation types (see I300-Check-Out-Fields, lines 1020-1029: `When 'ACCEPT-ILC' ... When other -> Perform I360-Normal-Row-Suppression`), matching \"normal (non-ACCEPT-ILC) charge listing.\"\nThe Evaluate at lines 1122-1136 tests `WA-Charge-Type = WA-Prev-Charge-Type` also `WA-Selected = 'Y'` also `WA-Prev-Selected = 'Y'`. When all three are True (same charge type as the prior row, and both the current and previous row flagged Selected='Y'), the code moves `'TF-SY-DUPLICATE-CHARGE'` to the message code, `'VAR1'`/`WA-Charge-Type` as message key/data, sets paragraph `'I361'`, and performs `Z900-Abend` (lines 1131-1136). This is an exact match to the cited rule's abort behavior, including the paragraph tag I361.\nWA-Selected is set to 'Y' in I100-Stored-Values (line 817) precisely when a row's charge amount or percentage is non-zero (loop condition at lines 673-677), and the row's paying-party/role comes from `R115L070-Charge-Role-Type` (line 670-671) \u2014 consistent with \"buyer-side and seller-side charge for the same fee\" as two consecutive table occurrences of the same charge type.\n\nDiscrepancy found \u2014 the \"otherwise\" clause is not fully faithful:\nThe rule text states: \"if only one of the two rows is selected the later one simply overwrites the earlier placeholder.\" This is only true for the True/True/False branch (lines 1139-1143: current selected, previous not \u2192 `Set SW-Overwrite`, comment \"Overwriting previous output data\"). But for the True/False/True branch (lines 1146-1150: previous selected, current NOT selected \u2192 `Set SW-Ignore`, comment \"Keeping previous output, ignoring new data\"), the code does the opposite of \"the later one overwrites\" \u2014 it discards/ignores the later (current) row and keeps the earlier one. The rule's Specification collapses these two distinct outcomes (overwrite vs. ignore) into a single \"later overwrites\" statement, which mischaracterizes the True/False/True case.\nAdditionally, the rule's plain-English framing implies \"written fresh\" is one of the outcomes \"according to which sides are actually charged\" within the same-charge-type comparison. In the code, `Set SW-Write-New` (line 1163) fires only in the `When other` branch of the Evaluate, i.e., when the first condition (`WA-Charge-Type = WA-Prev-Charge-Type`) is False \u2014 meaning the current row is a genuinely different charge type, not a second occurrence of the same charge being evaluated for buyer/seller conflict. Framing \"write fresh\" as an outcome of the buyer/seller-charged comparison is inaccurate.\nThe \"neither selected\" branch (True/False/False, lines 1153-1158: `Move Space To WA-Paying-Party`, `Set SW-Overwrite`) is accurately described (\"any paying party is cleared and the row is overwritten with a blank result\").\n\nP0 justification: FTFRL120's H200-Process-Charge-List / I300-Check-Out-Fields pipeline is the core computation this module exists to perform \u2014 building the buyer/seller charge-allocation output for trade-finance contract charges. Allowing both a buyer-side and seller-side charge row to stand for the same fee would silently corrupt which party is billed for that charge (a financial correctness / data-integrity defect), and the original code treats this as fatal by invoking Z900-Abend rather than merely logging or defaulting. This directly guards the central allocation decision (who pays what) rather than being one of many peripheral field validations, so P0 is justified.\n\nInjection check: no instruction-shaped text (e.g., \"SYSTEM:\", \"ignore previous instructions\", \"mark as approved\") was found in the cited range (lines 1119-1173) or the surrounding paragraphs I inspected (lines 590-1320). All comments are ordinary COBOL developer notes (some in Norwegian, e.g. \"Feilretting juli 01\", \"Forel\ufffdbig fjernet. Avventer. HB.\"), not directives aimed at automated analysis. No injectionSuspects to report.\n\nNote on tooling: the sandboxed `grep` wrapper in this environment intermittently returned false negatives (e.g., failing to find literal substrings like \"Selected\" that were confirmed present via `awk`/`od`/`/usr/bin/grep`). I worked around this by invoking `/usr/bin/grep` directly; this is a tooling quirk, not a code or security finding, but worth flagging so downstream verification steps don't trust the wrapped `grep` alone.\n\nFiles inspected: /Users/kristofferhellstrand/git/tfi-workspace/STG-claude-TFR12/legacy/STG/TFR12/src/FTFRL120.src (lines 590-1320, focusing on 660-671, 803-817, 950-1035, 1077-1173, 1257-1316)."
+    },
+    {
+      "name": "Contract-type classification for GL account and applicability rules",
+      "category": "Validation",
+      "priority": "P1",
+      "source": "src/F115L060.src:253-269",
+      "plainEnglish": "Every contract type accepted by the charge engine must map to exactly one of four recognized product families (Collection, Import Letter of Credit, Export Letter of Credit, Guarantee); this classification drives which general-ledger account is used and which charge rules apply, and any unrecognized contract type is rejected outright.",
+      "given": "Contract-Type = 'IDP' (an Import Documentary Presentation)",
+      "when": "the charge module determines the contract family",
+      "then": "the contract is classified as 'Collection' (SW-Coll), which selects the Collection GL account (R115ICT0-GL-Coll-Acc); contract types ILC/ILU classify as Import LC, ELC/ECC as Export LC, and ILG/ELG as Guarantee, each selecting their own GL account; any other contract type value aborts processing (paragraph C301)",
+      "parameters": "Recognized types: Collection = IDP, IDA, ICP, ICA, EDP, EDA, ECP, ECA; Import LC = ILC, ILU; Export LC = ELC, ECC; Guarantee = ILG, ELG",
+      "edgeCases": [
+        "Any contract type outside this fixed list causes an abend rather than a soft validation error"
+      ],
+      "confidence": "High"
+    },
+    {
+      "name": "Mandatory input fields for charge inquiry",
+      "category": "Validation",
+      "priority": "P1",
+      "source": "src/FTFRK120.src:145-196 ; also src/FTFRK120.src:145-195",
+      "plainEnglish": "A request to read/compute trade-finance charges must specify Financial Institution Number, Contract Type, Contract Number, and Operation Type; if any is missing, the request is rejected.",
+      "given": "An incoming RTFRE120 request where Contract-No is not supplied (indicator not 'U')",
+      "when": "FTFRK120's C100-Mandatory-Fields input control runs",
+      "then": "The field is flagged 'F' (failed), message code GL-MISSING-FIELD& (or GL-ANGI-FELT& for Fin-Inst-No/Operation-Type) is set, and the call returns Error status (AE) via Z700-Error-AE, aborting further processing",
+      "parameters": "Mandatory fields: Fin-Inst-No, Contract-Type, Contract-No, Operation-Type",
+      "edgeCases": [
+        "Applies independently to each of the 4 fields; first failing field still causes the AE return since Z700-Error-AE performs Goback"
+      ],
+      "confidence": "High"
+    },
+    {
+      "name": "Output fields cannot be supplied as input",
+      "category": "Validation",
+      "priority": "P2",
+      "source": "src/FTFRK120.src:244-541 ; also src/FTFRK120.src:244-274",
+      "plainEnglish": "Fields that the service only ever returns (e.g. Last-Saved-Date, Agent-Commission, the various total-charge and per-row output fields) must not be filled in by the caller on the way in; doing so is rejected as invalid input.",
+      "given": "A caller populates RTFRE120-O-Agent-Commission on the input side of the call",
+      "when": "FTFRK120's C200-Out-Fields input control runs",
+      "then": "The field is flagged 'F', message code GL-UTFELT-UTFYLT& is set, and the call returns Error status (AE)",
+      "parameters": "Output-only fields checked: Last-Saved-Date, Agent-Commission, Tot-Ch-Buy-CrThB, Tot-Ch-Buy-CrOuB, Total-Ch-Buyer, Total-Ch-Seller, Tot-Ch-Sell-CrThB, Tot-Ch-Sell-CrOuB, Charge-Type/Description/Charge-Text/Selected/Percent/Charge-Amount/Currency/Paying-Party/Percent-Comm (per row), Access-Text, Access-CC-Am, No-Read",
+      "edgeCases": [
+        "Row-level output fields are checked once per occurrence in the output table (Perform ... Varying Tally)"
+      ],
+      "confidence": "High"
+    },
+    {
+      "name": "Numeric format for optional identifier fields",
+      "category": "Validation",
+      "priority": "P1",
+      "source": "src/FTFRK120.src:589-668 ; also src/FTFRK120.src:597-667",
+      "plainEnglish": "When supplied, Contract Number, Rate/Part-Amount Number, Number of Periods, and the pagination bounds (Read-From, Read-To) must be numeric.",
+      "given": "RTFRE120-B-Read-From is supplied but contains a non-numeric value",
+      "when": "FTFRK120's C300-Permitted-Values input control runs",
+      "then": "The field is flagged 'F', message code GL-UGYLDIG-VERDI& is set, and the call returns Error status (AE)",
+      "parameters": "Fields checked: Contract-No, Part-Amount-No (Rate-Nr), Period (Perioder), Read-From (Les-Fra), Read-To (Les-Til)",
+      "edgeCases": [
+        "Check is skipped entirely if the field was not supplied (indicator = 'U')"
+      ],
+      "confidence": "High"
+    },
+    {
+      "name": "Standard status-code lifecycle for the charge service",
+      "category": "Lifecycle",
+      "priority": "P1",
+      "source": "src/FTFRH120.src:203-263",
+      "plainEnglish": "The result of calling the control (K) and logic (L) sub-modules is translated into one of a fixed set of outcomes for the caller: continue normally, continue with a warning, stop with a validation error, or abend.",
+      "given": "The K-module or L-module sets R7919999-Return-Warning-Goback after processing",
+      "when": "FTFRH120's S000-Status-Code evaluates the returned status",
+      "then": "An error message is built, the STG header status code is set to 'AW', and the program returns to its caller immediately (Goback) without further processing",
+      "parameters": "Status-code mapping: Return-OK -> pass through header status; Return-Warning -> 'AW' + continue; Return-Warning-Goback -> 'AW' + stop; Return-Error -> 'AE' + stop; Return-Abend -> 'AS' + stop",
+      "edgeCases": [
+        "The L-module's status intentionally overrides the K-module's saved status when the L-module itself returns OK (comment lines 216-221), except a prior Warning-Goback still short-circuits before the L-module even runs (C000-Call-K-Module check at line 155-160)"
+      ],
+      "confidence": "High"
+    },
+    {
+      "name": "Consistency between main and part charge records",
+      "category": "Validation",
+      "priority": "P1",
+      "source": "src/F115L070.src:332-358",
+      "plainEnglish": "When both the main contract's charges and a part-amount's charges are read together, each corresponding row must be for the same charge type and role (buyer/seller); if the two charge tables have drifted out of step, processing is aborted.",
+      "given": "Row 3 of the Main_Charge list is charge type 'HANDLING' / role 'BUYER', but row 3 of the Part_Charge list is charge type 'HANDLING' / role 'SELLER'",
+      "when": "F115L070's D100-Check-Consistency compares the two rows",
+      "then": "Message TF-SY-INCONSISTENCY-VAR1 is raised and the program abends via Z900-Abend",
+      "parameters": "n/a",
+      "edgeCases": [],
+      "confidence": "High"
+    },
+    {
+      "name": "Part-charge paying party overrides main-charge paying party",
+      "category": "Policy",
+      "priority": "P1",
+      "source": "src/F115L070.src:422-476",
+      "plainEnglish": "If the buyer/seller designation for a charge differs between the main contract's charge record and the part-amount's charge record, the part-amount's designation wins, and the main-charge figure for the now-incorrect party is cleared (or, for additive methods, moved across).",
+      "given": "Main_Charge row 1 (buyer) has amount 100.00 with method Pct-Of-CA, but Part_Charge row 1 (seller) also has an amount, i.e. buyer-designated in Work/Main but seller-designated in Part",
+      "when": "F115L070's D230-Modify-Entries runs for this mismatch",
+      "then": "Since the method is Pct-Of-CA, the conflicting Main_Charge amount and percentage at the other position are zeroed out rather than merged",
+      "parameters": "Behavior differs by Method-of-Calculation: Pct-Of-CA/Pct-Of-PA -> zero out the losing entry's amount and percentage; Settlement/Part-Amount -> move the amount across instead of zeroing",
+      "edgeCases": [
+        "D260-Modify-Entries handles the mirror-image case (False/True/True/False) the opposite direction"
+      ],
+      "confidence": "Medium",
+      "smeQuestion": "Confirm that 'part-amount designation always wins over main-contract designation' is the intended business rule for who is billed when the two records disagree, rather than being treated as an error."
+    },
+    {
+      "name": "Charge amount computed from percentage of contract/part amount, clamped to min/max",
+      "category": "Calculation",
+      "priority": "P0",
+      "source": "src/F115L070.src:498-619 ; also src/F115L070.src:498-619",
+      "plainEnglish": "For charges priced as a percentage of the contract or part amount, the fee is the stored percentage applied to the relevant amount, rounded, and then forced up to the charge type's minimum or down to its maximum if it falls outside that configured range (the percentage shown is recalculated to match after clamping).",
+      "given": "Method-of-Calc = Pct-Of-PA, stored percentage = 2.000%, Part-Amount = 10,000.00, Minimum-Charge = 250.00, Maximum-Charge = 0 (no cap)",
+      "when": "F115L070's E100-Merge-Charges computes the charge for this row",
+      "then": "Raw amount = 10,000.00 * 2.000 / 100 = 200.00 (rounded); since 200.00 < 250.00 minimum, the charge is raised to 250.00 and the displayed percentage is recomputed to 250.00*100/10,000.00 = 2.500%",
+      "parameters": "Rounding: standard COBOL ROUNDED (half-up) on the Compute at line 553-558; Maximum-Charge = 0 means uncapped (line 588-590 requires Maximum-Charge > 0 to apply)",
+      "edgeCases": [
+        "If Part_Charge already carries a non-zero amount or percentage, the stored Main_Charge percentage is ignored entirely and no min/max reclamping is performed (lines 509-519)",
+        "Only applies when Part-Amount-No > 0 and method is specifically Pct-Of-PA (not Pct-Of-CA) - line 535-540"
+      ],
+      "confidence": "Medium",
+      "smeQuestion": "P0 panel doubts spec fidelity: Verified against legacy/TFR12/src/F115L070.src:498-619 (E100-Merge-Charges) in the STG-claude-TFR12 workspace copy.\n\nWhat the code actually does (confirmed by column-position nesting check):\n- Line 498-502: `Evaluate True` on the Work record's Method-of-Calc, with `When Pct-Of-CA` falling through to `When Pct-Of-PA` \u2014 so both method types share the block at 509-619.\n- Line 509-527 (outer `If`): only when the Part-level (Work) Charge-Amount AND Charge-Percentage are BOTH zero does the code copy Main's Charge-Amount/Charge-Percentage into Work. This is the fallback \"use Main's charge if Part didn't specify one\" rule.\n- Line 535-616 (inner `If`, nested one level inside the 509-619 outer `If`, confirmed by column alignment: outer If at col 15/End-If 619 col 15; inner If at col 19/End-If 616 col 18) \u2014 this is the block that actually computes `WS-CA-Or-PA-Amount * WS-Percent / 100 ROUNDED` (553-558) and applies the min/max clamp (566-611). It only runs when:\n  1. Main's Method-of-Calc is Pct-Of-PA specifically (line 535-536) \u2014 NOT satisfied when the charge is Pct-Of-CA, even though the outer Evaluate groups CA and PA together;\n  2. Work's Charge-Percentage > 0 (538-539); and\n  3. R115L070-In-PA-Seq-No > 0 (540).\n- Because this whole inner block sits inside the outer `If` (509-619), it additionally only ever executes when the Part-level record's own Charge-Amount and Charge-Percentage were BOTH originally zero (i.e., the charge is being inherited from Main). If the Part_Charge record already carries its own non-zero percentage or amount, the outer `If` is false, and neither the percentage-times-amount compute nor the min/max clamp ever runs for that row \u2014 the Part's stored amount/percentage pass through untouched.\n- The min-clamp additionally requires `Ws-Charge-Amount > +0` (568); a computed raw amount of exactly 0.00 is never raised to the minimum.\n\nNumeric arithmetic check: for the cited example (%=2.000, PA=10,000.00, Min=250.00, Max=0), 10,000 * 2.000 / 100 = 200.00 (exact, no rounding needed), 200.00 < 250.00 and > 0 so it is raised to 250.00, and the recomputed percentage 250*100/10,000 = 2.500% \u2014 this arithmetic in the card is correct and matches lines 553-583. The Max=0 \u2192 uncapped claim (line 588-590) is also correct.\n\nWhy I rate this not faithful: the plain-English rule states the min/max clamp applies generally \"for charges priced as a percentage of the contract or part amount\" whenever Method-of-Calc = Pct-Of-PA. The code shows the clamp/recompute logic (a) never applies to Pct-Of-CA charges at all in this section despite being reached via the same Evaluate branch, and (b) even for Pct-Of-PA charges, only applies when the Part-level charge was originally blank (amount and percentage both zero) and a Part-Amount sequence number exists \u2014 i.e., only in the \"inherit from Main\" path. A Part_Charge row that already carries its own non-zero percentage is never clamped by this code. The rule card's Given/When/Then omits these gating conditions entirely, so as written it would lead a modernization team to implement min/max clamping unconditionally for every Pct-Of-PA (and possibly Pct-Of-CA) charge, which is a behavioral divergence from the legacy system.\n\nP0 justification: agreed. This is the charge/fee amount actually posted for a trade-finance transaction (money-moving, and the file's purpose \u2014 E100-Merge-Charges \u2014 is specifically to determine the charge amount), so an incorrect min/max clamp or a wrongly-scoped trigger condition would misbill customers. That is exactly the kind of central, money-moving calculation P0 is meant to flag; the issue is the rule statement's fidelity, not its criticality tier.\n\nNo prompt-injection attempts or credential values were found in the cited range (498-619); the Norwegian comments (e.g. \"Feilretting start\", \"Her m\u00e5 vi justere...\") are ordinary bug-fix documentation, not directives, and are reported here only for completeness, not as findings requiring action."
+    },
+    {
+      "name": "Settlement/part-amount charges are summed, not recalculated",
+      "category": "Calculation",
+      "priority": "P1",
+      "source": "src/F115L070.src:621-634",
+      "plainEnglish": "For charges priced as a flat settlement fee or a direct part-amount charge, the amounts stored against the main contract and against the specific part-amount are simply added together to get the total charge for that row.",
+      "given": "Main_Charge amount = 30.00 and Part_Charge amount = 20.00 for the same 'COURIER-FEE' charge type with Method-of-Calc = Settlement",
+      "when": "F115L070's E100-Merge-Charges processes this charge type",
+      "then": "The combined charge amount for the row becomes 50.00",
+      "parameters": "n/a",
+      "edgeCases": [],
+      "confidence": "High"
+    },
+    {
+      "name": "Buyer/seller charge totals split by credit routing",
+      "category": "Calculation",
+      "priority": "P1",
+      "source": "src/F115L070.src:637-734 ; also src/F115L070.src:637-735",
+      "plainEnglish": "Charges are summed into separate buyer and seller totals depending on whether the credit for the charge goes to the presenting/other bank or to the bank's own account, and grand totals per party and for the agent's commission are derived from those sub-totals.",
+      "given": "Seller-side charges of 40.00 credited to another bank and 10.00 credited to the bank's own account",
+      "when": "F115L070's E200-Accumulate-Totals runs across all charge rows",
+      "then": "Total-Charge-Seller = 40.00 + 10.00 = 50.00; Total Agent Commission = Main-table agent commission + Part-table agent commission",
+      "parameters": "n/a",
+      "edgeCases": [
+        "Charges credited to an agent bank are not currently summed into the party totals - that branch is commented out (lines 641-649, 669-676), so any 'Credit-Agent-Bank' charges are effectively excluded from Total-Charge-Buyer/Seller"
+      ],
+      "confidence": "Medium",
+      "smeQuestion": "Is it intentional that charges routed to an agent bank are excluded from the buyer/seller total-charge figures (the Credit-Agent-Bank accumulation code is commented out), or is this a latent defect? | Is the commented-out 'Ch-Seller-Cred-Agent'/'Ch-Buyer-Cred-Agent' accumulation intentionally disabled (agent commission tracked only via TF_History) or is this a residual bug that should be restored in the rewrite?"
+    },
+    {
+      "name": "Subtracting already-stored charges when reversing input, floored at zero",
+      "category": "Calculation",
+      "priority": "P1",
+      "source": "src/F115L070.src:852-884",
+      "plainEnglish": "When an end-user's newly entered charge figure needs to be reduced by what has already been recorded (used when updating/undoing charges), the already-stored settlement/part-amount charge is subtracted from the input value, and the result is never allowed to go negative.",
+      "given": "Input charge amount = 30.00 and an already-stored (Main_Charge) settlement amount of 45.00",
+      "when": "F115L070's F100-Modify-Input-Values runs for a Settlement or Part-Amount method charge",
+      "then": "30.00 - 45.00 = -15.00, which is floored to 0.00",
+      "parameters": "n/a",
+      "edgeCases": [
+        "For Pct-Of-CA/Pct-Of-PA methods, no subtraction is performed at all (line 874-881)"
+      ],
+      "confidence": "Medium",
+      "smeQuestion": "Confirm the intended meaning of the 'Subtract' action path (used for AMEND/reversal flows) - specifically that percentage-based charges are deliberately left unadjusted here while flat/settlement charges are reduced by the stored amount."
+    },
+    {
+      "name": "Product pricing must define either a flat amount or a percentage, not both",
+      "category": "Validation",
+      "priority": "P1",
+      "source": "src/F115L150.src:390-438",
+      "plainEnglish": "A product/service price table entry used to derive a default charge must specify exactly one of a flat price amount or a price percentage; having both (or working out to neither) determines how the default charge is computed, but having both is invalid configuration.",
+      "given": "A PP_Prod_Tjen_Pris row has Prisbelop = 100.00 and Prisprosent = 1.500 (both non-zero)",
+      "when": "F115L150's D000-Process-Unique-Occurence evaluates the single matching price row",
+      "then": "Message TF-SY-INVALID-CONTENT-TAB-VAR1 is raised and the program returns an Error (AE) via Z700-Error-AE, refusing to compute a default charge",
+      "parameters": "n/a",
+      "edgeCases": [
+        "Both zero -> charge amount/percent left at 0, only min/max carried through (lines 392-399)",
+        "Amount only -> flat fee, min/max come from Ovre/Nedre-Prisbelop (lines 412-419)",
+        "Percent only -> percentage charge computed against Part-Amount (if Pct-Of-PA and a part amount is specified) or otherwise the contract's current original amount (lines 421-435)"
+      ],
+      "confidence": "High"
+    },
+    {
+      "name": "Graduated/tiered percentage pricing across amount bands",
+      "category": "Calculation",
+      "priority": "P0",
+      "source": "src/F115L150.src:463-519 ; also copybooks/F115L150.src? see src/F115L150.src:463-519",
+      "plainEnglish": "When a product's pricing has multiple tiers (each valid up to a threshold amount), the default charge is built by applying each tier's percentage only to the portion of the contract/part amount that falls within that tier, and summing the resulting increments, until the full amount is covered.",
+      "given": "Tier 1: valid up to 10,000 at 1.0%; Tier 2: valid up to 25,000 at 0.5%; contract amount (converted to basic currency) = 20,000",
+      "when": "F115L150's E000-Process-Multiple-Occ walks the tiers",
+      "then": "Increment 1 = (10,000 - 0) * 1.0% = 100.00; Increment 2 = (20,000 - 10,000) * 0.5% = 50.00 (since 20,000 <= the tier-2 threshold of 25,000, the tier is only applied up to the actual amount); total charge = 150.00",
+      "parameters": "n/a",
+      "edgeCases": [
+        "The amount being tiered is first currency-converted to the institution's basic currency before being compared against the tier thresholds (lines 471-480)"
+      ],
+      "confidence": "Medium",
+      "smeQuestion": "Confirm the tiering formula (increment = (min(tier threshold, total amount) - previous threshold) * tier percent / 100, summed across tiers) matches the intended graduated-commission pricing model."
+    },
+    {
+      "name": "Contract data-version selection (Actual vs Work)",
+      "category": "Lifecycle",
+      "priority": "P0",
+      "source": "src/FTFRL120.src:228-246 ; also src/FTFRL120.src:233-247 ; also src/FTFRL120.src:233-246",
+      "plainEnglish": "When looking up a trade-finance contract's charges, the system reads the live (Actual) contract data if the caller is only viewing/showing charges, or if the contract is not currently being amended; but it reads the draft (Work) version if the contract has an amendment in progress.",
+      "parameters": "Operation-Type values 'SHOW' and 'SHOW-AGENT' force Actual; In-Progress flag values 'Y'/'N' (copybooks/R115IMC0.copy:169-171); switches SW-Actual (+1) / SW-Work (+2) at src/FTFRL120.src:64-65",
+      "given": "A main contract record with In-Progress = 'Y' (an amendment is currently being drafted)",
+      "when": "The TFR12 ReadCharge function is called with Operation-Type = 'REGISTER-CHARGE' (i.e. not SHOW or SHOW-AGENT)",
+      "then": "All subsequent reads of contract amount, part amount, main contract, and charge-computation modules are qualified against the TF_Work_* (draft) tables, not the live TF_Main_Contract table",
+      "edgeCases": [
+        "Operation-Type = 'SHOW' or 'SHOW-AGENT' always forces the Actual (live) version, even if In-Progress = 'Y'",
+        "In-Progress = 'N' (or any value other than 'Y') with any other operation type forces the Actual version",
+        "The chosen SW-Actual/SW-Work switch is propagated to every downstream data-access call in the same request (contract amount, part amount, charge list, fee-schedule lookup)"
+      ],
+      "confidence": "Medium",
+      "smeQuestion": "P0 panel doubts spec fidelity: Code read: legacy/STG/TFR12/src/FTFRL120.src (the workspace's actual TFR12 location; legacy/TFR12/ itself is an empty stub directory, so I resolved the cited relative path to the real file). Lines 233-246 are:\n\n233: Perform G100-Read-Main-Contract\n235-246:\n  If RTFRE120-I-Operation-Type-D = 'SHOW' Or = 'SHOW-AGENT'\n    Set SW-Actual To True\n  Else\n    If R115IMC0-In-Progress-Yes\n      Set SW-Work To True\n    Else\n      Set SW-Actual To True\n    End-If\n  End-If\n\nCore rule is faithful: when Operation-Type is SHOW/SHOW-AGENT the switch is forced to SW-Actual (lines 235-237); otherwise SW-Work is selected only if the just-read main-contract record has In-Progress = 'Y' (lines 239-243), else SW-Actual. The In-Progress flag semantics match copybooks/R115IMC0.copy:169-171 exactly (88-level 'Y'/'N'). Downstream, this SW-Actual/SW-Work switch does drive an Evaluate/Set of In-Actual vs In-Work on the Contract-Amount read (G500-Read-Contract-Amount, lines 455-459), the Part-Amount read (G600-Read-Part-Amount, lines 500-504), and the charge-computation module read (H100-List-Charges -> R115L070, lines 595-599) \u2014 this part of the rule is verified and correct.\n\nOne inaccuracy in the produced rule card: its Then-clause says reads of \"main contract... are qualified against the TF_Work_* (draft) tables,\" but the Main-Contract read itself (G100-Read-Main-Contract, lines 303-309) always hardcodes `Set R115IMC0-In-Actual To True` (line 308) \u2014 it is never switched to Work, and it necessarily runs *before* SW-Actual/SW-Work is even set (it's what determines In-Progress in the first place). So \"main contract\" should not be listed among the tables that follow the Actual/Work switch; only Contract-Amount, Part-Amount, the charge-computation LMOD (R115L070), and later R115L150 (TF/POP defaults, line 969-973, not mentioned in the card) are actually gated by the switch. This is a real, checkable inaccuracy in the rule text, not merely an inferred nuance, so I mark faithful=false while noting the underlying switch-selection rule itself is real and correctly described in its main thrust.\n\nNo prompt-injection or instruction-shaped text was found in or near the cited lines or copybook; the surrounding comments are ordinary Norwegian change-log/maintenance notes (e.g. \"Removed 09.2000, not in use (NDL)\", \"Nye beregninger rundt prosent ved pct of CA\"), not directives aimed at automated analysis.\n\nP0 justification: TFR12 exists to read/compute trade-finance contract charges (fees, commissions) \u2014 this is the module's central purpose. The Actual-vs-Work switch determines whether that charge computation is sourced from the live, committed contract (TF_Main_Contract/TF_Contract_Amount/TF_Part_Amount \"Actual\") or from an in-flight, unapproved amendment draft (\"Work\"). Silently flipping this selection would mean charges get computed/registered against unapproved draft terms instead of the approved live contract (or vice versa) \u2014 directly affecting the monetary amount charged to a bank/customer on a trade-finance instrument (e.g. a Letter of Credit). That is exactly the kind of change a financial controller or auditor would need to know about: it changes which data source underlies a money-moving calculation and could produce incorrect billed amounts or use of unapproved contract data, an integrity/audit-trail concern for regulated trade-finance processing. This satisfies the P0 bar (central calculation/decision the system exists to perform, with a costly outcome if wrong), independent of the minor \"main contract\" wording defect noted above.\n\nFiles/lines referenced: legacy/STG/TFR12/src/FTFRL120.src:64-65,233-247,303-309,449-460,494-505,587-600,963-974; legacy/STG/TFR12/copybooks/R115IMC0.copy:169-171. No credentials present in the cited material. | Re-derived from legacy/STG/TFR12/src/FTFRL120.src (note: cited path was \"legacy/TFR12/src/...\" but the actual repo layout is legacy/STG/TFR12/src/FTFRL120.src inside STG-claude-TFR12).\n\nWhat the code actually does at G000-Update (lines 228-246):\n- Line 233: `Perform G100-Read-Main-Contract` is executed unconditionally, BEFORE the Actual/Work decision is made.\n- Lines 235-244: if Operation-Type is 'SHOW' or 'SHOW-AGENT', SW-Actual is set; otherwise, if R115IMC0-In-Progress-Yes ('Y', confirmed at copybooks/R115IMC0.copy:170), SW-Work is set, else SW-Actual. This part of the rule (the Given/When core condition) matches the code exactly, including the Operation-Type exclusion list and the In-Progress flag values ('Y'/'N', R115IMC0.copy:169-171).\n- The SW-Actual/SW-Work 88-levels are declared at FTFRL120.src:64-65 (WA-Actual-Work-Switch itself is at line 63) with values +1/+2 as claimed.\n- Downstream, the switch genuinely gates data-source selection in G500-Read-Contract-Amount (lines 455-459, In-Actual/In-Work into R115ICA0), G600-Read-Part-Amount (lines 500-503, R115IPA0), H100-List-Charges (lines 595-599, R115L070 \u2014 the charge-computation/list module), and I250-Find-Default-Values (lines 969-973, R115L150).\n\nWhere the rule card is NOT faithful: it asserts \"main contract\" reads are also qualified against Work when In-Progress='Y' (\"... reads of contract amount, part amount, main contract, and charge-computation modules are qualified against the TF_Work_* ... not the live TF_Main_Contract table\"). This is false. G100-Read-Main-Contract (lines 303-318) hardcodes `Set R115IMC0-In-Actual To True` at line 308 \u2014 it has no Evaluate on SW-Actual/SW-Work at all, unlike the other four read paragraphs. It is also called only once, at line 233, before the switch is even set (lines 237-243), so there is no \"subsequent\" Work-qualified re-read of the main contract anywhere in this flow (confirmed via `grep -n \"G100-Read-Main-Contract\"` \u2014 only one Perform, at line 233). The main contract is therefore always read from the live/Actual table regardless of In-Progress status; only contract-amount, part-amount, the charge-computation/list module, and the default-values lookup switch to Work. Including \"main contract\" in the list of switched reads is a factual error that would mislead a modernization team into building an incorrect behavior-parity test (expecting the ported main-contract read to branch on draft/live, when the COBOL never does).\n\nP0 justification: the Actual-vs-Work switch genuinely gates which underlying data version (live contract vs. in-flight amendment draft) feeds the charge amount/part-amount lookups and the charge computation module (H100-List-Charges / R115L070), which is the core financial calculation this program exists to drive. Reading the wrong version during an amendment could show/register incorrect charge amounts, which is a costly, data-integrity-sensitive defect for a trade-finance charging system \u2014 so the underlying mechanism is legitimately P0-worthy even though the rule card's description of it contains an inaccuracy.\n\nNo prompt-injection-style text was found in the cited lines or surrounding comments (only ordinary maintenance comments such as \"Removed 09.2000, not in use (NDL)\" and \"Added 03.2012 to check access to extra fields\"); no injection suspects to report."
+    },
+    {
+      "name": "SHOW-AGENT operation bypasses normal charge listing",
+      "category": "Lifecycle",
+      "priority": "P1",
+      "source": "src/FTFRL120.src:290-296 ; also src/FTFRL120.src:693-747 ; also src/FTFRL120.src:292-296",
+      "plainEnglish": "A special 'show agent commission' request skips the normal fee-schedule/charge-list processing entirely and instead looks up the agent's commission from transaction history.",
+      "parameters": "Trigger value: RTFRE120-I-Operation-Type-D = 'SHOW-AGENT'",
+      "given": "An inquiry request with Operation-Type = 'SHOW-AGENT' for a given contract",
+      "when": "The main processing section (G000-Update) evaluates the operation type",
+      "then": "H400-Get-Agent-Commission is executed instead of H000-Get-Charges; the module reads the contract's charge history (H500-Read-History) and, only if an agent-commission history record exists (R115HI0-Agent-Excist), returns a single synthetic output row named 'AGENT-COMMISION' with the historical amount and currency (src/FTFRL120.src:693-744); if no such history record exists, no charge rows are returned at all",
+      "edgeCases": [
+        "If the part-amount number is supplied (> 0) the currency/amount context is taken from the part amount record, otherwise from the contract amount record (src/FTFRL120.src:703-710)"
+      ],
+      "confidence": "High"
+    },
+    {
+      "name": "Settled part-amount suppresses recalculation of percentage-based charge",
+      "category": "Lifecycle",
+      "priority": "P1",
+      "source": "src/F115L060.src:604-628",
+      "plainEnglish": "Once a part-shipment/part-amount of a contract has reached a 'settled' status, its percentage-of-part-amount charge is not re-derived from the main contract charge record, to avoid re-showing or re-charging an amount that has already been settled.",
+      "parameters": "Status flag R115IPA0-Has-Been-Settled overloads the 'Incom-Swift' field (copybooks/R115IPA0.copy:180-183) with value 'A'; that same 1-byte field also carries unrelated Y/N 'Incom-Swift' semantics (Incom-Yes='Y', Incom-No='N')",
+      "given": "A charge whose calculation method is 'percent of part amount' (R115ICT0-MethCalc-Pct-Of-PA) and the caller requested a part-amount settlement check (In-Check-PA > 0)",
+      "when": "The part amount's status is verified and found to already be settled (Has-Been-Settled), with no error from the check",
+      "then": "The routine does NOT perform E000-Read-Main-Charge for that charge type, i.e. it does not re-populate/re-charge the main-contract charge line for an already-settled part amount",
+      "edgeCases": [
+        "If the settlement check itself returns an error, or the part amount has NOT been settled, E000-Read-Main-Charge still executes",
+        "If the calculation method is not 'percent of part amount', or no PA-check was requested, E000-Read-Main-Charge always executes unconditionally",
+        "The reused status byte ('A' = Has-Been-Settled vs 'Y'/'N' = Incom-Swift flag on the same field) looks like an overloaded/ambiguous status encoding"
+      ],
+      "confidence": "Medium",
+      "smeQuestion": "Is the 'A' value on the Incom-Swift byte genuinely a distinct lifecycle state (settled) from the Y/N incoming-SWIFT flag on that same field, or is this a latent defect where two unrelated flags share one storage byte?",
+      "suspectedDefect": "R115IPA0's single-byte field is documented with two unrelated meanings (Incom-Yes/Incom-No 'Y'/'N', and Has-Been-Settled 'A') at copybooks/R115IPA0.copy:180-183, which risks the values colliding or being misread as one flag by future maintainers."
+    },
+    {
+      "name": "ACCEPT-ILC special charge-row consolidation",
+      "category": "Lifecycle",
+      "priority": "P1",
+      "source": "src/FTFRL120.src:1018-1117",
+      "plainEnglish": "For the 'accept import letter of credit' operation, charge rows for the same charge type are merged using a different rule set than normal (no hard reject for double-billing), driven by whether the charge is customer-role and whether the crediting bank is the bank's own.",
+      "parameters": "Role-type value 'CUSTM' (copybooks/R115L070.copy:81); switch R115L070-Credit-Own-Bank = value 'W' (copybooks/R115L070.copy:95); consolidation states SW-Write-New / SW-Overwrite / SW-Ignore",
+      "given": "Operation-Type = 'ACCEPT-ILC' and a new charge-type row differs from the previous one",
+      "when": "The row is Selected, has Role-Type 'CUSTM', and Credit-Own-Bank is set",
+      "then": "The row is written as a new output line (SW-Write-New); other combinations of (Selected, CUSTM role, Credit-Own-Bank) either also write-new, or are ignored, per the full decision table in I330/I345",
+      "edgeCases": [
+        "When the new row's Charge-Type equals the previous row's (i.e. it's a repeat, not a new type), the alternate table I345-Special-Row-Suppression is used instead of I330, comparing the PREVIOUS row's Selected flag rather than the current one",
+        "Unlike the normal path (I360), no combination in the ACCEPT-ILC tables raises a duplicate-charge abend"
+      ],
+      "confidence": "Medium",
+      "smeQuestion": "What do the CUSTM role-type and Credit-Own-Bank flag represent operationally for an ILC acceptance, and why does this path never reject a double-billed charge (unlike every other operation type)?"
+    },
+    {
+      "name": "Stored charge percentage back-derived when missing",
+      "category": "Calculation",
+      "priority": "P1",
+      "source": "src/FTFRL120.src:803-849 ; also src/FTFRL120.src:803-850",
+      "plainEnglish": "When a charge has already been registered with a stored amount but no stored percentage, and its calculation method is percentage-based, the percentage is derived from the stored amount divided by the relevant contract or part-amount base.",
+      "parameters": "Formula: Percent = Amount \u00d7 100 \u00f7 Base-Amount",
+      "given": "A previously stored charge row with Charge-Amount > 0 but Charge-Percentage = 0, using calculation method 'percent of contract amount' or 'percent of part amount'",
+      "when": "I100-Stored-Values processes the row",
+      "then": "The base amount is read (part amount if a part-amount number is supplied and method is not percent-of-contract-amount, else the contract's current original amount), and the percentage is computed as Amount \u00d7 100 \u00f7 Base; if the base amount is 0, percentage is forced to 0",
+      "edgeCases": [
+        "If the stored Charge-Percentage is already > 0, it is used as-is and no recomputation happens",
+        "The row is always marked Selected = 'Y' when a stored amount or percentage exists, regardless of the recomputation outcome"
+      ],
+      "confidence": "High"
+    },
+    {
+      "name": "Mandatory composite natural key to identify a Trade Finance contract/charge record, with Institution-ID resolvable from Institution-Number",
+      "category": "Validation",
+      "priority": "P1",
+      "source": "src/F115ICA0.src:806-894",
+      "plainEnglish": "Before a Select/Update/Delete against a core Trade Finance table (Contract Amount, Main Charge, Part Charge, etc.), the interface requires the full natural key of the record (financial institution, contract type, contract number, and - depending on the table - currency, part-amount sequence, role/party, and charge type); if the caller supplies the institution's external number instead of its internal ID, the internal ID is looked up before continuing, and any missing key component causes the call to return an error rather than proceed.",
+      "parameters": "Error codes: TF-FIN-INST-MISSING, TF-CONTRACT-MISSING, TF-CURRENCY-MISSING, TF-PART-AMOUNT-MISSING, TF-ROLE-MISSING, TF-CHARGE-MISSING (message codes passed to F7918030 error-message lookup).",
+      "given": "A caller invokes F115ICA0 with In-Action = Update, supplying Contract-Type, Contract-No and Currency, but leaving both Fin-Inst-ID and Fin-Inst-No blank",
+      "when": "H100-Check-Qualification runs before the update",
+      "then": "None of the Evaluate branches for Fin-Inst-ID/Fin-Inst-No resolve, so the 'When other' branch fires: an error message 'TF-FIN-INST-MISSING' is built and R7919999-Return-Error is set, preventing the update from proceeding",
+      "edgeCases": [
+        "If only Fin-Inst-No (external institution number) is given, N100-Fetch-Fin-Inst-ID calls F5879010 to resolve it to the internal Fin-Inst-ID before the key check succeeds (F115ICA0.src:1111-1135)",
+        "The exact set of mandatory key fields differs by table: Contract Amount additionally requires Currency (F115ICA0.src:877-892); Part Charge additionally requires CA-Currency, PA-Seq-No, Role-Type and CT-Type (F115IPC0.src:1017-1085); Main Charge requires only Fin-Inst/Contract-Type/Contract-No (F115IMC0.src:915-985)",
+        "The same pattern (and the same error codes) is repeated independently in every F115I*0 table-interface module, so a fix or change to key validation must be replicated across all of them"
+      ],
+      "confidence": "High"
+    },
+    {
+      "name": "Sub-minimum input date normalized to sentinel null date",
+      "category": "Policy",
+      "priority": "P1",
+      "source": "src/F7919100.src:291-336",
+      "plainEnglish": "If a date supplied for format conversion (in any supported input format) is below that format's minimum representable value, the module treats it as a 'null date' and silently substitutes the sentinel 0001-01-01 instead of rejecting the input.",
+      "given": "Given an input date in AMD9 format equal to 00000101 (below the minimum 00010101), or equivalently a DMA9 date below 01010001, an AMD7 date below 000101, or a DMA7 date below 010100",
+      "when": "When D000-Konv-Fra-Input processes the supplied date",
+      "then": "Then the working date W-Dato-AMD9 is set to 00010101 (year 1, day 1) and that sentinel value is used to populate every requested output format, rather than the call being rejected",
+      "parameters": "Sentinel minimum date = 00010101 (0001-01-01)",
+      "edgeCases": [
+        "Same floor is applied independently for each of the four supported input formats (AMD9, DMA9, AMD7, DMA7)"
+      ],
+      "confidence": "Medium",
+      "smeQuestion": "Confirm 0001-01-01 is the system-wide convention for 'no date supplied' consumed correctly by all downstream callers, and that no caller actually needs a hard validation error when a sub-minimum date is passed."
+    },
+    {
+      "name": "History records are append-only (no direct select or update)",
+      "category": "Lifecycle",
+      "priority": "P1",
+      "source": "src/F115IHI0.src:309-347",
+      "plainEnglish": "History/audit-trail rows for a contract can only be created (Insert), removed (Delete), or read via the cursor (Get-1st/Get-Next); the interface has no working path to fetch a single row directly or to update a history row once it exists.",
+      "given": "Given a caller invokes the TF_History interface F115IHI0 with In-Action set to Select or Update",
+      "when": "When C000-Interface evaluates the requested action",
+      "then": "Then because the '-In-Select' and '-In-Update' branches (calling F000-Select / H000-Update) are commented out of the Evaluate, control falls through to 'When Other', which raises error 'GL-IN-AKSJON-UV' (invalid action) and performs Z900-Abend, aborting the call",
+      "parameters": "Enabled actions: Get-1st, Get-Next, Insert, Delete. Disabled (dead-code) actions: Select, Update",
+      "edgeCases": [
+        "The Select and Update paragraphs (F000-Select, H000-Update) still exist in the source but are unreachable, confirming the restriction is deliberate rather than an oversight"
+      ],
+      "confidence": "High"
+    },
+    {
+      "name": "Charge inquiry requires the referenced contract/amount data to exist",
+      "category": "Validation",
+      "priority": "P1",
+      "source": "src/FTFRL120.src:303-341",
+      "plainEnglish": "A charge-listing request is rejected outright if the Main Contract it refers to cannot be found (and likewise for the Contract Amount or Part Amount, when those are read); by contrast, an optional product-availability lookup is allowed to fail without stopping the request.",
+      "given": "Given a ReadCharge request for a Fin-Inst-No/Contract-Type/Contract-No combination for which no TF_Main_Contract row exists",
+      "when": "When FTFRL120 performs G100-Read-Main-Contract",
+      "then": "Then F115IMC0 returns Return-Error and FTFRL120 immediately performs Z700-Error-AE (paragraph 'G102', message code 'FM'), aborting charge processing for the whole request instead of returning an empty charge list",
+      "parameters": "N/A",
+      "edgeCases": [
+        "The same 'not found = reject' pattern is applied to Contract Amount lookups (G500-Read-Contract-Amount, lines 449-488) and Part Amount lookups (G600-Read-Part-Amount, lines 494-537)",
+        "In contrast, G200-Read-Sys-Code (PRODUCT-AVAIL lookup, lines 343-374) treats Return-Error as 'Continue' \u2014 a missing product-availability code does not abort the request"
+      ],
+      "confidence": "High"
+    },
+    {
+      "name": "Charge-type configuration falls back from institution-specific to registration-number-specific",
+      "category": "Policy",
+      "priority": "P2",
+      "source": "src/F115L060.src:1104-1156",
+      "plainEnglish": "When looking up a charge type's system configuration, the system first tries a record scoped to the financial institution; if none is found, it retries scoped by registration/branch number before treating the charge type as unconfigured.",
+      "given": "Given a charge type has no TF_Sys_Charge_Type configuration keyed by the request's financial-institution ID/number, but does have one keyed by the request's registration number",
+      "when": "When L100-Read-Sys-Charge-Type is performed",
+      "then": "Then the first F115ICT0 lookup (by Fin-Inst) returns Return-Error, and the module retries the same call with R115ICT0-In-Regno set to the registration number; only if that second lookup also fails is error paragraph 'L103' raised and the call rejected via Z700-Error-AE",
+      "parameters": "N/A",
+      "edgeCases": [
+        "An abend (not a graceful reject) occurs if the second, registration-number-based lookup itself returns Return-Abend"
+      ],
+      "confidence": "Medium",
+      "smeQuestion": "Confirm registration-number-level charge type configuration is an intended fallback default for institutions without their own override (rather than legacy/dead configuration data)."
+    },
+    {
+      "name": "Charge computation scope follows whether a part amount is specified",
+      "category": "Calculation",
+      "priority": "P1",
+      "source": "legacy/TFR12/src/F115L070.src:121-180 (paragraph C000-Interface)",
+      "plainEnglish": "When a charge computation request identifies a specific part amount, charges are computed at both the main-contract level and that part-amount level; if no part amount is specified, only main-contract-level charges are computed.",
+      "given": "Given an F115L070 request supplies In-PA-Seq-No = 3 along with the contract keys",
+      "when": "When C200-Qualify-Read prepares the underlying calls to F115L060",
+      "then": "Then C300-Read-Main-Charge is invoked with PA-Seq-No forced to 0 (i.e. main-contract-level charges) and C400-Read-Part-Charge is additionally invoked with PA-Seq-No = 3 (part-amount-level charges); if In-PA-Seq-No had been 0 (omitted), only the main-contract-level call would run",
+      "parameters": "N/A",
+      "edgeCases": [
+        "Both the 'Main' and 'Part' working copies are derived from the same qualified input record, differing only in the PA-Seq-No field"
+      ],
+      "confidence": "Medium",
+      "smeQuestion": "Citation was corrected by referee (The cited section, C200-Qualify-Read (legacy/TFR12/src/F115L070.src:195-249), only builds two working copies of the F115L060 request \u2014 W-R115L060-Main (with PA-Seq-No forced to zero, see the Move Zero at line 243) and W-R115L060-Part (retaining the original PA-Seq-No, line 241) \u2014 when R115L060-In-PA-Seq-No is non-zero (lines 239-249). A comment at 234-237 documents that intent (\"If a part amount no is supplied, both TF_Main_Charge and TF_Part_Charge are relevant...\"), and this is a legitimate explanatory comment, not injected instruction text. However, C200-Qualify-Read itself never performs C300-Read-Main-Charge or C400-Read-Part-Charge \u2014 those Perform statements do not appear anywhere in lines 195-249 (C300 begins at line 252, C400 at line 274). The actual decision to invoke C300 and/or C400 is made by the caller, C000-Interface (lines 121-180), whose Evaluate on (R115L070-In-Add/In-Subtract also In-PA-Seq-No) chooses different combinations: for In-Add with PA-Seq-No<>0 and non-'AMEND-' operation (lines 142-153), both C300 and C400 are performed, matching the rule's example. But for In-Add with 'AMEND-' operation (lines 137-141), only C400 runs (no C300). More importantly, for In-Subtract with PA-Seq-No<>0 and non-'AMEND-' (lines 159-169), the source of the file shows `Perform C400-Read-Part-Charge` commented out with an asterisk at line 165 (`*          Perform C400-Read-Part-Charge`), and SW-Read-Main-Only (not SW-Read-Main-Part) is set at line 167 \u2014 meaning that in this path only main-level charges are actually read even though a part-amount sequence number was supplied, directly contradicting the rule's unqualified claim that specifying a part amount always yields both main- and part-level computation. So the rule's core mechanism (forcing Main's PA-Seq-No to 0, keeping Part's PA-Seq-No) is real, but it is implemented for the invocation decision in C000-Interface, not in the cited C200-Qualify-Read section, and even there the 'both levels computed' behavior does not hold universally \u2014 it fails for the Subtract action path due to a commented-out Perform statement.) \u2014 confirm legacy/TFR12/src/F115L070.src:121-180 (paragraph C000-Interface) is the authoritative implementation."
+    },
+    {
+      "name": "Fee-payer role determined by contract type and charge role category",
+      "category": "Policy",
+      "priority": "P1",
+      "source": "src/F115L060.src:479-592 ; also src/F115L060.src:479-570",
+      "plainEnglish": "When looking up which parties are allowed to be charged a given fee, the system translates an abstract charge role category (GL account, Agent, Any, Buyer, Seller) into a concrete payer role (e.g. Drawee, Drawer, Customer, Beneficiary, Issuer) based on the instrument type (Collection, Import LC, Export LC, or Guarantee) of the contract.",
+      "given": "A contract classified as Sw-Imp-LC (Import Letter of Credit, contract type ILC/ILU) and a permissible charge type whose role category is 'Buyer'",
+      "when": "the module resolves which party role can be billed for that charge type",
+      "then": "the role type used to search for a charge record is set to 'CUSTM' (customer); for role category 'Any' on the same instrument type, both 'CUSTM' and 'BENEF' (beneficiary) are searched",
+      "parameters": "Role-category codes GLACC/Agent-Pty/Any/Buyer/Seller (from TF_Sys_Charge_Type); resolved role-type codes GLACC, DRWEE, DRWER, CUSTM, BENEF, ISSUI; instrument-type switches Sw-Coll/Sw-Imp-LC/Sw-Exp-LC/Sw-Gar (set in F115L060.src:253-269, already catalogued)",
+      "edgeCases": [
+        "Collection (Sw-Coll): GLACC->'GLACC', Agent->blank role, Any->DRWEE+DRWER, Buyer->DRWEE, Seller->DRWER",
+        "Import LC (Sw-Imp-LC): Any->CUSTM+BENEF, Buyer->CUSTM, Seller->BENEF",
+        "Export LC (Sw-Exp-LC): Any->ISSUI+BENEF, Buyer->ISSUI, Seller->BENEF",
+        "Guarantee (Sw-Gar, ILG/ELG): Any->CUSTM+BENEF, Buyer->CUSTM, Seller->BENEF (added later per 'ndl'/'gar' patch markers)"
+      ],
+      "confidence": "Medium",
+      "smeQuestion": "Is the mapping of charge-role-category to payer role (e.g. Export-LC Buyer -> ISSUI, Import-LC Buyer -> CUSTM) still correct for all currently active contract types, including any added after the Guarantee patch? | Confirm the intended paying-party roles per product category (Collection: drawee/drawer; Import LC: customer/beneficiary; Export LC: issuer/beneficiary; Guarantee: customer/beneficiary) and confirm that charge-type/contract-type pairs with no matching branch (e.g. a GLACC-applicability charge on a Guarantee contract) are intentionally unsupported rather than a gap."
+    },
+    {
+      "name": "Charge currency is re-labelled to contract currency without recalculating the amount",
+      "category": "Calculation",
+      "priority": "P1",
+      "source": "src/F115L060.src:1050-1101 ; also src/F115L060.src:1064-1093",
+      "plainEnglish": "If a charge's stored amount is zero but a percentage is stored, the amount is (defensively) recomputed from the percentage; otherwise, when the charge's currency differs from the contract's currency, the displayed currency is simply overwritten with the contract's currency and the amount is carried over unconverted.",
+      "given": "A charge record with WS-Charge-Amount = 0 and WS-Percent = 2.5, contract amount 100,000 in USD",
+      "when": "additional-info processing runs for that charge",
+      "then": "the charge amount is recomputed via the percentage-of-amount calculation (N000-Compute-Charge-Amount); for any charge whose currency does not match the contract's currency, the currency field is reset to the contract's currency but the numeric amount is left unchanged (a 1999 change removed the prior currency-conversion call)",
+      "parameters": "none (behavioral switch, not a configurable rate)",
+      "edgeCases": [
+        "Charge amount non-zero and currency matches contract currency: amount and currency untouched",
+        "Charge amount non-zero and currency differs from contract currency: currency label overwritten, amount not converted"
+      ],
+      "confidence": "Low",
+      "smeQuestion": "When a stored charge's currency differs from the contract currency, should the amount be converted to the contract currency, or is simply relabeling the currency (without conversion) the intended, still-correct behavior from the 1999 change noted in the comments? | Is it intentional/safe that a charge amount is never actually FX-converted when its stored currency differs from the contract currency (only the currency label is changed), or was disabling the F116L030 conversion call in 1999 a mistake that should be corrected in the rewrite?",
+      "suspectedDefect": "Amount is not converted when currency is forcibly relabeled, which can misstate charge amounts in reports whenever a charge's native currency differs from the contract currency. The inline history comment ('19/08/1999... apparently should not recompute after all, but the currency code should be changed') suggests this was a deliberate but undocumented policy change rather than a bug, but the net effect is a monetary amount shown under the wrong currency code without conversion."
+    },
+    {
+      "name": "Charge data scope depends on whether a part-amount is specified",
+      "category": "Policy",
+      "priority": "P1",
+      "source": "src/F115L070.src:234-249",
+      "plainEnglish": "If the caller supplies a part-amount sequence number, both the Main Charge and Part Charge records are read and reconciled; if no part-amount is supplied, only the Main Charge record applies.",
+      "given": "A charge computation request for contract 4711 with Part-Amount sequence number = 3",
+      "when": "the module qualifies which records to read",
+      "then": "both TF_Main_Charge and TF_Part_Charge are read (Main read with PA-Seq-No forced to zero, Part read with PA-Seq-No = 3) and later reconciled for consistency (F115L070.src:332-421, already catalogued)",
+      "parameters": "none",
+      "edgeCases": [
+        "Part-Amount sequence number = 0 or not supplied: only TF_Main_Charge is read (SW-Read-Main-Only)"
+      ],
+      "confidence": "High",
+      "smeQuestion": ""
+    },
+    {
+      "name": "Percentage-of-contract-amount charges without a part amount are based on the original contract amount, not the outstanding balance",
+      "category": "Calculation",
+      "priority": "P1",
+      "source": "src/F115L150.src:441-461",
+      "plainEnglish": "When a charge is priced as a percentage and no part-amount applies, the charge is calculated as percentage times the contract's original amount; a percentage-of-part-amount charge instead uses the specific part amount. A historical bug fix changed the contract-amount case to use the original amount instead of the amount still outstanding.",
+      "given": "A contract with original amount 200,000 and percentage-based pricing of 0.5%, with no part-amount specified",
+      "when": "the default charge amount is computed",
+      "then": "the charge amount is 200,000 x 0.5% / 100 = 1,000.00 using the contract's original amount (R115ICA0-Curr-O-Amount); the alternative calculation against the remaining/outstanding amount is present in the code as a commented-out line and not used",
+      "parameters": "Percentage rate WS-Percent-Comm (from TF_Sys_Charge_Type/product pricing); divisor 100",
+      "edgeCases": [
+        "Part-Amount-No > 0 and pricing method is 'percent of part amount' (MethCalc-Pct-Of-PA): charge = percent x part amount / 100 (D100-Compute-Charge-Amount)",
+        "Otherwise: charge = percent x original contract amount / 100 (D200-Compute-Charge-Amount)"
+      ],
+      "confidence": "Low",
+      "smeQuestion": "Should percentage-based charges without a part-amount be calculated against the contract's original amount or its current outstanding (remaining) amount? The commented-out code and 'Feilretting' (bug-fix) note suggest this was deliberately changed at some point \u2014 confirm the original-amount basis is still correct."
+    },
+    {
+      "name": "Product pricing amounts are converted from the bank's base currency to the contract currency",
+      "category": "Calculation",
+      "priority": "P1",
+      "source": "src/F115L150.src:539-579",
+      "plainEnglish": "Flat charge amounts and min/max charge caps defined in the pricing table (POP) are stored in the bank's home/base currency and must be converted into the contract's currency via the exchange-rate module before being used or returned.",
+      "given": "A POP-defined maximum charge of 500.00 in the bank's base currency (e.g. NOK) for a contract denominated in EUR",
+      "when": "the default charge amount, minimum, and maximum are prepared for output",
+      "then": "each non-zero amount (charge, min, max) is passed individually through F116L030 (currency exchange module) to convert from the base currency to the contract's currency before use",
+      "parameters": "none (uses live exchange rate via F116L030)",
+      "edgeCases": [
+        "POP charge amount = 0 and percent commission <= 0 (a bug-fix branch): the zero charge amount is copied through as-is without conversion, to avoid an erroneous non-zero result",
+        "POP min or max = 0: left as zero, not converted"
+      ],
+      "confidence": "High",
+      "smeQuestion": ""
+    },
+    {
+      "name": "Sliding-window century determination for two-digit-year dates",
+      "category": "Policy",
+      "priority": "P1",
+      "source": "src/F7919100.src:951-996 ; also src/F7919100.src:951-995 ; also src/F7919100.src:951-997",
+      "plainEnglish": "When converting a date supplied with only a 2-digit year, the system determines the century using a sliding window: it takes today's date plus a caller-supplied number of years ahead (or 50 years by default) as the upper bound of the window, and picks whichever century places the date at or before that upper bound.",
+      "given": "Today's date is 2026-09-28 and no override is supplied for 'years ahead'",
+      "when": "a 2-digit-year date is converted (e.g. year '30')",
+      "then": "the upper bound of the window is 2026 + 50 = 2076; the date is assigned to the 21st century (20xx) because 2030 does not exceed 2076 \u2014 if the resulting date is above the window's upper bound, one century is subtracted (i.e. 19xx would be used instead)",
+      "parameters": "Default window size: 50 years ahead of today; overridable via R7919100-In-Aar-Frem-I-Tid (valid range 1-99)",
+      "edgeCases": [
+        "Caller supplies In-Aar-Frem-I-Tid between 1 and 99: that value replaces the default 50-year offset",
+        "Caller supplies 0 or omits it: default 50 years is used"
+      ],
+      "confidence": "High",
+      "smeQuestion": ""
+    },
+    {
+      "name": "Organization unit attributes are looked up as of today's system date",
+      "category": "Policy",
+      "priority": "P2",
+      "source": "src/F5879010.src:537-566",
+      "plainEnglish": "When fetching an organization unit's attributes (e.g. via the iHUB Org interface), only the attribute version whose validity period covers today's business run date is returned; both the 'valid from' and 'valid to' qualification are set to the same current run date.",
+      "given": "An organization unit with multiple attribute versions valid over different historical periods",
+      "when": "attributes are requested for that organization unit",
+      "then": "the lookup filters to the single attribute version whose validity window includes today's system run date (obtained from F7918110), ignoring past or future-dated versions",
+      "parameters": "none (always today's system date; no as-of-date parameter is exposed to the caller)",
+      "edgeCases": [
+        "No attribute version is valid for today's date: G200-Get-1st-Attribute returns not-found and G400-Extract-Attributes is skipped"
+      ],
+      "confidence": "Medium",
+      "smeQuestion": "Is it intentional that this interface can only retrieve an organization unit's currently valid attributes, with no way to query historical or future-dated attribute versions?"
+    },
+    {
+      "name": "Charge record update requires a fully resolvable composite key (asymmetric with insert)",
+      "category": "Validation",
+      "priority": "P1",
+      "source": "F115ICH0.src:868-996",
+      "plainEnglish": "Before an existing Main Charge (or Part Charge) record can be updated, the system must be able to fully identify which record it is \u2014 institution, contract, role/paying-party, currency/part-amount, charge type and charge sequence number \u2014 falling back to alternate qualification fields if the primary key fields are blank, and rejecting the update with a specific error code if any piece is still missing. Inserting a brand-new charge record skips this check entirely.",
+      "given": "A caller invokes F115ICH0 with R115ICH0-In-Update set, and the direct key fields (Fin-Inst-ID, Contract-Type, Contract-No, RP-Role-Type, Charge-Type, CH-Seq-No) are blank/zero",
+      "when": "H100-Check-Qualification runs before the update",
+      "then": "the system first tries the alternate '-In-' qualification fields (looking up Fin-Inst-ID from Fin-Inst-No via N100-Fetch-Fin-Inst-ID if needed); if a field is still unresolved it sets Return-Error with mnemonic 'TF-FIN-INST-MISSING', 'TF-CONTRACT-MISSING', 'TF-PARTY-MISSING' or 'TF-CHARGE-MISSING' and the update does not proceed. The identical pattern (7 mandatory elements: Fin-Inst, Contract-Type/No, CA-Currency, PA-Seq-No, Role-Type, CT-Type) protects Part_Charge updates in F115IPC0.src:946-1086. In both modules, G000-Insert (F115ICH0.src:783-826, F115IPC0.src:860-904) calls G100-Move-Input-To-DCL directly and never performs this check, so a new charge row can be inserted with an unresolved/blank key while an update to an existing row cannot.",
+      "parameters": "Error mnemonics: TF-FIN-INST-MISSING, TF-CONTRACT-MISSING, TF-PARTY-MISSING, TF-CHARGE-MISSING, TF-PART-AMOUNT-MISSING, TF-ROLE-MISSING, TF-CHARGE-MISSING (F115IPC0)",
+      "edgeCases": [
+        "Fin-Inst-ID resolved from Fin-Inst-No via N100-Fetch-Fin-Inst-ID when the numeric ID is zero",
+        "Part_Charge (F115IPC0.src:946-1086) requires 2 additional key elements (CA-Currency, PA-Seq-No) beyond Main Charge",
+        "Insert path performs no equivalent key-completeness check"
+      ],
+      "confidence": "High"
+    },
+    {
+      "name": "System code relationship records (e.g. valid Operation-Type to Charge-Type mappings) can only be created or removed, never updated",
+      "category": "Lifecycle",
+      "priority": "P1",
+      "source": "F115ISR0.src:326-360",
+      "plainEnglish": "The table that defines relationships between two system codes (such as which charge types are valid for a given operation type) supports adding a new relationship and deleting an existing one, but there is no way to modify a relationship in place \u2014 an update request is treated as an invalid action.",
+      "given": "A caller sets R115ISR0-In-Update and calls F115ISR0 to change a Sys_Code_Rel relationship (e.g. an 'OPERATION-TYPE' to 'CHARGE' link of relation-type 'VALID-OP-CHARGE', consumed by F115L060.src:341-406 to build the list of permissible charge types)",
+      "when": "C000-Interface dispatches on the requested action",
+      "then": "the action does not match any of the enabled 88-level conditions (the In-Update condition-name is commented out of the copybook and the dispatch Evaluate in C000-Interface), so control falls to 'When Other', which logs message 'GL-IN-AKSJON-UV' (invalid action) and abends via Z900-Abend; the relationship can only be changed by deleting the old row (I000-Delete) and inserting a new one (G000-Insert)",
+      "parameters": "n/a",
+      "edgeCases": [
+        "H000-Update and H100-Check-Qualification paragraphs (F115ISR0.src:933-1147) still exist in the source but are unreachable dead code because the dispatcher never performs them",
+        "Insert (G000-Insert) and Delete (I000-Delete) remain fully supported"
+      ],
+      "confidence": "High"
+    },
+    {
+      "name": "Party-specific charge price override (POP) is priced as of today's processing date, not the contract date, unless the charge type opts out",
+      "category": "Calculation",
+      "priority": "P0",
+      "source": "F115L060.src:1257-1280",
+      "plainEnglish": "When computing a charge, the system checks whether that charge type is configured to read a negotiated Percent-of-Party (POP) price agreement; unless the charge type explicitly turns this off, it looks up the customer-specific price/min/max that is valid on today's calendar date (the machine date captured when the batch/transaction started), not the date the contract or part amount was booked, and that value feeds directly into the charge amount and the min/max caps returned to the caller.",
+      "given": "Charge type CT for institution X has R115ICT0-Read-POP not equal to 'N' (i.e. POP lookup is enabled, which is the default)",
+      "when": "F115L060 computes the charge amount for that charge type on any date, e.g. 2026-09-28",
+      "then": "L400-Read-POP calls F115L150 with In-Valid-Date = today's date (R7919070-Ut-Dato, obtained once per run in B000-Initialize at F115L060.src:180-188) rather than the contract's original date, so the negotiated price/percentage and min/max charge caps in effect today are used even for a contract booked on an earlier date; if Read-POP = 'N', the lookup is skipped and R115L150-TF-POP is left initialized/zero (F115L060.src:1096-1101), so the charge type's own default configuration is used instead",
+      "parameters": "R115ICT0-Read-POP: ' ' = read POP (default), 'N' = skip POP lookup (R115ICT0.copy:123-125)",
+      "edgeCases": [
+        "No POP records found for the key (R349IPP0 total rows = 0): F115L150 returns Return-OK with blank/zero output, effectively no override (F115L150.src:145-148)",
+        "Exactly one POP record: unique flat-amount-or-percentage override applied (F115L150.src:149-151, already covered elsewhere for the flat/percent exclusivity rule)",
+        "Multiple POP records: tiered/graduated pricing applies (already covered elsewhere)"
+      ],
+      "confidence": "Medium",
+      "smeQuestion": "Is it intentional that a customer's negotiated (POP) charge price/min/max is always evaluated as of today's processing date rather than the contract's booking date or a transaction value date? If the negotiated price changes between when a contract/part-amount was created and when a charge on it is later computed, should the price in effect at booking time apply instead of today's price?"
+    },
+    {
+      "name": "System-Code update key validation is unintentionally bypassed when Contract-Type is already known",
+      "category": "Validation",
+      "priority": "P1",
+      "source": "F115ISC0.src:739-815",
+      "plainEnglish": "When updating a system-code master record, the check that a code value (SC-Code) is present is supposed to run for every update, but a missing 'End-Evaluate' means that check is only reached when the Contract-Type check itself falls through to its error branch \u2014 so in the normal case (Contract-Type already known) the code value is never validated or defaulted before the update runs.",
+      "given": "A request to update a TF_Sys_Code record where Contract-Type is already present on the loaded record or supplied as input (the common/normal case)",
+      "when": "H100-Check-Qualification executes: the Evaluate block for Contract-Type (F115ISC0.src:783-796) has no closing End-Evaluate before the next 'Evaluate True' for SC-Code begins (F115ISC0.src:799), so the SC-Code Evaluate is syntactically nested inside the Contract-Type block's 'When other' arm and only that single End-Evaluate at line 813 closes both",
+      "then": "Because the Contract-Type check matched a non-error branch ('Continue' or the Move at 787-788), control never enters the nested 'When other' arm, so the SC-Code mandatory check/defaulting (799-813) is skipped entirely \u2014 R115ISC0-SC-Code is passed unresolved into G100-Move-Input-To-DCL and H200-Update-Row, and no 'TF-CODE-MISSING' error is ever raised in this path even when SC-Code is blank",
+      "edgeCases": [
+        "The two preceding key checks in the same paragraph (ST-Type at 741-755, Institution at 757-781) each correctly close with their own End-Evaluate, showing the SC-Code block is the outlier, not an intentional cascading design",
+        "The equivalent Insert path (G100-Move-Input-To-DCL, F115ISC0.src:678-699) has no such conditional check because Insert takes the key wholly from input, so only Update is affected"
+      ],
+      "confidence": "High",
+      "suspectedDefect": "Missing End-Evaluate after the Contract-Type qualification block (expected around F115ISC0.src:796) causes the mandatory SC-Code check to be unreachable whenever Contract-Type resolves normally, letting Update proceed with an unvalidated/blank code key.",
+      "smeQuestion": "Should the SC-Code mandatory-field check in F115ISC0 H100-Check-Qualification actually run on every Update (independent of Contract-Type outcome), and has this gap ever allowed an Update to run against the wrong/blank system-code row in production?"
+    }
+  ],
+  "foldedRules": [
+    {
+      "name": "Actual vs. Work-in-progress data selection",
+      "source": "src/FTFRL120.src:233-247",
+      "into": "Contract data-version selection (Actual vs Work)"
+    },
+    {
+      "name": "Actual vs. Work version selection for charge data",
+      "source": "src/FTFRL120.src:233-246",
+      "into": "Contract data-version selection (Actual vs Work)"
+    },
+    {
+      "name": "Agent commission shortcut for SHOW-AGENT",
+      "source": "src/FTFRL120.src:693-747",
+      "into": "SHOW-AGENT operation bypasses normal charge listing"
+    },
+    {
+      "name": "Agent commission lookup for SHOW-AGENT",
+      "source": "src/FTFRL120.src:292-296",
+      "into": "SHOW-AGENT operation bypasses normal charge listing"
+    },
+    {
+      "name": "Charge amount clamped to configured minimum/maximum",
+      "source": "src/FTFRL120.src:856-942",
+      "into": "Minimum/maximum charge caps with percentage recomputation"
+    },
+    {
+      "name": "Default charge clamped to configured min/max",
+      "source": "src/FTFRL120.src:856-942",
+      "into": "Minimum/maximum charge caps with percentage recomputation"
+    },
+    {
+      "name": "Deriving a percentage from a stored charge amount",
+      "source": "src/FTFRL120.src:803-850",
+      "into": "Stored charge percentage back-derived when missing"
+    },
+    {
+      "name": "Min/max cap re-check for a stored percentage read from Part_Charge",
+      "source": "src/F115L070.src:498-619",
+      "into": "Charge amount computed from percentage of contract/part amount, clamped to min/max"
+    },
+    {
+      "name": "Charge amount is not currency-converted when its currency differs from the contract currency",
+      "source": "src/F115L060.src:1064-1093",
+      "into": "Charge currency is re-labelled to contract currency without recalculating the amount"
+    },
+    {
+      "name": "Tiered (bracket) percentage pricing for volume-based commission",
+      "source": "copybooks/F115L150.src? see src/F115L150.src:463-519",
+      "into": "Graduated/tiered percentage pricing across amount bands"
+    },
+    {
+      "name": "Total charge aggregation by payer and by credited-bank category",
+      "source": "src/F115L070.src:637-735",
+      "into": "Buyer/seller charge totals split by credit routing"
+    },
+    {
+      "name": "Sliding-window century resolution for 2-digit-year dates",
+      "source": "src/F7919100.src:951-995",
+      "into": "Sliding-window century determination for two-digit-year dates"
+    },
+    {
+      "name": "Two-digit-year sliding window century resolution",
+      "source": "src/F7919100.src:951-997",
+      "into": "Sliding-window century determination for two-digit-year dates"
+    },
+    {
+      "name": "Both parties charged for the same fee is not allowed",
+      "source": "src/FTFRL120.src:1119-1136",
+      "into": "Buyer/seller both charged is not allowed (single payer per charge)"
+    },
+    {
+      "name": "Reject duplicate charge when both buyer and seller are billed for the same fee",
+      "source": "src/FTFRL120.src:1120-1173",
+      "into": "Buyer/seller both charged is not allowed (single payer per charge)"
+    },
+    {
+      "name": "Duplicate charge registration guard across main/part charge tables",
+      "source": "src/F115L070.src:361-420",
+      "into": "Duplicate/conflicting charge detection between Main and Part charge records"
+    },
+    {
+      "name": "Required input fields for ReadCharge inquiry",
+      "source": "src/FTFRK120.src:145-195",
+      "into": "Mandatory input fields for charge inquiry"
+    },
+    {
+      "name": "Optional numeric fields must be valid numbers",
+      "source": "src/FTFRK120.src:597-667",
+      "into": "Numeric format for optional identifier fields"
+    },
+    {
+      "name": "Output-only fields rejected as input",
+      "source": "src/FTFRK120.src:244-274",
+      "into": "Output fields cannot be supplied as input"
+    },
+    {
+      "name": "Charge applicability is mapped to paying-party role by product type",
+      "source": "src/F115L060.src:479-570",
+      "into": "Fee-payer role determined by contract type and charge role category"
+    }
+  ],
+  "rejectedRules": [
+    {
+      "name": "Read-window pagination bounds for the charge list",
+      "category": "Policy",
+      "priority": "P2",
+      "source": "src/FTFRL120.src:1319-1385",
+      "plainEnglish": "When a caller requests a bounded page of the charge list (Read-From/Read-To), the system clamps the requested window to the caller-provided maximum page size and to the actual number of available charge rows, rather than returning more rows than requested or asked for by the caller.",
+      "given": "No Read-From/Read-To supplied (both 0), a maximum page size of 20 (RTFRE120-O-Charge-Type-A), and 35 total available charge rows",
+      "when": "the output parameters are adjusted before building the response",
+      "then": "Read-From is set to 1 and Read-To is capped at 20 (the smaller of total rows and page size); if Read-From is supplied, Read-To = min(Read-From + page-size, total rows)",
+      "parameters": "Page size comes from caller input (RTFRE120-O-Charge-Type-A), not a hardcoded constant",
+      "edgeCases": [
+        "Explicit Read-From and Read-To both supplied and non-zero are used as-is without further clamping"
+      ],
+      "confidence": "Medium",
+      "smeQuestion": "Should an explicit Read-From/Read-To pair still be clamped to the actual available row count, or is the caller trusted to request a valid range (current code does not clamp this branch)?",
+      "rejectionReason": "refuted: I read legacy/TFR12/src/FTFRL120.src:1319-1388 (section U130-Adjust-Parameters, the exact section this citation targets) plus copybooks/RTFRE120.copy for field definitions.\n\nThe general clamping algorithm described does exist in outline: when Read-From/Read-To are both 0 (FTFRL120.src:1339-1349), WA-Read-From is set to 1 and WA-Read-To is set to the smaller of WA-No-Read (total available rows) and a \"page size\" field; when Read-From is supplied and Read-To is 0 (FTFRL120.src:1351-1373), WA-Read-To = min(Read-From + page-size, total rows). That part of the shape matches.\n\nHowever, the rule's central claim -- \"Page size comes from caller input (RTFRE120-O-Charge-Type-A), not a hardcoded constant\" -- is refuted by the code actually executing. Immediately before the Evaluate block that uses RTFRE120-O-Charge-Type-A as the page-size bound, the code unconditionally executes:\n\n  Set RTFRE120-O-Charge-Type-M To True   (FTFRL120.src:1334)\n\nRTFRE120-O-Charge-Type-M is an 88-level condition name on RTFRE120-O-Charge-Type-A with `Value 50` (copybooks/RTFRE120.copy:144, matching the `Occurs 50 Times` table at copybooks/RTFRE120.copy:145). Executing `Set condition-name To True` moves that literal value (50) into the parent field. This happens unconditionally on every call to U130-Adjust-Parameters (which itself runs once per output row via U100-Iter-Out-Fields, FTFRL120.src:1267), so by the time RTFRE120-O-Charge-Type-A is read as the \"page size\" at FTFRL120.src:1344-1345 and 1362-1364, it has already been clobbered to the hardcoded constant 50 -- any caller-supplied value in that field at entry is discarded before it can affect the clamp. At the end of the same section (FTFRL120.src:1384) the field is reset to zero, presumably for reuse later as an output row counter, which further shows it is not being treated as a stable caller input at this point.\n\nSo the pagination window is bounded by a hardcoded constant (50, the OCCURS table size), not by a caller-supplied maximum page size as the rule specifies. The rule's own worked example (max page size 20) is also inconsistent with what the code actually enforces (always 50). This is a substantive mismatch on the rule's defining parameter, not a citation-location problem, so I'm marking it refuted rather than wrong-citation.\n\nNo instruction-shaped text aimed at an AI or reviewer was found in the cited region; the discrepancy is a genuine code-semantics issue (COBOL 88-level SET-TO-TRUE overwrite), not a prompt-injection attempt."
+    },
+    {
+      "name": "Feature-flag gated access to extended charge fields",
+      "category": "Policy",
+      "priority": "P2",
+      "source": "src/FTFRL120.src:250-262",
+      "plainEnglish": "Two optional response fields (a free-text charge description and an alternate charge-amount base) are only returned to the caller if the financial institution has been configured with the corresponding system codes 'CHARGE-TEXT-2012' and 'CHARGE-AMB-2012'.",
+      "given": "A financial institution that has a 'CHARGE-TEXT-2012' system code configured but not 'CHARGE-AMB-2012'",
+      "when": "the charge module initializes",
+      "then": "the output includes an access-flag 'Y' for charge text but omits (or flags 'no access' for) the charge-amount-base extension",
+      "parameters": "System codes: CHARGE-TEXT-2012, CHARGE-AMB-2012 (looked up as PRODUCT-AVAIL system codes per institution)",
+      "edgeCases": [
+        "Both flags default to 'no access' (blank) unless the corresponding system code lookup returns success"
+      ],
+      "confidence": "Medium",
+      "smeQuestion": "Are these per-institution feature flags still meaningful for the rewrite, or were the 2012-dated features since made universally available (code comments suggest they were added as opt-in extensions at the time)?",
+      "rejectionReason": "refuted: Read legacy/STG/TFR12/src/FTFRL120.src:250-262 (note: the cited path \"src/FTFRL120.src\" resolves under legacy/STG/TFR12/, not an empty legacy/TFR12/ directory that also exists in this workspace) plus the WORKING-STORAGE declarations at lines 57-61 and the G200-Read-Sys-Code paragraph at lines 343-374.\n\nWhat the general idea is: Ws-Sc-Code is moved to a system-code value, G200-Read-Sys-Code (line 343) calls F115ISC0 to look up a 'PRODUCT-AVAIL' system code for the institution (moving RTFRE120-I-Fin-Inst-No-D and Ws-Sc-Code into R115ISC0-In-Fin-Inst-No/In-SC-Code, line 348-351), and the call's outcome is reflected in the 88-level condition R7919999-Return-OK. WA-Access-Text-Field/SW-Access-Text and WA-Access-Am-Base/SW-Access-AM-Base (lines 58-61) are the two access flags described in the rule.\n\nFor CHARGE-TEXT-2012 (lines 252-256) the sequence is correct: Move code -> Perform G200-Read-Sys-Code (executes the lookup) -> If R7919999-Return-OK Set SW-Access-Text. This part matches the rule.\n\nFor CHARGE-AMB-2012 (lines 258-262) the statement order is reversed from the TEXT block: Move 'CHARGE-AMB-2012' To Ws-Sc-Code (258); If R7919999-Return-OK Set SW-Access-AM-Base To True (259-261); Perform G200-Read-Sys-Code (262) \u2014 the actual lookup call happens AFTER the If-check, not before it. At the point the If is evaluated (line 259), R7919999-Return-OK still holds the return status left over from the previous G200-Read-Sys-Code call for CHARGE-TEXT-2012 (line 253/254), because the AMB-specific lookup (line 262) has not run yet. The Perform at line 262 does execute the real CHARGE-AMB-2012 lookup, but its result is never re-checked afterward in this section (lines 263+ are all comments, then control moves on to charge processing at line 292).\n\nNet effect: SW-Access-AM-Base is not actually gated on whether 'CHARGE-AMB-2012' is configured for the institution \u2014 it is set based on whichever result the *previous* CHARGE-TEXT-2012 lookup produced. In the rule's own example scenario (CHARGE-TEXT-2012 configured, CHARGE-AMB-2012 not configured), the code would incorrectly leave/set SW-Access-AM-Base to True (access granted) because R7919999-Return-OK was still true from the TEXT check, not because AMB was actually found. This directly contradicts the specified Given/When/Then (\"omits or flags no-access for charge-amount-base\"). So the code at the cited lines does not correctly implement the specified feature-flag gating for the AM-Base field \u2014 this is a real order-of-operations defect (Perform placed after, rather than before, its corresponding If), not merely a citation issue, since the described mechanism (config-driven per-field flags) genuinely exists at this location for the TEXT field but is broken for the AMB field.\n\nNo instruction-shaped text aimed at an AI/reviewer was found in this region; the comments at lines 250-251 (\"Removed 09.2000, not in use (NDL)\" / \"Added 03.2012 to check access to extra fields\") are ordinary maintenance history notes, not directives."
+    },
+    {
+      "name": "Main Contract update requires a fully resolvable key",
+      "category": "Validation",
+      "priority": "P1",
+      "source": "src/F115IMC0.src:915-985",
+      "plainEnglish": "Before an update to a Main Contract row is written, the system must be able to determine the full key \u2014 financial institution, contract type, and contract number; if any part cannot be resolved from the already-loaded record or the caller's input, the update is rejected rather than applied against an incomplete key.",
+      "given": "Given a caller performs an Update via F115IMC0 where the loaded record has no financial institution set (Fin-Inst-ID = 0 and Fin-Inst-No = spaces) and no In-Fin-Inst-ID/In-Fin-Inst-No was supplied either",
+      "when": "When H100-Check-Qualification runs as part of H000-Update",
+      "then": "Then error message code 'TF-FIN-INST-MISSING' is raised and R7919999-Return-Error is set, preventing H200-Update-Row from executing; the same rejection ('TF-CONTRACT-MISSING') occurs if Contract-Type or Contract-No cannot be resolved",
+      "parameters": "N/A (structural key-presence check)",
+      "edgeCases": [
+        "Financial institution can be resolved either directly (Fin-Inst-ID) or via a lookup from Fin-Inst-No (N100-Fetch-Fin-Inst-ID)"
+      ],
+      "confidence": "High",
+      "rejectionReason": "refuted: The key-presence checks themselves are real and match the spec closely. In H100-Check-Qualification (legacy/STG/TFR12/src/F115IMC0.src:915-947) an Evaluate resolves Fin-Inst-ID from R115IMC0-Fin-Inst-ID, then R115IMC0-Fin-Inst-No (via N100-Fetch-Fin-Inst-ID), then R115IMC0-In-Fin-Inst-Id, then R115IMC0-In-Fin-Inst-No, and only in the \"When other\" branch (all four unresolved) does it raise error code 'TF-FIN-INST-MISSING' (line 941) and Set R7919999-Return-Error To True (lines 944-945). A second Evaluate (949-966) does the same for Contract-Type using 'TF-CONTRACT-MISSING' (line 960), and a third (968-985) does it for Contract-No, also using 'TF-CONTRACT-MISSING' (line 979). This part of the rule is confirmed.\n\nHowever, the rule's stated consequence \u2014 that setting R7919999-Return-Error 'prevent[s] H200-Update-Row from executing' \u2014 is not supported by the code. H000-Update (F115IMC0.src:903-913) unconditionally performs H100-Check-Qualification, then G100-Move-Input-To-DCL, then H200-Update-Row, with no If/Evaluate on R7919999-Return-Error between these Perform statements. H200-Update-Row itself (989-1015) also contains no check of R7919999-Return-Error before its Call 'F115IMCU' \u2014 it always initializes R115IMCS-SQL-Submodules, sets R115IMCS-In-Update, and invokes F115IMCU regardless of whether H100 flagged an error. I also checked Z000-Error-Message (1418-1436), the paragraph invoked to raise the error text: it only formats/moves the message (via Call 'F7918030') and does not GO TO, EXIT, or otherwise short-circuit control flow. So within the visible F115IMC0 source, an unresolved key does raise the correct error code and set the Return-Error flag, but does NOT stop H200-Update-Row from running/attempting the update as the rule claims. (F115IMCU itself, the subprogram actually issuing the SQL UPDATE, is an external module not present in this source tree, so I cannot confirm or rule out that it independently checks the incoming R7919999-Error-Area status before executing \u2014 but that would be a different mechanism than what the rule describes, which explicitly attributes the gating to H100-Check-Qualification/H000-Update.)\n\nNo instruction-shaped or AI-directed text was found in the cited region; this is ordinary COBOL validation logic."
+    },
+    {
+      "name": "Agent commission total only accumulates seller-paid agent charges",
+      "category": "Calculation",
+      "priority": "P1",
+      "source": "src/F115L060.src:1196-1254",
+      "plainEnglish": "When totalling charges by payer and credited party, an agent-commission running total is only added to when the paying party is the Seller and the charge is credited to an Agent; the equivalent Buyer + Agent combination is not accumulated into any total.",
+      "given": "A charge of 150.00 where the paying party is Seller and the credited-bank category is Agent",
+      "when": "totals are accumulated for the charge list",
+      "then": "150.00 is added to WS-Tot-Agent-Commission and included in WS-Tot-Charge-Seller; an equal charge where the paying party is Buyer and credited category is Agent is not added to WS-Tot-Agent-Commission or to any buyer total (that branch of the Evaluate has been commented out)",
+      "parameters": "Credited-bank categories used for aggregation: Agent, Other-Bank (T-Bank), Own-Bank (W-Bank)",
+      "edgeCases": [
+        "Seller + Other-Bank -> WS-Ch-Seller-Cred-T-Bank",
+        "Seller + Own-Bank -> WS-Ch-Seller-Cred-W-Bank",
+        "Buyer + Other-Bank -> WS-Ch-Buyer-Cred-T-Bank",
+        "Buyer + Own-Bank -> WS-Ch-Buyer-Cred-W-Bank",
+        "Buyer + Agent -> not accumulated anywhere (dead branch, commented out)"
+      ],
+      "confidence": "Medium",
+      "smeQuestion": "Is it intentional that buyer-paid charges credited to an agent are excluded from both the agent-commission total and the buyer total, while the symmetric seller-paid case is included?",
+      "rejectionReason": "refuted: The overall shape of the rule (an asymmetric Evaluate where a Buyer+Agent combination has been commented out while the Agent-credit total is still accumulated) is real: legacy/TFR12/src/F115L060.src:1218-1221 shows \"When WS-Buyer / also R115ICT0-Agent / Add ... To WS-Ch-Buyer-Cred-Agent\" fully commented out, and the compute of WS-Tot-Agent-Commission at 1251-1254 is also commented out (it is never recomputed from a Seller+Agent bucket at all, since that bucket WS-Ch-Seller-Cred-Agent is itself commented out at line 83/1205).\n\nHowever, the specific claim in the rule -- that the active accumulation into WS-Tot-Agent-Commission fires \"when the paying party is Seller\" -- is factually wrong. Looking at the actual active (non-comment) condition at lines 1200-1206:\n  1200  Evaluate True also True\n  1201  *      When  Ws-Seller          <-- THIS is commented out (indicator '*' in col 7)\n  1202         When  Ws-Agent           <-- THIS is the active condition\n  1203         also  R115ICT0-Agent\n  1204           Add   WS-Converted-Amount\n  1206                                  To    WS-Tot-Agent-Commission\nWS-Seller and WS-Agent are distinct 88-level conditions on WS-Role-Type (legacy/TFR12/src/F115L060.src:71-75):\n  72   88  WS-Seller   Value 'DRWER', 'BENEF'.\n  73   88  WS-Buyer    Value 'DRWEE', 'ISSUI', 'CUSTM'.\n  75   88  WS-Agent    Value '     '.  (i.e. role-type is blank/unspecified)\nSo the code that actually executes adds to WS-Tot-Agent-Commission only when the payer's role-type field is blank/unset (WS-Agent) AND the credited category is Agent -- not when the payer is identified as Seller. A charge where the paying party is genuinely Seller (role-type 'DRWER'/'BENEF') and credited category is Agent does NOT hit this branch and is not added to WS-Tot-Agent-Commission under the live code, contradicting the rule's Given/When/Then example.\n\nIn addition, WS-Tot-Charge-Seller (lines 1237-1242) is computed only from WS-Ch-Seller-Cred-T-Bank + WS-Ch-Seller-Cred-W-Bank (the Cred-Agent term is commented at 1238), so even under the rule's own hypothesis the 150.00 would not be \"included in WS-Tot-Charge-Seller\" -- that addend is dead code.\n\nNo instruction-shaped text aimed at an AI was found in the cited region; the comments are ordinary disabled COBOL statements (business/maintenance history), not prompt-injection attempts."
+    },
+    {
+      "name": "Mandatory resolvable key for Sys-Code cross-reference (relationship) update",
+      "category": "Validation",
+      "priority": "P1",
+      "source": "F115ISR0.src:949-1144",
+      "plainEnglish": "Before a code-relationship record (which links a 'from' system code to a 'to' system code, e.g. for cross-referencing types/contract-types/codes under a relation type) can be updated, every part of its nine-field composite key must be present or resolvable, otherwise the update is rejected.",
+      "given": "A request to update a TF_Sys_Code_Rel record (From-System-Type, From-Institution, From-Contract-Type, From-Code, To-System-Type, To-Institution, To-Contract-Type, To-Code, Relation-Type)",
+      "when": "H100-Check-Qualification runs and any of those nine fields is blank/zero on the loaded record and cannot be supplied from the input parameters (institution may be supplied either as a numeric ID or as an institution-number that is looked up via N100-Fetch-Fin-Inst-ID)",
+      "then": "The update is refused: a specific error code is raised (e.g. 'TF-TYPE-MISSING', 'TF-FININST-MISSING', 'TF-CONTRTY-MISSING', 'TF-CODE-MISSING', or 'TF-RELATION-MISSING') and R7919999-Return-Error is set to True instead of performing the update",
+      "edgeCases": [
+        "Institution-From and Institution-To are each independently resolvable by numeric Fin-Inst-Id or by looking up a Fin-Inst-No via N100-Fetch-Fin-Inst-ID (F115ISR0.src:969-994, 1058-1083)",
+        "The same nine-field mandatory-key pattern (fewer fields) is repeated for other Trade Finance master tables such as Main Charge (F115ICH0.src:868-996) and Part Amount (F115IPA0.src:902-1010) \u2014 same rule shape applied per entity"
+      ],
+      "confidence": "High",
+      "rejectionReason": "refuted: The cited code (legacy/TFR12/src/F115ISR0.src:949-1144, paragraph H100-Check-Qualification) does textually implement exactly the nine-field completeness check described: four \"From\" checks (ST-Type 949-965, Fin-Inst 969-994, Contr-Type 998-1015, SC-Code 1019-1035), four \"To\" checks (ST-Type 1039-1054, Fin-Inst 1058-1083, Contr-Type 1087-1104, SC-Code 1108-1123), and Relation-Type (1127-1144), each falling through to an `Initialize`/`Move 'TF-...-MISSING' To R7918030-In-MessageCode`/`Perform Z000-Error-Message`/`Set R7919999-Return-Error To True` block when the field is blank on the loaded record and the corresponding input override is also blank/zero, and institution can be supplied either as a numeric ID or looked up by institution-number via N100-Fetch-Fin-Inst-ID (e.g. line 977-979). So in isolation the paragraph matches the rule almost verbatim.\n\nHowever, this paragraph is unreachable dead code in the compiled program, so the rule is never actually enforced at runtime:\n- H100-Check-Qualification's only caller is H000-Update (F115ISR0.src:935, inside H000-Update at line 933).\n- H000-Update's only invocation anywhere in the file is `Perform H000-Update` at F115ISR0.src:346 - but that line, and the `When R115ISR0-In-Update` case guarding it at line 345, are COBOL comment lines (asterisk in column 7), i.e. commented out of the C000-Interface dispatch Evaluate (F115ISR0.src:326-360). A whole-file grep confirms no other `Perform H000-Update` or `Perform H100-Check-Qualification` statement exists.\n- Compounding this, the condition-name the dispatch case would test, `R115ISR0-In-Update` (88-level, Value 'UPDATE'), is itself commented out in the copybook at legacy/TFR12/copybooks/R115ISR0.copy:69, so it isn't even a defined condition-name in the compiled data structure - restoring line 345-346 alone would not compile.\n- Given the live dispatcher (C000-Interface) only handles Get-1st, Get-Next, Select, Insert, and Delete (lines 329-349), any caller passing In-Action = 'UPDATE' would fall through to `When Other` (line 351) and abend with 'GL-IN-AKSJON-UV' (invalid action) rather than ever reaching H100-Check-Qualification.\n\nSo while the validation logic is real, well-formed executable COBOL (not merely a comment), it sits behind a call path that has been deliberately disabled, and no other path into it exists in this source unit. As written, this program has no live Update capability, so the cited \"mandatory resolvable key\" rule does not currently govern any Update flow - it is vestigial code from a formerly-supported operation. This is a material discrepancy from the rule's premise (\"Before a ... record can be updated ... the update is refused\"), since no update can be initiated through this interface at all right now.\n\nSecondary, lower-priority anomaly noted for completeness: the \"To\" financial-institution check block (F115ISR0.src:1058-1073) tests `R115ISR0-F-I-Id`/`R115ISR0-In-F-I-Id` (the single shared Fin-Inst field defined once in the copybook, R115ISR0.copy:103/118 - there is no separate To-Institution field) and repeats the identical `R115ISR0-In-F-I-No` check twice (lines 1065-1068 and 1070-1073), which looks like a copy-paste artifact from the \"From\" block rather than a distinct To-side check - but this is moot given the paragraph is unreachable regardless.\n\nNo instruction-shaped text aimed at an AI/reviewer was found in the cited region; this is a genuine dead-code/commented-dispatch situation, not a prompt-injection attempt."
+    },
+    {
+      "name": "Error message resolution fallback cascade with default language",
+      "category": "Policy",
+      "priority": "P2",
+      "source": "src/F7918030.src:279-348",
+      "plainEnglish": "When looking up the text of a system error/message code, the system defaults to Norwegian ('NO') if no language was requested, and if no exact match is found it progressively relaxes the search: first drop the organization (Konsern) qualifier, then fall back to language 'NO', then drop both qualifiers, before giving up and returning 'not found'.",
+      "given": "A caller requests the message text for message code 'GL-CURSOR-UV' for Konsern-Nr 1234 without specifying a language",
+      "when": "the message-lookup module (F7918030) searches the cached copy table and, if still not found, the DB2 table",
+      "then": "the language defaults to 'NO' (line 282-287), and the search is retried in this order until a match is found: (1) Konsern 1234 + language as requested, (2) Konsern 0000 + same language, (3) Konsern 1234 + language 'NO', (4) Konsern 0000 + language 'NO' (lines 316-348); the cache (D200-Les-Copy) is always tried before DB2 (D300-Les-DB2, mirrored logic at lines 429-475)",
+      "parameters": "Default language code = 'NO' (hardcoded, line 284); default/wildcard organization qualifier = 0 (hardcoded, e.g. line 322)",
+      "edgeCases": [
+        "If the cache lookup returns 'not found' (Return-Error), the same 4-step cascade is repeated against DB2 (D300-Les-DB2, lines 429-475) before ultimately reporting 'message code not found' (lines 363-370)",
+        "A severe/abend condition during the cache search short-circuits the cascade entirely (lines 353-360)"
+      ],
+      "confidence": "High",
+      "rejectionReason": "refuted: Read legacy/TFR12/src/F7918030.src (symlinked to legacy/STG/TFR12/src/F7918030.src in this workspace), lines 260-489, covering the cited D100-Les-Feilmelding (279-348) plus D200-Les-Copy/D210-Search and the mirrored D300-Les-DB2/D310-SQL for context.\n\nPart of the rule IS confirmed: the default-language-to-'NO' behavior is real. Line 282-287:\n  If R7918030-In-Spraak = Space Then Move 'NO' To W-Spraak Else Move R7918030-In-Spraak To W-Spraak.\nThis does default the requested language to 'NO' when the caller supplies spaces.\n\nHowever, the described four-step Konsern-qualified cascade (\"(1) Konsern 1234 + lang, (2) Konsern 0000 + lang, (3) Konsern 1234 + 'NO', (4) Konsern 0000 + 'NO'\") does NOT actually execute as described, because the code that would populate the search key with the caller's Konsern-Nr is commented out (dead) at every occurrence:\n  - src/F7918030.src:308  `*    Move  W-Konsern-Nr  To  W-R791ERDC-Konsern-Nr` (comment, copy-table key build)\n  - src/F7918030.src:324, 345 (comments repeating the same dead move inside the fallback branches)\n  - src/F7918030.src:434, 450, 471 (same dead move for the DB2 path, FD-Konsern-Nr)\n\nInstead, the organization qualifier actually used in the key (W-R791ERDC-FK-OAKO-ID / FK-OAKO-ID) is unconditionally forced to 0 on the very FIRST search attempt, before the caller's Konsern-Nr is ever consulted:\n  - src/F7918030.src:309  `Move 0 To W-R791ERDC-FK-OAKO-ID` (first copy-table attempt)\n  - src/F7918030.src:435  `Move 0 To FK-OAKO-ID` (first DB2 attempt)\n\nBecause of this, the \"drop organization qualifier\" fallback guards can never fire \u2014 they test `W-R791ERDC-FK-OAKO-ID Not = 0` (line 321) and `FK-OAKO-ID Not = 0` (line 447), but the value is already 0 from the very first attempt, so these branches (lines 320-326 and 446-452) are unreachable dead code. The same is true of the \"both defaults\" branch, which additionally requires `FK-OAKO-ID Not = 0` (lines 340, 466) \u2014 also unreachable. `W-Konsern-Nr` (set from the caller's input at line 279) is computed but never actually used anywhere downstream; it is a dead/orphaned variable in the currently active code.\n\nThe net effect: in practice only two lookup attempts ever run \u2014 (1) org=0 + requested language, and (2) org=0 + language 'NO' (only if attempt 1 failed and the requested language wasn't already 'NO', per lines 330-335 / 456-460). There is no attempt that actually searches using the caller's real Konsern-Nr (e.g. 1234); the org/Konsern qualifier is effectively always the wildcard 0 by construction, not by a genuine relaxation cascade. This makes the rule's central claim about a Konsern-qualified 4-step cascade inaccurate \u2014 it describes a search strategy the source code was apparently designed for (per the comments and variable names) but does not currently execute, since the qualifying move was commented out. The cache-before-DB2 ordering (D200 before D300, confirmed by lines 291-298) and the mirrored structure at D300/D310 (429-475) are accurately described.\n\nNo instruction-shaped or AI-directed text was found in the cited region; the discrepancy is ordinary dead/commented-out legacy code, not a prompt-injection attempt."
+    },
+    {
+      "name": "Mandatory composite key required before mutating a Trade Finance reference/charge record",
+      "category": "Validation",
+      "priority": "P1",
+      "source": "src/F115IPC0.src:946-1086",
+      "plainEnglish": "Before a Part_Charge (or similar reference/charge sub-table) record can be updated, every component of its natural key must be resolvable \u2014 either already present on the stored row or supplied on the input \u2014 otherwise the update is rejected with a specific '...-MISSING' error and no database change is made.",
+      "given": "An Update request against TF_Part_Charge where the stored row has no Fin-Inst-ID and the caller supplies neither Fin-Inst-ID nor a resolvable Fin-Inst-No",
+      "when": "H100-Check-Qualification evaluates each key component in turn (Fin-Inst, Contract-Type, Contract-No, CA-Currency, PA-Seq-No, Role-Type, CT-Type/Charge-Type)",
+      "then": "the first missing component causes Return-Error to be set with message code 'TF-FIN-INST-MISSING' (or 'TF-CONTRACT-MISSING' / 'TF-PART-AMOUNT-MISSING' / 'TF-ROLE-MISSING' / 'TF-CHARGE-MISSING' for the respective component), and H200-Update-Row is never reached",
+      "parameters": "Error codes: TF-FIN-INST-MISSING, TF-CONTRACT-MISSING, TF-PART-AMOUNT-MISSING, TF-ROLE-MISSING, TF-CHARGE-MISSING (src/F115IPC0.src:970-1084)",
+      "edgeCases": [
+        "A supplied Fin-Inst-No (institution number) is resolved to a Fin-Inst-ID via a lookup (N100-Fetch-Fin-Inst-ID) rather than being trusted directly, mirroring the pattern used across all Trade Finance DAL modules",
+        "The identical mandatory-key-completion pattern recurs for other tables with different key shapes: TF_Sys_Code (2-3 key parts: ST-Type, Fin-Inst, Contract-Type, SC-Code) at src/F115ISC0.src:739-813, and TF_Sys_Code_Rel \u2014 a code-to-code relationship record \u2014 which additionally requires BOTH a 'from' key and a 'to' key (each: ST-Type, Fin-Inst, Contract-Type, SC-Code) plus a Relation-Type before an update is permitted, at src/F115ISR0.src:945-1144 (error codes TF-TYPE-MISSING, TF-FININST-MISSING, TF-CONTRTY-MISSING, TF-CODE-MISSING, TF-RELATION-MISSING)"
+      ],
+      "confidence": "High",
+      "rejectionReason": "refuted: The cited H100-Check-Qualification section (legacy/STG/TFR12/src/F115IPC0.src:946-1086) does correctly check the seven key components in order and set the stated '...-MISSING' error codes and R7919999-Return-Error when a component cannot be resolved (e.g. TF-FIN-INST-MISSING at 970-975, TF-CONTRACT-MISSING at 989-994/1007-1013, TF-PART-AMOUNT-MISSING at 1026-1033/1044-1050, TF-ROLE-MISSING at 1062-1067, TF-CHARGE-MISSING at 1078-1083). However, the rule's central claim -- that this causes rejection and 'H200-Update-Row is never reached' -- is false. The caller, H000-Update (legacy/STG/TFR12/src/F115IPC0.src:934-944), unconditionally performs H100-Check-Qualification, then G100-Move-Input-To-DCL, then H200-Update-Row in sequence with no IF/EVALUATE gate on R7919999-Return-Error between them. H200-Update-Row itself (F115IPC0.src:1089-1115) also does not re-check Return-Error before issuing the actual update Call 'F115IPCU' (F115IPC0.src:1097-1100). C000-Interface (F115IPC0.src:346-347) simply calls Perform H000-Update with no post-check either. By contrast, F000-Select (F115IPC0.src:750-802) does use explicit IF gating after its own qualification step, showing the authors knew how to gate control flow when intended -- that pattern is absent here. So the missing-key detection and message codes are real, but the enforcement/rejection behavior described (blocking H200-Update-Row and preventing a database mutation) is not implemented in this file; the update call proceeds regardless of the flag set in H100. No instruction-shaped or injected text was found in the cited region."
+    }
+  ],
+  "unverifiedRules": [],
+  "rerunModules": [],
+  "dataObjects": [
+    {
+      "name": "RTFRE120 (TFR12-V01) \u2014 Service Input/Output Record",
+      "source": "legacy/STG/TFR12/copybooks/RTFRE120.copy:18",
+      "fields": [
+        {
+          "name": "RTFRE120-I-Fin-Inst-No-D",
+          "type": "X(18)",
+          "note": "Mandatory input (checked FTFRK120.src:155-161)."
+        },
+        {
+          "name": "RTFRE120-I-Contract-Type-D",
+          "type": "X(3)",
+          "note": "Mandatory input (FTFRK120.src:163-173); drives GL/applicability classification via TF_Sys_Code lookup."
+        },
+        {
+          "name": "RTFRE120-I-Contract-No-D",
+          "type": "9(7)",
+          "note": "Mandatory (FTFRK120.src:175-183); must be numeric if present (FTFRK120.src:597-610)."
+        },
+        {
+          "name": "RTFRE120-I-Part-Amount-No-D",
+          "type": "9(2)",
+          "note": "Optional; must be numeric if present (FTFRK120.src:612-626); presence toggles Main-only vs Main+Part charge scope (F115L070.src:234-249)."
+        },
+        {
+          "name": "RTFRE120-I-Operation-Type-D",
+          "type": "X(20)",
+          "note": "Mandatory (FTFRK120.src:185-195); values SHOW-AGENT (FTFRL120.src:236,292) and ACCEPT-ILC (FTFRL120.src:1021) trigger special-case handling."
+        },
+        {
+          "name": "RTFRE120-O-Last-Saved-Date-D / O-Agent-Commission-D / O-Total-Ch-Buyer-D / O-Total-Ch-Seller-D / O-Tot-Ch-*-Cr*-D",
+          "type": "X(26) / 9(14)V9(3)",
+          "note": "Output-only fields; rejected if supplied as input (FTFRK120.src:250-352)."
+        },
+        {
+          "name": "RTFRE120-O-Charge-Type-T / O-Charge-Amount-T / O-Currency-T / O-Paying-Party-T / O-Percent-Comm-T / O-Selected-T (Occurs 50)",
+          "type": "table, 20 X(20)/9(14)V9(3)/etc.",
+          "note": "Output charge list, one row per charge type; populated from R115L070/WA-Charge working storage in FTFRL120."
+        },
+        {
+          "name": "RTFRE120-O-Period-D / B-Read-From-D / B-Read-To-D",
+          "type": "9(2)/9(4)",
+          "note": "Optional identifier fields validated numeric if present (FTFRK120.src:628-667)."
+        }
+      ],
+      "consumedBy": [
+        "Mandatory input fields for charge inquiry",
+        "Output fields cannot be supplied as input",
+        "Numeric format for optional identifier fields",
+        "SHOW-AGENT operation bypasses normal charge listing",
+        "ACCEPT-ILC special charge-row consolidation",
+        "Buyer/seller charge totals split by credit routing",
+        "Mandatory composite natural key to identify a Trade Finance contract/charge record, with Institution-ID resolvable from Institution-Number"
+      ]
+    },
+    {
+      "name": "R400CH01-STG-Header",
+      "source": "legacy/STG/TFR12/copybooks/R400CH02.copy:23",
+      "fields": [
+        {
+          "name": "R400CH01-Status-Code",
+          "type": "X(02)",
+          "note": "88-levels OK(spaces)/Warning(AW)/Error(AE)/Severe-Error(AS) (R400CH02.copy:81-85); set by Z600/Z700/Z800/Z900 paragraphs in FTFRK120.src:875-975."
+        },
+        {
+          "name": "R400CH01-Message-Code / Message-Key / Message-Data",
+          "type": "X(30)/X(10)/X(60)",
+          "note": "Populated on every validation failure, e.g. FTFRK120.src:157-160."
+        },
+        {
+          "name": "R400CH01-Fininst-Id / Fininst-Id-Data",
+          "type": "9(18)",
+          "note": "Carries resolved institution id alongside header."
+        },
+        {
+          "name": "R400CH01-System-Date",
+          "type": "9(08)",
+          "note": "Used as G100-Read-Main-Contract / SW-Actual vs SW-Work switch input (FTFRL120.src:230-244) and as 'today' basis for org-unit style as-of lookups."
+        }
+      ],
+      "consumedBy": [
+        "Standard status-code lifecycle for the charge service",
+        "Mandatory input fields for charge inquiry",
+        "Output fields cannot be supplied as input",
+        "Contract data-version selection (Actual vs Work)"
+      ]
+    },
+    {
+      "name": "R7919999-Error-Area (Standard error/abend area)",
+      "source": "legacy/STG/TFR12/copybooks/R7919999.copy:16",
+      "fields": [
+        {
+          "name": "R7919999-Return-Code",
+          "type": "S9(01) Comp-3",
+          "note": "88-levels Return-OK(0,4,5)/Return-Warning(4,5)/Return-Error(1,2)/Return-Abend(9) (R7919999.copy:27-34); the four-state lifecycle every DBI and Servo module evaluates after each call."
+        },
+        {
+          "name": "R7919999-Module-Tab (Module-Name, Module-Para) Occurs 20",
+          "type": "X(08)/X(04)",
+          "note": "Abend call-stack trace, appended in Z900-Abend (FTFRK120.src:956-968)."
+        },
+        {
+          "name": "R7919999-Message",
+          "type": "X(80)",
+          "note": "Free-text error detail, e.g. F115L070.src Z000-Error-Message."
+        }
+      ],
+      "consumedBy": [
+        "Standard status-code lifecycle for the charge service",
+        "Charge inquiry requires the referenced contract/amount data to exist"
+      ]
+    },
+    {
+      "name": "R115ICA0-Contract-Amount (DBI: TF_Contract_Amount)",
+      "source": "legacy/STG/TFR12/copybooks/R115ICA0.copy:65",
+      "fields": [
+        {
+          "name": "R115ICA0-In-Table-Version",
+          "type": "X(16), 88 In-Actual/In-Work",
+          "note": "Actual vs Work version selector (R115ICA0.copy:103-105); read in F115L070.src:202-208, F115L150.src:309-314."
+        },
+        {
+          "name": "R115ICA0-Fin-Inst-ID / Contract-Type / Contract-No / Currency",
+          "type": "S9(18) Comp-3 / X(03) / S9(07) Comp-3 / X(03)",
+          "note": "Composite natural key."
+        },
+        {
+          "name": "R115ICA0-Original-Amount",
+          "type": "S9(14)V9(03) Comp-3",
+          "note": "Original contract amount field."
+        },
+        {
+          "name": "R115ICA0-Remaining-Amount",
+          "type": "S9(14)V9(03) Comp-3",
+          "note": "Outstanding balance; superseded by Curr-O-Amount for pct-of-CA calc (F115L060.src:1341-1361, comment 'Feilretting NDL, bel\u00f8p hentes fra curr-original amount')."
+        },
+        {
+          "name": "R115ICA0-Curr-O-Amount",
+          "type": "S9(14)V9(03) Comp-3",
+          "note": "Field actually used for percentage-of-contract-amount charges with no part amount, in place of Remaining-Amount (F115L060.src:1347-1361; F115L150.src:454-460)."
+        },
+        {
+          "name": "R115ICA0-Min-Pct-Tolerance / Max-Pct-Tolerance / Max-Amount",
+          "type": "S9(04) Comp / Comp-3",
+          "note": "Tolerance and DBI-computed max cap fields (R115ICA0.copy:149-156)."
+        }
+      ],
+      "consumedBy": [
+        "Contract data-version selection (Actual vs Work)",
+        "Percentage-of-contract-amount charges without a part amount are based on the original contract amount, not the outstanding balance",
+        "Percentage-based charge amount derived from Contract or Part Amount",
+        "Charge inquiry requires the referenced contract/amount data to exist",
+        "Charge currency is re-labelled to contract currency without recalculating the amount",
+        "Mandatory composite natural key to identify a Trade Finance contract/charge record, with Institution-ID resolvable from Institution-Number"
+      ]
+    },
+    {
+      "name": "R115ICH0-Main-Charge (DBI: TF_Main_Charge)",
+      "source": "legacy/STG/TFR12/copybooks/R115ICH0.copy:71",
+      "fields": [
+        {
+          "name": "R115ICH0-Fin-Inst-ID / Fin-Inst-No",
+          "type": "S9(18) Comp-3 / X(18)",
+          "note": "ID resolved from No via N100-Fetch-Fin-Inst-ID when only No supplied (F115ICH0.src:874-889)."
+        },
+        {
+          "name": "R115ICH0-Contract-Type / Contract-No",
+          "type": "X(03) / S9(07) Comp-3",
+          "note": "Part of composite key."
+        },
+        {
+          "name": "R115ICH0-Related-Party (CA-Currency, PA-Seq-No, RP-Role-Type)",
+          "type": "X(03)/S9(04) Comp/X(05)",
+          "note": "Composite key segment identifying payer role."
+        },
+        {
+          "name": "R115ICH0-Charge-Type / CH-Seq-No",
+          "type": "X(20)/S9(04) Comp",
+          "note": "Composite key tail."
+        },
+        {
+          "name": "R115ICH0-Charge-Amount / Currency / Charge-Pct / Charge-Text",
+          "type": "S9(14)V9(03) Comp-3 / X(03) / S9(03)V9(03) Comp-3 / X(30)",
+          "note": "Stored charge payload."
+        }
+      ],
+      "consumedBy": [
+        "Duplicate/conflicting charge detection between Main and Part charge records",
+        "Consistency between main and part charge records",
+        "Part-charge paying party overrides main-charge paying party",
+        "Mandatory composite natural key to identify a Trade Finance contract/charge record, with Institution-ID resolvable from Institution-Number",
+        "Charge record update requires a fully resolvable composite key (asymmetric with insert)",
+        "Charge computation scope follows whether a part amount is specified",
+        "Stored charge percentage back-derived when missing"
+      ]
+    },
+    {
+      "name": "R115IPC0-Part-Charge (DBI: TF_Part_Charge)",
+      "source": "legacy/STG/TFR12/copybooks/R115IPC0.copy:72",
+      "fields": [
+        {
+          "name": "R115IPC0-Fin-Inst-ID / Contract-Type / Contract-No",
+          "type": "S9(18) Comp-3 / X(03) / S9(07) Comp-3",
+          "note": "Composite key head."
+        },
+        {
+          "name": "R115IPC0-Part-Amount (CA-Currency, PA-Seq-No)",
+          "type": "X(03)/S9(04) Comp",
+          "note": "Ties charge to a specific part amount."
+        },
+        {
+          "name": "R115IPC0-Role-Type / Charge (CT-Type)",
+          "type": "X(05)/X(20)",
+          "note": "Composite key tail."
+        },
+        {
+          "name": "R115IPC0-Amount / Currency / Role-Paying-Pty / Charge-Pct / Charge-Text",
+          "type": "S9(14)V9(03) Comp-3 / X(03) / X(05) / S9(03)V9(03) Comp-3 / X(30)",
+          "note": "Role-Paying-Pty is a single field \u2014 only one payer per charge row."
+        }
+      ],
+      "consumedBy": [
+        "Duplicate/conflicting charge detection between Main and Part charge records",
+        "Consistency between main and part charge records",
+        "Part-charge paying party overrides main-charge paying party",
+        "Buyer/seller both charged is not allowed (single payer per charge)",
+        "Settlement/part-amount charges are summed, not recalculated"
+      ]
+    },
+    {
+      "name": "R115IPA0-Part-Amount (DBI: TF_Part_Amount)",
+      "source": "legacy/STG/TFR12/copybooks/R115IPA0.copy:73",
+      "fields": [
+        {
+          "name": "R115IPA0-Key (Fin-Inst-ID, Contract-ID, CA-Currency, PA-Seq-No)",
+          "type": "composite",
+          "note": "Composite natural key."
+        },
+        {
+          "name": "R115IPA0-Amount / Prev-Amount / Curr-Amount / Excess-Amount",
+          "type": "S9(14)V9(03) Comp-3",
+          "note": "Part-amount used as %-of-PA basis (F115L070.src:544-546; F115L060.src:1354-1356)."
+        },
+        {
+          "name": "R115IPA0-Incom-Swift",
+          "type": "X(01), 88 Incom-Yes/Incom-No/Has-Been-Settled('A')",
+          "note": "Has-Been-Settled flag (R115IPA0.copy:183) suppresses percentage recalculation (F115L060.src:604-628)."
+        },
+        {
+          "name": "R115IPA0-Status / In-Progress",
+          "type": "X(12)/X(01)",
+          "note": "Part-amount lifecycle status."
+        }
+      ],
+      "consumedBy": [
+        "Percentage-based charge amount derived from Contract or Part Amount",
+        "Settled part-amount suppresses recalculation of percentage-based charge",
+        "Charge computation scope follows whether a part amount is specified",
+        "Charge data scope depends on whether a part-amount is specified"
+      ]
+    },
+    {
+      "name": "R115IMC0-Main-Contract (DBI: TF_Main_Contract)",
+      "source": "legacy/STG/TFR12/copybooks/R115IMC0.copy:70",
+      "fields": [
+        {
+          "name": "R115IMC0-In-Table-Version",
+          "type": "X(16), 88 In-Actual/In-Work",
+          "note": "Actual/Work version selector."
+        },
+        {
+          "name": "R115IMC0-Key (Fin-Inst-ID, Customer-ID, Contract-Type, Contract-No)",
+          "type": "composite",
+          "note": "Composite natural key, ID resolvable from No (R115IMC0.copy:117-127 pattern)."
+        },
+        {
+          "name": "R115IMC0-Status / In-Progress",
+          "type": "X(12)/X(01)",
+          "note": "In-Progress-Yes drives SW-Work vs SW-Actual selection in FTFRL120.src:238-244."
+        },
+        {
+          "name": "R115IMC0-Availability",
+          "type": "X(01), 88 At-Sight/Deferred/Accept/Mixed",
+          "note": "Contract classification attribute."
+        }
+      ],
+      "consumedBy": [
+        "Contract data-version selection (Actual vs Work)",
+        "Mandatory composite natural key to identify a Trade Finance contract/charge record, with Institution-ID resolvable from Institution-Number",
+        "SHOW-AGENT operation bypasses normal charge listing"
+      ]
+    },
+    {
+      "name": "R115IHI0-History (DBI: TF_History, append-only)",
+      "source": "legacy/STG/TFR12/copybooks/R115IHI0.copy:60",
+      "fields": [
+        {
+          "name": "R115IHI0-In-Action",
+          "type": "X(16), 88 In-Get-1st/In-Get-Next/In-Insert/In-Delete only",
+          "note": "No In-Select or In-Update 88-level defined (R115IHI0.copy:69-73) \u2014 table cannot be selected/updated in place, only appended or (rarely) deleted."
+        },
+        {
+          "name": "R115IHI0-Key (Fin-Inst-ID, Contract-ID, Part-Amount, HI-Seq-No)",
+          "type": "composite",
+          "note": "Composite key including sequence number."
+        },
+        {
+          "name": "R115IHI0-Operation-Type / User-Id / Timestamp / Text",
+          "type": "X(20)/X(07)/X(26)/X(150)",
+          "note": "Audit-trail payload; Text is redefined for Agent-Text and SilentC-Text messages (R115IHI0.copy:153-171)."
+        }
+      ],
+      "consumedBy": [
+        "History records are append-only (no direct select or update)"
+      ]
+    },
+    {
+      "name": "R115ICT0-Sys-Charge-Type (DBI: TF_Sys_Charge_Type)",
+      "source": "legacy/STG/TFR12/copybooks/R115ICT0.copy:58",
+      "fields": [
+        {
+          "name": "R115ICT0-Key (Fin-Inst-Id, CT-Type, Regno)",
+          "type": "S9(18) Comp-3/X(20)/S9(04) Comp",
+          "note": "Lookup first tries Fin-Inst-Id; falls back to Regno if not found (F115L150.src:209-234)."
+        },
+        {
+          "name": "R115ICT0-Method-Calc",
+          "type": "X(01), 88 Part-Amount/Canceling/Settlement/Pct-Of-CA/Pct-Of-PA",
+          "note": "Drives all charge-computation branching (F115L070.src:498-634; F115L060.src:1341-1364)."
+        },
+        {
+          "name": "R115ICT0-Credit",
+          "type": "X(01), 88 Agent/Other-Bank/Own-Bank",
+          "note": "Credit routing basis for buyer/seller totals (F115L070.src:637-720; F115L060.src:1196-1249)."
+        },
+        {
+          "name": "R115ICT0-Paying-Pty",
+          "type": "X(06), 88 ANY/Buyer/Seller/GLACC/Agent-pty",
+          "note": "Combined with contract-type switches to derive fee-payer role (F115L060.src:499-560+)."
+        },
+        {
+          "name": "R115ICT0-Read-POP",
+          "type": "X(01), 88 Read-POP-Yes(space)/Read-POP-No('N')",
+          "note": "Opt-out flag for party-specific price override lookup (F115L060.src:1097-1101)."
+        },
+        {
+          "name": "R115ICT0-GL-Coll-Acc / GL-ELC-Acc / GL-ILC-Acc / GL-E-Coll-Acc / GL-GAR-Acc / PPFT-Code / Branch-Code / Split-Pct",
+          "type": "S9(11) Comp-3 / X(06) / S9(05) Comp-3 / S9(03)v9(2) Comp-3",
+          "note": "GL account and applicability configuration, keyed by contract type via TF_Sys_Code classification."
+        }
+      ],
+      "consumedBy": [
+        "Contract-type classification for GL account and applicability rules",
+        "Charge-type configuration falls back from institution-specific to registration-number-specific",
+        "Party-specific charge price override (POP) is priced as of today's processing date, not the contract date, unless the charge type opts out",
+        "Fee-payer role determined by contract type and charge role category",
+        "Percentage-based charge amount derived from Contract or Part Amount",
+        "Minimum/maximum charge caps with percentage recomputation",
+        "Buyer/seller charge totals split by credit routing",
+        "Settlement/part-amount charges are summed, not recalculated"
+      ]
+    },
+    {
+      "name": "R115ISC0-Sys-Code (DBI: TF_Sys_Code)",
+      "source": "legacy/STG/TFR12/copybooks/R115ISC0.copy:54",
+      "fields": [
+        {
+          "name": "R115ISC0-Key (ST-Type, Fin-Inst-Id, Contr-Type, SC-Code)",
+          "type": "X(20)/S9(18) Comp-3/X(03)/X(20)",
+          "note": "ST-Type='CONTRACT-TYPE' used to classify contracts (F115L150.src:172-186)."
+        },
+        {
+          "name": "R115ISC0-Property (redefined: Contract-Name, Contr-Imp-Exp, Range-Type, Product-No, Product-Seq-No, ...)",
+          "type": "X(80) redefined group",
+          "note": "Product-No/Product-Seq-No drive product-pricing lookup key (F115L150.src:263-273)."
+        }
+      ],
+      "consumedBy": [
+        "Contract-type classification for GL account and applicability rules",
+        "System-Code update key validation is unintentionally bypassed when Contract-Type is already known",
+        "Fee-payer role determined by contract type and charge role category"
+      ]
+    },
+    {
+      "name": "R115ISR0-Sys-Code-Rel (DBI: TF_Sys_Code_Rel, create/delete only)",
+      "source": "legacy/STG/TFR12/copybooks/R115ISR0.copy:55",
+      "fields": [
+        {
+          "name": "R115ISR0-In-Action",
+          "type": "X(16), 88 In-Get-1st/In-Get-Next/In-Select/In-Insert/In-Delete",
+          "note": "88 In-Update is commented out (R115ISR0.copy:69: '*  88 R115ISR0-In-Update Value ''UPDATE''.') \u2014 no update path exists."
+        },
+        {
+          "name": "R115ISR0-From (ST-Type, Contr-Type, SC-Code) / To (ST-Type, Contr-Type, SC-Code) / Relation-Type",
+          "type": "X(20)/X(03)/X(20)",
+          "note": "Maps e.g. Operation-Type to permissible Charge-Type (consumed in F115L060.src:484-560, D000-Read-Permissible-Charges)."
+        }
+      ],
+      "consumedBy": [
+        "System code relationship records (e.g. valid Operation-Type to Charge-Type mappings) can only be created or removed, never updated",
+        "Fee-payer role determined by contract type and charge role category"
+      ]
+    },
+    {
+      "name": "R349IPP0-Prod-Tjen-Pris (DBI: PP_Prod_Tjen_Pris, product pricing)",
+      "source": "legacy/STG/TFR12/copybooks/R349IPP0.copy:55",
+      "fields": [
+        {
+          "name": "R349IPP0-Prisbelop / Prisprosent",
+          "type": "S9(7)V9(2) Comp-3 / S9(2)V9(3) Comp-3",
+          "note": "Flat-amount and percentage price; both non-zero is rejected as 'TF-SY-INVALID-CONTENT-TAB-VAR1' (F115L150.src:392-411)."
+        },
+        {
+          "name": "R349IPP0-Ovre-Prisbelop / Ovre-Prispst / Nedre-Prisbelop / Nedre-Prispst",
+          "type": "S9(7)V9(2)/S9(2)V9(3) Comp-3",
+          "note": "Upper/lower price band bounds; used in graduated pricing loop (F115L150.src:463-519)."
+        },
+        {
+          "name": "R349IPP0-Gyldig-Til-Belop / Gyldig-Fra-Dato / Gyldig-Til-Dato",
+          "type": "S9(9) Comp/Comp-3",
+          "note": "Amount-band and validity-date qualification for tiered pricing rows."
+        },
+        {
+          "name": "R349IPP0-Minimumpris / Maksimumpris",
+          "type": "S9(9) Comp",
+          "note": "Min/max charge caps carried through to WS-POP-Min/Max-Charge."
+        }
+      ],
+      "consumedBy": [
+        "Product pricing must define either a flat amount or a percentage, not both",
+        "Graduated/tiered percentage pricing across amount bands",
+        "Product pricing amounts are converted from the bank's base currency to the contract currency",
+        "Party-specific charge price override (POP) is priced as of today's processing date, not the contract date, unless the charge type opts out"
+      ]
+    },
+    {
+      "name": "R116L030-Currency-Xchange (currency conversion utility, LMOD VA)",
+      "source": "legacy/STG/TFR12/copybooks/R116L030.copy:67",
+      "fields": [
+        {
+          "name": "R116L030-In-From-Currency / In-To-Currency",
+          "type": "X(03), 88 Basic-Cur('***')",
+          "note": "F115L150.src:471-479/541-547 sets From=Basic-Cur (bank base currency), To=contract currency (R115ICA0-Currency)."
+        },
+        {
+          "name": "R116L030-In-From-Amount / To-Amount",
+          "type": "S9(14)V9(03) Comp-3",
+          "note": "Converted product-pricing amount."
+        },
+        {
+          "name": "R116L030-In-Which-Rate",
+          "type": "X(01), 88 Use-Parameter/Buy/Sell/Hist-Rate",
+          "note": "Rate-selection qualifier."
+        }
+      ],
+      "consumedBy": [
+        "Product pricing amounts are converted from the bank's base currency to the contract currency"
+      ]
+    },
+    {
+      "name": "R115L060-Comp-Charge (internal working record: Charge Listing/Computation, 'as-stored')",
+      "source": "legacy/STG/TFR12/copybooks/R115L060.copy:18",
+      "fields": [
+        {
+          "name": "R115L060-In-PA-Seq-No",
+          "type": "S9(04) Comp",
+          "note": "Zero => read TF_Main_Charge only; non-zero => read TF_Part_Charge (R115L060.copy comment lines 6-9; F115L060.src:604-630)."
+        },
+        {
+          "name": "R115L060-Charge-Element (Occurs 50): Charge-Type, Charge-Method-Calc(88s), Charge-Role-Type(88 Seller/Buyer), Charge-Amount, Charge-Percentage, Maximum-Charge, Minimum-Charge, Charge-Credit(88 Agent/Other/Own-Bank)",
+          "type": "table",
+          "note": "Seller = DRWER/BENEF; Buyer = DRWEE/ISSUI/CUSTM/spaces (R115L060.copy:74-80)."
+        },
+        {
+          "name": "R115L060-Totals-Seller / Totals-Buyer (Ch-*-Cred-Agent/T-Bank/W-Bank, Total-Charge-*)",
+          "type": "S9(14)V9(3) Comp-3 group",
+          "note": "Per-payer, per-credit-route accumulators."
+        },
+        {
+          "name": "R115L060-Totals-Agent (Tot-Agent-Commission)",
+          "type": "S9(14)V9(3) Comp-3",
+          "note": "Agent commission total."
+        }
+      ],
+      "consumedBy": [
+        "Percentage-based charge amount derived from Contract or Part Amount",
+        "Minimum/maximum charge caps with percentage recomputation",
+        "Duplicate/conflicting charge detection between Main and Part charge records",
+        "Consistency between main and part charge records",
+        "Part-charge paying party overrides main-charge paying party",
+        "Buyer/seller both charged is not allowed (single payer per charge)",
+        "Buyer/seller charge totals split by credit routing",
+        "Settlement/part-amount charges are summed, not recalculated",
+        "Percentage-of-contract-amount charges without a part amount are based on the original contract amount, not the outstanding balance",
+        "Settled part-amount suppresses recalculation of percentage-based charge",
+        "Charge currency is re-labelled to contract currency without recalculating the amount",
+        "Fee-payer role determined by contract type and charge role category",
+        "Charge computation scope follows whether a part amount is specified",
+        "Charge data scope depends on whether a part-amount is specified",
+        "Stored charge percentage back-derived when missing"
+      ]
+    },
+    {
+      "name": "R115L070-Comp-Charge (internal/external record: Charge Listing for presentation & input reversal)",
+      "source": "legacy/STG/TFR12/copybooks/R115L070.copy:23",
+      "fields": [
+        {
+          "name": "R115L070-In-Action",
+          "type": "X(16), 88 In-Add/In-Subtract",
+          "note": "Add = figures for display/settlement; Subtract = modify end-user input for DB update (R115L070.copy:5-19; F115L070.src:123-180)."
+        },
+        {
+          "name": "R115L070-Charge-Element (Occurs 50): Charge-Type, Charge-Method-Calc, Charge-Role-Type, Charge-Amount, Charge-Percentage, Maximum-Charge, Minimum-Charge, Charge-Credit",
+          "type": "table",
+          "note": "Same shape as R115L060 but merged/adjusted figures, not raw DB values."
+        },
+        {
+          "name": "R115L070-Totals-Seller / Totals-Buyer / Totals-Agent",
+          "type": "S9(14)V9(3) Comp-3 group",
+          "note": "Consumed directly by FTFRL120 to populate RTFRE120-O-Total-Ch-*."
+        }
+      ],
+      "consumedBy": [
+        "Subtracting already-stored charges when reversing input, floored at zero",
+        "Settlement/part-amount charges are summed, not recalculated",
+        "Percentage-based charge amount derived from Contract or Part Amount",
+        "Minimum/maximum charge caps with percentage recomputation",
+        "ACCEPT-ILC special charge-row consolidation",
+        "Buyer/seller charge totals split by credit routing"
+      ]
+    },
+    {
+      "name": "R115L150-TF-POP (Read POP / party-specific price override result)",
+      "source": "legacy/STG/TFR12/copybooks/R115L150.copy:9",
+      "fields": [
+        {
+          "name": "R115L150-In-Table-Version",
+          "type": "X(16), 88 In-Actual/In-Work",
+          "note": "Actual/Work selector passed through from caller."
+        },
+        {
+          "name": "R115L150-In-Valid-Date",
+          "type": "S9(09) Comp-3",
+          "note": "Set to R7919070-Ut-Dato (today) in F115L060.src:1278, or R400CH01-System-Date in FTFRL120.src:991 \u2014 always 'today', never contract date."
+        },
+        {
+          "name": "R115L150-Default-Charge (Percent-Comm, Charge-Amount, Currency)",
+          "type": "S9(02)V9(03)/S9(14)V9(03) Comp-3/X(03)",
+          "note": "Resolved override price."
+        },
+        {
+          "name": "R115L150-Max-Min-Charge (Maximum-Charge, Minimum-Charge)",
+          "type": "S9(14)V9(03) Comp-3",
+          "note": "Converted min/max caps."
+        }
+      ],
+      "consumedBy": [
+        "Party-specific charge price override (POP) is priced as of today's processing date, not the contract date, unless the charge type opts out",
+        "Contract data-version selection (Actual vs Work)"
+      ]
+    },
+    {
+      "name": "R7919100-Konverter-Dato (date-format conversion utility)",
+      "source": "legacy/STG/TFR12/copybooks/R7919100.copy:34",
+      "fields": [
+        {
+          "name": "R7919100-In-Glidende-Vindu (In-Aar-Frem-I-Tid)",
+          "type": "9(02)",
+          "note": "'Sliding window' for two-digit-year century resolution; default 49 years before / 50 years after today (R7919100.copy:115-121); implemented in F7919100.src F000-Glidende-Vindu (invoked at F7919100.src:548)."
+        },
+        {
+          "name": "R7919100-In-Dato-AMD9/DMA9/AMD7/DMA7/JUL/DB2/A4D3/A2D3",
+          "type": "various Comp-3/X",
+          "note": "Multi-format date input."
+        },
+        {
+          "name": "R7919100-Ut-Dato-* (same format set)",
+          "type": "various",
+          "note": "When all input dates are zero, output AMD9 is forced to sentinel '00010101' rather than aborting (F7919100.src:498-513)."
+        }
+      ],
+      "consumedBy": [
+        "Sliding-window century determination for two-digit-year dates",
+        "Sub-minimum input date normalized to sentinel null date"
+      ]
+    }
+  ],
+  "injectionFlags": [
+    "src/FTFRH120.src:10 - comment \"THIS MODULE MUST NOT BE MODIFIED BY HUMAN HANDS !!!\" is a generic codegen convention warning, not an instruction to this analysis; noted but not followed.",
+    "src/FTFRL120.src:11-12 and src/FTFRK120.src:11-12 - comment \"Kode between <META> and </META> tags must not be modified. Do your modifications in the specified user sections!\" is a standard code-generator boilerplate directive aimed at COBOL developers, not at automated analysis; noted but not followed.",
+    "src/FTFRH120.src:10 \u2014 comment reads \"THIS MODULE MUST NOT BE MODIFIED BY HUMAN HANDS !!!\"; instruction-shaped text aimed at maintainers/tooling, not acted upon, reported per protocol."
+  ],
+  "stats": {
+    "confirmed": 39,
+    "rejected": 7,
+    "unverified": 0,
+    "p0": 7,
+    "needsSme": 19,
+    "agents": 93,
+    "consolidated": 20,
+    "modules": 0,
+    "batches": 0,
+    "skippedModules": [],
+    "failedModules": [],
+    "droppedModules": [],
+    "skippedPhases": []
+  }
+}

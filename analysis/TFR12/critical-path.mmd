@@ -1,0 +1,13 @@
+flowchart TD
+    A["Request enters service<br/>FTFRH120"] --> B["Input validated<br/>(mandatory fields, permitted values,<br/>institution check) — FTFRK120"]
+    B --> C["Business logic reads contract<br/>FTFRL120 -> F115IMC0, F115ICA0, F115ICH0"]
+    C --> D["Charges listed & amounts computed<br/>per method-of-calculation<br/>F115L060 -> F115L070 -> F115L150"]
+    D --> E["Access codes & history resolved<br/>F115ISC0, F115ISR0, F115IHI0"]
+    E --> F["Response assembled & returned<br/>FTFRL120 -> FTFRH120"]
+
+    C -.->|"on error"| G["GSM error handler<br/>F7918030 (reads PO_Feilmelding)"]
+    G -.->|"if trace on"| H["Trace written to MQ<br/>F791TRAC"]
+    G -.-> F
+
+    %% No production telemetry was available for this assessment (see
+    %% ASSESSMENT.md, Production Runtime Profile) — no p50/p99 timings to overlay.

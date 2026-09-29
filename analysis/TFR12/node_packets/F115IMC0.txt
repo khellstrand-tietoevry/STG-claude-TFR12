@@ -1,0 +1,167 @@
+# Node packet: F115IMC0
+Kind: module
+Domain: Charge/Contract DBI Layer
+Entry point: False
+LOC (full file): 1458
+
+## First 150 lines of src/F115IMC0.src (header + start of Data Division)
+       Identification Division.                                         00010000
+       Program-ID. F115IMC0.                                            00020000
+       Author.  Henning Langfeldt Rødland.                              00030000
+      *################################################################*00040000
+      *                                                                 00050000
+      * FD Trade Finance                                                00060000
+      *                                                                 00070000
+      * Interface for all database access on table TF_Main_Contract.    00080000
+      *                                                                 00090000
+      * NB!  There are several key-fields, which may be used            00100000
+      *      differently depending on the need.                         00110000
+      *                                                                 00120000
+      * The interface kan read one spesific occurence,                  00130000
+      * or several occurences, fully or partly qualified with           00140000
+      * from- and to- values.                                           00150000
+      *                                                                 00160000
+      * When reading several occurences, one must always start with     00170000
+      * -In-Get-1st, and continue with -In-Get-Next.                    00180000
+      *                                                                 00190000
+      *                                                                 00200000
+      * An ordinary Select call may look like this:                     00210000
+      *                                                                 00220000
+      *    Initialize                          R115IMC0-Main-Contract   00230000
+      *    Set   R115IMC0-Version        To    True                     00240000
+      *    Set   R115IMC0-In-Select      To    True                     00250000
+      *                                                                 00260000
+      * One of these:                                                   00270000
+      * 1) Set   R115IMC0-In-Actual      To    True                     00280000
+      * 2) Set   R115IMC0-In-Work        To    True                     00290000
+      *                                                                 00300000
+      *    Move  &fin-inst-id            To    R115IMC0-In-Fin-Inst-ID  00310000
+      *    Move  &contract-type          To    R115IMC0-In-Contract-Type00320000
+      *    Move  &contract-no            To    R115IMC0-In-Contract-No  00330000
+      *                                                                 00340000
+      *    Call  'F115IMC0'              Using R115IMC0-Main-Contract   00350000
+      *                                        R7919999-Error-Area      00360000
+      *    End-Call                                                     00370000
+      *                                                                 00380000
+      *    Evaluate True                                                00390000
+      *      When R7919999-Return-Abend                                 00400000
+      *        Move  '&&&&'              To    R7919999-Paragraph       00410000
+      *        Perform Z900-Abend                                       00420000
+      *                                                                 00430000
+      *      When R7919999-Return-Error                                 00440000
+      *        ...not found...                                          00450000
+      *                                                                 00460000
+      *      When R7919999-Return-OK                                    00470000
+      *        ...found...                                              00480000
+      *                                                                 00490000
+      *    End-Evaluate                                                 00500000
+      *                                                                 00510000
+      *################################################################*00520000
+      * Date ! Si! Change description                            ! 3A ! 00530000
+      *------+---+-----------------------------------------------+----+ 00540000
+      *050927!NDL! Added cursor, use-None                        !NA35! 00541000
+      *030703!NDL! Added -Silent-Comfirmation                    !LY15! 00541100
+      *230401!NDL! Added -Incom-Swift                            !LT12! 00541200
+      *130201!HLR! Added cursor C-FI-CN-Asc.                     !    ! 00541300
+      *090201!HLR! Tuning - Removed cursor C-FI-CN-Asc.          !    ! 00541400
+      *      !   !        - Removed cursor C-FI-CU-CN-Asc.       !    ! 00541500
+      *190600!HLR! Removed cursors CT, CN and CT-CN (3, 4 and 9).!LO18! 00541600
+      *      !   ! Changed cursor-qual. on TFMC_Contr_Type       !    ! 00541700
+      *      !   ! from "Like" to "=".                           !    ! 00541800
+      *      !   ! Cursor CU changed to FI-CU.                   !    ! 00541900
+      *      !   ! Cursor CU-CT changed to FI-CU-CT.             !    ! 00542000
+      *      !   ! Cursor CU-CN changed to FI-CU-CN.             !    ! 00543000
+      *      !   ! Cursor CU-CT-CN changed to FI-CU-CT-CN.       !    ! 00544000
+      *      !   ! Removed interval on contract-no.              !    ! 00545000
+      *110899!HLR! Added cursor -Fi-CT-ST.                       !LG10! 00546000
+      *290199!HLR! New module                                    !LG10! 00547000
+      *################################################################*00548000
+       Environment Division.                                            00549000
+       Configuration Section.                                           00550000
+       Special-Names.                                                   00560000
+           Decimal-Point Is Comma.                                      00570000
+      *                                                                 00580000
+      *################################################################*00590000
+       Data Division.                                                   00600000
+       Working-Storage Section.                                         00610000
+      *                                                                 00620000
+       01  Filler.                                                      00630000
+      *                                                                 00640000
+           05  W-Table-Name              Pic  X(18) Value               00650000
+                                                   'TF_Main_Contract  '.00660000
+             88  SW-Table-Actual             Value 'TF_Main_Contract  '.00670000
+             88  SW-Table-Work               Value 'TF_Work_MC        '.00680000
+      *                                                                 00690000
+           05  W-IO-Length               Pic S9(04)              Comp.  00700000
+           05  W-Tally                   Pic S9(05)              Comp.  00710000
+      *                                                                 00720000
+           05  WD-Length                 Pic  Z.ZZ9.                    00730000
+      *                                                                 00740000
+           05  Ind-WS-Put                Pic S9(04)              Comp.  00750000
+           05  Ind-WS                    Pic S9(04)              Comp.  00760000
+           05  W-Max-Occ-WS-Tab          Pic S9(04)              Comp.  00770000
+      *                                                                 00780000
+           05  Filler.                                                  00790000
+               10  WD-Fin-Inst-ID        Pic  zzzzzzzzzzzzzzzzz9.       00800000
+               10  WD-Contr-No           Pic  9999999.                  00810000
+      *                                                                 00820000
+           05  Filler.                                                  00830000
+               10  W-Fin-Inst-No         Pic  X(18).                    00840000
+               10  W-Fin-Inst-ID         Pic  9(18)              Comp-3.00850000
+               10  W-Customer-No         Pic  9(11)              Comp-3.00860000
+               10  W-Customer-ID         Pic  9(11)              Comp-3.00870000
+      *                                                                 00880000
+           05  W-Input-Action            Pic  X(10).                    00890000
+             88  SW-IA-Initialize                   Value 'INITIALIZE'. 00900000
+      *                                                                 00910000
+      *    This field is needed because of the old interfaces used to   00920000
+      *    access Fin-Inst-ID and Customer ID.                          00930000
+           05  W-Tmp-Konsern-Nr          Pic  9(04).                    00940000
+      *                                                                 00950000
+      *----------------------------------------------------------------*00960000
+      * Counters, used on cursor read, to return row no. and total      00970000
+      * no. of rows.                                                    00980000
+      * Total no. of rows is only returned when -In-Count is set on     00990000
+      * the Get-1st-call.                                               01000000
+      *                                                                 01010000
+           05  WC-Counters.                                             01020000
+               10  WC-Row-No             Pic S9(11)              Comp-3.01030000
+               10  WC-Total-No-Of-Rows   Pic S9(11)              Comp-3.01040000
+      *                                                                 01050000
+      *----------------------------------------------------------------*01060000
+      * Switches used for selecting the correct cursor:                 01070000
+      *                                                                 01080000
+           05  SW-Cursor-Code.                                          01090000
+               10  SW-CC-Fin-Inst        Pic  X(01).                    01100000
+                 88  SW-Use-Fin-Inst                Value 'F'.          01110000
+               10  SW-CC-Customer        Pic  X(01).                    01120000
+                 88  SW-Use-Customer                Value 'C'.          01130000
+               10  SW-CC-Contract-Type   Pic  X(01).                    01140000
+                 88  SW-Use-Contract-Type           Value 'T'.          01150000
+               10  SW-CC-Contract-No     Pic  X(01).                    01160000
+                 88  SW-Use-Contract-No             Value 'N'.          01170000
+               10  SW-CC-Status          Pic  X(01).                    01180000
+                 88  SW-Use-Status                  Value 'S'.          01190000
+      *                                                                 01200000
+           05  Filler                    Redefines SW-Cursor-Code       01210000
+                                         Pic  X(05).                    01220000
+             88  SW-Use-Fi-Asc                      Value 'F    '.      01230000
+             88  SW-Use-Fi-Cu-Asc                   Value 'FC   '.      01240000
+             88  SW-Use-Fi-CT-Asc                   Value 'F T  '.      01250000
+             88  SW-Use-Fi-CN-Asc                   Value 'F  N '.      01260000
+             88  SW-Use-Fi-Cu-CT-Asc                Value 'FCT  '.      01270000
+             88  SW-Use-Fi-CT-CN-Asc                Value 'F TN '.      01280000
+             88  SW-Use-Fi-CT-ST-Asc                Value 'F T S'.      01290000
+             88  SW-Use-Fi-Cu-CT-CN-Asc             Value 'FCTN '.      01300000
+             88  SW-Use-Fi-ST-Asc                   Value 'F   S'.      01310000
+             88  SW-Use-None                        Value '     '.      01320000
+
+## Outbound connections (this node calls/reads/writes)
+- call -> F5879010
+- call -> F7918030
+- call -> F7919100
+- call -> F7919270
+- read -> ds:TF_Main_Contract
+
+## Inbound connections (called/read/written by)
+- FTFRL120 -> call

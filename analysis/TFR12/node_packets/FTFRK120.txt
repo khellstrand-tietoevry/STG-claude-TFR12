@@ -1,0 +1,163 @@
+# Node packet: FTFRK120
+Kind: module
+Domain: Servo Orchestration
+Entry point: False
+LOC (full file): 976
+
+## First 150 lines of src/FTFRK120.src (header + start of Data Division)
+      *<META FTFRK120>                                                          
+       Identification Division.                                                 
+       Program-Id. FTFRK120.                                                    
+       Author. Z1132HB                                                          
+      *################################################################*        
+      * Servo - logic-level / K-module - Control module.               *        
+      * uses STG, in accordance with new Servo Standards.              *        
+      *                                                                *        
+      * TFR12 / 01 - Les omkostninger                                  *        
+      *                                                                *        
+      * Kode between <META> and </META> tags must not be modified. Do  *        
+      * your modifications in the specified user sections !            *        
+      *                                                                *        
+      *################################################################*        
+      * Date ! Si! Type of change                                ! 3A !*        
+      *------+---+-----------------------------------------------+----+*        
+      *990315!&&&!New Module                                     !&&&&!*        
+      *################################################################*        
+       Environment Division.                                                    
+       Configuration Section.                                                   
+       Special-Names.                                                           
+           Decimal-Point Is Comma.                                              
+      *################################################################*        
+       Data Division.                                                           
+       Working-Storage Section.                                                 
+      *                                                                         
+       01  W-Work-Fields.                                                       
+      *                                                                         
+      *<META WA-START>                                                          
+           05  Filler                     Pic   X(08) Value 'WA-START'.         
+      *</META>                                                                  
+      *                                                                         
+      *    User work variables can be placed between here                       
+      *                                                                         
+      *                                                                         
+      *<META WA-STOP>                                                           
+           05  Filler                     Pic   X(08) Value 'WA-STOP '.         
+      *</META>                                                                  
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+      * Misc. copy books :                                                      
+      *                                                                         
+      *<META MISC-COPY1>                                                        
+           Copy R7919040.                                                       
+      *</META>                                                                  
+      *01  Filler.                                                              
+      *                                                                         
+      *                                                                         
+      *<META MISC-COPY2>                                                        
+      *</META>                                                                  
+      *                                                                         
+      *01  Filler.                                                              
+      *    Place your copybooks below here                                      
+      *                                                                         
+      *                                                                         
+      *################################################################*        
+       Linkage Section.                                                         
+      *                                                                         
+      * Fixed header from STG                                                   
+      *                                                                         
+       01  L-STG-Header.                                                        
+           Copy R400CH02.                                                       
+      *                                                                         
+      * Function data                                                           
+      *                                                                         
+       01  L-Data.                                                              
+           Copy RTFRE120.                                                       
+      *                                                                         
+      * Standard error area                                                     
+      *                                                                         
+       Copy  R7919999.                                                          
+      *                                                                         
+      *################################################################*        
+       Procedure Division                Using L-Stg-Header                     
+                                               L-Data                           
+                                               R7919999-Error.                  
+      *                                                                         
+      *<META A000-MAIN>                                                         
+       A000-Main                         Section.                               
+      *                                                                         
+           Perform B000-Initialize                                              
+      *                                                                         
+           Perform C000-Input-Control                                           
+           Perform D000-Prepare-DB-Read                                         
+           Perform E000-Control-Base                                            
+           .                                                                    
+      *                                                                         
+       A000-Main-Ex.                                                            
+           Goback.                                                              
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * Initialize necessary work fields                               *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+       B000-Initialize                   Section.                               
+      *                                                                         
+      *<META B000-INITIAIZE>                                                    
+           Set  R7919999-Retur-Ok        To    True                             
+           Initialize                          W-Work-Fields                    
+      *</META>                                                                  
+      *                                                                         
+      *    User initialisaztion should be placed here                           
+      *                                                                         
+           .                                                                    
+      *                                                                         
+      *<META B000-INITIALIZE-EX>                                                
+       B000-Initialize-Ex.                                                      
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * Perform the required input controls                            *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+      *<META C000-INPUT-CONTROL>                                                
+       C000-Input-Control                Section.                               
+      *                                                                         
+           Perform C110-Mandatory-Fields-UB                                     
+           Perform C100-Mandatory-Fields                                        
+           Perform C120-Mandatory-Fields-UA                                     
+           Perform C210-Out-Fields-UB                                           
+           Perform C200-Out-Fields                                              
+           Perform C220-Out-Fields-UA                                           
+           Perform C310-Permitted-Values-UB                                     
+           Perform C300-Permitted-Values                                        
+           Perform C320-Permitted-Values-UA                                     
+           Perform C410-Default-Values-UB                                       
+           Perform C400-Default-Values                                          
+           Perform C420-Default-Values-UA                                       
+           Perform C510-Dependencies-UB                                         
+           Perform C500-Dependencies                                            
+           Perform C520-Dependencies-UA                                         
+           .                                                                    
+      *                                                                         
+       C000-Input-Control-Ex.                                                   
+           Exit.                                                                
+      *</META>                                                                  
+                                                                                
+      *################################################################*        
+      * We have to make shure we have all required input fields        *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+       C100-Mandatory-Fields             Section.                               
+      *                                                                         
+      *  This code is maintained by the codegenerator. Any user changes         
+      *  between the META tags will be lost. Any user code should be            
+      *  placed in the C110.... or C120..... sections                           
+      *                                                                         
+
+## Outbound connections (this node calls/reads/writes)
+- (none)
+
+## Inbound connections (called/read/written by)
+- FTFRH120 -> call

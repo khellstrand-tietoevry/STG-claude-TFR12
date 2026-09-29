@@ -1,0 +1,166 @@
+# Node packet: FTFRH120
+Kind: module
+Domain: Servo Orchestration
+Entry point: True
+LOC (full file): 384
+
+## First 150 lines of src/FTFRH120.src (header + start of Data Division)
+       Identification Division.                                                 
+       Program-Id. FTFRH120.                                                    
+       Author. Z2106NL                                                          
+      *################################################################*        
+      * Servo - logic-level / H-module - Main-module.                  *        
+      * Uses STG, in accordance with New Servo Standards               *        
+      *                                                                *        
+      * TFR12/01 - ReadCharge                                          *        
+      *                                                                *        
+      * THIS MODULE MUST NOT BE MODIFIED BY HUMAN HANDS !!!            *        
+      *                                                                *        
+      *################################################################*        
+      * Date ! Si! Type of change                                ! 3A !*        
+      *------+---+-----------------------------------------------+----+*        
+      *120315!&&&!New module                                     !&&&&!*        
+      *################################################################*        
+       Environment Division.                                                    
+       Configuration Section.                                                   
+       Special-Names.                                                           
+           Decimal-Point Is Comma.                                              
+      *################################################################*        
+       Data Division.                                                           
+       Working-Storage Section.                                                 
+      *                                                                         
+       01  W-Module-Constants.                                                  
+      *----------------------------------------------------------------*        
+      * Constants for the module:                                               
+      *                                                                         
+           05  WC-Program                Pic  x(08) Value 'FTFRH120'.           
+           05  WC-Sysid                  Pic  x(02) Value 'TF'.                 
+      *                                                                         
+      *                                                                         
+       01  W-Work-Fields.                                                       
+      *                                                                         
+           05  Filler                    Pic  X(01).                            
+      *                                                                         
+      *----------------------------------------------------------------*        
+      * Storage for error messages.                                             
+      *                                                                         
+           05  WS-Errormessage-Store.                                           
+               10  WS-Status-Code        Pic  X(02).                            
+               10  WS-Message-Code       Pic  X(30).                            
+               10  WS-Message-Text       Pic  X(79).                            
+      *                                                                         
+      *----------------------------------------------------------------*        
+      * Variables for trace logging                                             
+      *                                                                         
+       01  WT-Trace-Logging.                                                    
+           05  SW-Trace-Log              Pic  x(32).                            
+               88  SW-Trace-Default   Value Spaces.                             
+               88  SW-Trace-A000      Value 'A000-Main'.                        
+               88  SW-Trace-A001      Value 'A001'.                             
+               88  SW-Trace-A002      Value 'A002'.                             
+               88  SW-Trace-A003      Value 'A003'.                             
+               88  SW-Trace-C000      Value 'C000-Call-K-Modul'.                
+               88  SW-Trace-C001      Value 'C001'.                             
+               88  SW-Trace-D000      Value 'D000-Call-L-Modul'.                
+               88  SW-Trace-D001      Value 'D001'.                             
+      *                                                                         
+      *----------------------------------------------------------------*        
+      * Misc. copy books :                                                      
+      *                                                                         
+       01  Filler.                                                              
+           Copy R7918030.                                                       
+      *                                                                         
+           Copy R791TRAC.                                                       
+      *                                                                         
+      *################################################################*        
+       Linkage Section.                                                         
+      *                                                                         
+      * Fixed header from STG                                                   
+      *                                                                         
+       01  L-STG-Header.                                                        
+           Copy R400CH02.                                                       
+      *                                                                         
+      * Function data                                                           
+      *                                                                         
+       01  L-Input.                                                             
+           Copy RTFRE120.                                                       
+      *                                                                         
+      * Standard Error area                                                     
+      *                                                                         
+       Copy R7919999.                                                           
+      *                                                                         
+      *################################################################*        
+       Procedure Division                Using L-STG-Header                     
+                                               L-Input                          
+                                               R7919999-Error.                  
+      *                                                                         
+       A000-Main                         Section.                               
+      *                                                                         
+      *    If Trace is on, do logging of dataareas                              
+      *                                                                         
+           If  R400CH01-Trace-On                                                
+               Set  SW-Trace-A000        To    True                             
+               Perform  X999-Control-Trace                                      
+               Set  SW-Trace-A001        To    True                             
+               Perform  X999-Control-Trace                                      
+           End-If                                                               
+      *                                                                         
+           Perform B000-Initialize                                              
+      *                                                                         
+           Perform C000-Call-K-Module                                           
+           Perform D000-Call-L-Module                                           
+      *                                                                         
+      *    If Trace is on, do logging of dataareas                              
+      *                                                                         
+           If  R400CH01-Trace-On                                                
+               Set  SW-Trace-A002        To    True                             
+               Perform  X999-Control-Trace                                      
+               Set  SW-Trace-A003        To    True                             
+               Perform  X999-Control-Trace                                      
+           End-If                                                               
+           .                                                                    
+      *                                                                         
+       A000-Main-Ex.                                                            
+           Goback.                                                              
+                                                                                
+      *################################################################*        
+      * Perform required initialization for the module                 *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+       B000-Initialize                   Section.                               
+      *                                                                         
+           Initialize                          W-Work-Fields                    
+                                                                                
+           Set  R7919999-Retur-Ok        To    True                             
+           .                                                                    
+      *                                                                         
+       B000-Initialize-Ex.                                                      
+           Exit.                                                                
+                                                                                
+      *################################################################*        
+      * Call the control program for the function                      *        
+      *                                                                *        
+      *----------------------------------------------------------------*        
+       C000-Call-K-Module                Section.                               
+      *                                                                         
+           Call  'FTFRK120'              Using L-STG-Header                     
+                                               L-Input                          
+                                               R7919999-Error                   
+           End-Call                                                             
+      *                                                                         
+      *    If Trace is on, do logging of dataareas                              
+      *                                                                         
+           If  R400CH01-Trace-On                                                
+               Set  SW-Trace-C000        To    True                             
+               Perform  X999-Control-Trace                                      
+               Set  SW-Trace-C001        To    True                             
+               Perform  X999-Control-Trace                                      
+
+## Outbound connections (this node calls/reads/writes)
+- call -> F7918030
+- call -> F791TRAC
+- call -> FTFRK120
+- call -> FTFRL120
+
+## Inbound connections (called/read/written by)
+- (none)

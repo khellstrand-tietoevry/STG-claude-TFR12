@@ -1,0 +1,165 @@
+# Node packet: F7919100
+Kind: module
+Domain: Date & Time Utilities
+Entry point: False
+LOC (full file): 1287
+
+## First 150 lines of src/F7919100.src (header + start of Data Division)
+000100 Identification Division.                                         00010039
+000200 Program-ID. F7919100.                                            00020040
+000300 Author.  Henning Langfeldt Rødland.                              00030040
+000400*################################################################*00040040
+000500*                                                                 00050040
+000600* Generell submodul.                                              00060040
+000700* Benyttes for å konvertere mellom dato-formater.                 00070040
+000800*                                                                 00080040
+000900* Man leverer dato på ett eller annet format inn.                 00090040
+001000* Dersom kun en input-dato er utfylt er det ikke nødvendig å      00100040
+001100* fortelle hva slags type det er, ellers må man sette bryter      00110040
+001200* for typen også.                                                 00120040
+001300* I retur vil man få datoen i ymse formater, bare å velge.        00130040
+001400*                                                                 00140040
+001500* Eksempel på anrop:                                              00150040
+001600*   Initialize                           R7919100-Konverter-Dato  00160040
+001700*   Set   R7919100-Versjon         To    True                     00170040
+001800*   Move  ååååmmdd                 To    R7919100-In-Dato-AMD9    00180040
+001900*   Call  'F7919100'               Using R7919100-Konverter-Dato  00190040
+002000*                                        R7919999-Error           00200040
+002100*   End-Call                                                      00210040
+002200*   If  R7919999-Retur-Abend                                      00220040
+002300*       abend                                                     00230040
+002400*   End-If                                                        00240040
+002500*   Move  R7919100-Ut-Dato-DB2     To    ...                      00250040
+002600*                                                                 00260040
+002700*################################################################*00270040
+002800* Dato ! Si! Endringens art                                ! 3A ! 00280040
+002900*---------------------------------------------------------------- 00290040
+      *110924!SM ! Recompile to Cobol 6.3                   !CMAS-1883!*00290142
+MIPS  *280521!OBJ! Recompiled to version 6.3 (OptiMIPS)          !    ! 00291041
+003000*030100!HLR! D000: Konvertering fra A2D3 - aksepterer nå   !    ! 00300040
+003100*      !   ! år 00.                                        !    ! 00310040
+003200*060498!GM ! Godtar 'null-dato' dersom input datoformat    !    ! 00320040
+003300*      !   ! er angitt.                                    !    ! 00330040
+003400*230697!HLR! Endret "default" - A4D3 og A2D3 dannes kun    !    ! 00340040
+003500*      !   ! dersom det er bedt om det.                    !    ! 00350040
+003600*120697!HLR! Lagt inn -In-Til-Formater (tuning)            !    ! 00360040
+003700*      !   ! Konverterer kun til ønskede formater.         !    ! 00370040
+003800*      !   ! Hvis ingen ønskede formater er angitt,        !    ! 00380040
+003900*      !   ! konverteres til "default".                    !    ! 00390040
+004000*210297!HLR! Lagt inn -Dato-AAAADDD og -Dato-AADDD         !    ! 00400040
+004100*151196!HLR! Lagt inn numerisk kontroll på input DB2-dato. !EK78! 00410040
+004200*301096!HLR! Lagt inn -In-Glidende-Vindu.                  !JV12! 00420040
+004300*140296!HLR! Lagt inn -In-DB2-Format                       !JV60! 00430040
+004400*150295!HLR! Ny modul                                      !JR68! 00440040
+004500*################################################################*00450040
+004600 Environment Division.                                            00460040
+004700 Configuration Section.                                           00470040
+004800 Special-Names.                                                   00480040
+004900     Decimal-Point is comma.                                      00490040
+005000*################################################################*00500040
+005100 Data Division.                                                   00510040
+005200 Working-Storage Section.                                         00520040
+005300*                                                                 00530040
+005400 Copy R7919100.                                                   00540040
+005500*                                                                 00550040
+005600*----------------------------------------------------------------*00560040
+005700*                                                                 00570040
+005800 01  W-Arbeids-Felter.                                            00580040
+005900*                                                                 00590040
+006000     05  W-Splitt-Vindus-Dato      Pic  9(08).                    00600040
+006100     05  Filler                    Redefines W-Splitt-Vindus-Dato.00610040
+006200         10  W-SVD-Aar             Pic  9(04).                    00620040
+006300     05  Filler                    Redefines W-Splitt-Vindus-Dato.00630040
+006400         10  W-SVD-Aar-Hundre      Pic  9(02).                    00640040
+006500         10  W-SVD-Aar-2           Pic  9(02).                    00650040
+006600*                                                                 00660040
+006700     05  W-Dato-AMD9               Pic S9(09)              Comp-3.00670040
+006800     05  W-Dato-DMA9               Pic S9(09)              Comp-3.00680040
+006900     05  W-Dato-AMD7               Pic S9(09)              Comp-3.00690040
+007000     05  W-Dato-DMA7               Pic S9(09)              Comp-3.00700040
+007100     05  W-Dato-Jul                Pic S9(09)              Comp-3.00710040
+007200     05  W-Dato-DB2                Pic  X(10).                    00720040
+007300     05  W-Dato-A4D3               Pic S9(09)              Comp-3.00730040
+007400     05  W-Dato-A2D3               Pic S9(09)              Comp-3.00740040
+007500*                                                                 00750040
+007600     05  W-Splitt-AMD9             Pic  9(08).                    00760040
+007700     05  Filler                    Redefines W-Splitt-AMD9.       00770040
+007800         10  W-S-AMD9-Aar          Pic  9(04).                    00780040
+007900         10  W-S-AMD9-Mnd          Pic  9(02).                    00790040
+008000         10  W-S-AMD9-Dag          Pic  9(02).                    00800040
+008100     05  Filler                    Redefines W-Splitt-AMD9.       00810040
+008200         10  W-S-AMD9-Aar-Hundre   Pic  9(02).                    00820040
+008300         10  W-S-AMD9-Aar-2        Pic  9(02).                    00830040
+008400*                                                                 00840040
+008500     05  W-Splitt-DMA9             Pic  9(08).                    00850040
+008600     05  Filler                    Redefines W-Splitt-DMA9.       00860040
+008700         10  W-S-DMA9-Dag          Pic  9(02).                    00870040
+008800         10  W-S-DMA9-Mnd          Pic  9(02).                    00880040
+008900         10  W-S-DMA9-Aar          Pic  9(04).                    00890040
+009000*                                                                 00900040
+009100     05  W-Splitt-AMD7             Pic  9(06).                    00910040
+009200     05  Filler                    Redefines W-Splitt-AMD7.       00920040
+009300         10  W-S-AMD7-Aar          Pic  9(02).                    00930040
+009400         10  W-S-AMD7-Mnd          Pic  9(02).                    00940040
+009500         10  W-S-AMD7-Dag          Pic  9(02).                    00950040
+009600*                                                                 00960040
+009700     05  W-Splitt-DMA7             Pic  9(06).                    00970040
+009800     05  Filler                    Redefines W-Splitt-DMA7.       00980040
+009900         10  W-S-DMA7-Dag          Pic  9(02).                    00990040
+010000         10  W-S-DMA7-Mnd          Pic  9(02).                    01000040
+010100         10  W-S-DMA7-Aar          Pic  9(02).                    01010040
+010200*                                                                 01020040
+010300     05  W-Splitt-A4D3             Pic  9(07).                    01030040
+010400     05  Filler                    Redefines W-Splitt-A4D3.       01040040
+010500         10  W-S-A4D3-Aar          Pic  9(04).                    01050040
+010600         10  W-S-A4D3-Dag          Pic  9(03).                    01060040
+010700*                                                                 01070040
+010800     05  W-Splitt-A2D3             Pic  9(05).                    01080040
+010900     05  Filler                    Redefines W-Splitt-A2D3.       01090040
+011000         10  W-S-A2D3-Aar          Pic  9(02).                    01100040
+011100         10  W-S-A2D3-Dag          Pic  9(03).                    01110040
+011200*                                                                 01120040
+011300     05  W-Temp-Jul                Pic S9(05)              Comp-3.01130040
+011400     05  W-Temp-Dag-Nr             Pic S9(03)              Comp-3.01140040
+011500*                                                                 01150040
+011600     05  W-Splitt-DB2              Pic  X(10).                    01160040
+011700*                                                                 01170040
+011800     05  W-Splitt-DB2-ISO          Redefines W-Splitt-DB2.        01180040
+011900         10  W-S-DB2-ISO-Aar       Pic  9(04).                    01190040
+012000         10  Filler                Pic  X(01).                    01200040
+012100           88  W-S-DB2-ISO-Format             Value '-'.          01210040
+012200         10  W-S-DB2-ISO-Mnd       Pic  9(02).                    01220040
+012300         10  Filler                Pic  X(01).                    01230040
+012400         10  W-S-DB2-ISO-Dag       Pic  9(02).                    01240040
+012500*                                                                 01250040
+012600     05  W-Splitt-DB2-EUR          Redefines W-Splitt-DB2.        01260040
+012700         10  W-S-DB2-EUR-Dag       Pic  9(02).                    01270040
+012800         10  Filler                Pic  X(01).                    01280040
+012900           88  W-S-DB2-EUR-Format             Value '.'.          01290040
+013000         10  W-S-DB2-EUR-Mnd       Pic  9(02).                    01300040
+013100         10  Filler                Pic  X(01).                    01310040
+013200         10  W-S-DB2-EUR-Aar       Pic  9(04).                    01320040
+013300*                                                                 01330040
+013400     05  W-Splitt-DB2-USA          Redefines W-Splitt-DB2.        01340040
+013500         10  W-S-DB2-USA-Mnd       Pic  9(02).                    01350040
+013600         10  Filler                Pic  X(01).                    01360040
+013700           88  W-S-DB2-USA-Format             Value '/'.          01370040
+013800         10  W-S-DB2-USA-Dag       Pic  9(02).                    01380040
+013900         10  Filler                Pic  X(01).                    01390040
+014000         10  W-S-DB2-USA-Aar       Pic  9(04).                    01400040
+014100*                                                                 01410040
+014200*----------------------------------------------------------------*01420040
+014300*                                                                 01430040
+014400     05  SW-Til-Formater.                                         01440040
+014500         10  Filler                Pic  X(01).                    01450040
+014600           88  Sw-Konv-Til-AMD9               Value 'J'.          01460040
+014700         10  Filler                Pic  X(01).                    01470040
+014800           88  Sw-Konv-Til-DMA9               Value 'J'.          01480040
+
+## Outbound connections (this node calls/reads/writes)
+- call -> F7919070
+
+## Inbound connections (called/read/written by)
+- F115IMC0 -> call
+- F115IPA0 -> call
+- F5879010 -> call

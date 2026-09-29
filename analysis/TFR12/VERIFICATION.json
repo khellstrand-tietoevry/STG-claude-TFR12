@@ -1,0 +1,487 @@
+{
+  "v": 1,
+  "system": "TFR12",
+  "generated": "2026-09-29 08:44 UTC",
+  "asked": "F115ICA0,F115ICH0,F115ICT0,F115IHI0,F115IMC0,F115IPA0,F115IPC0,F115ISC0,F115ISR0,F5879010",
+  "rules": [
+    "PROVEN needs every check to pass: the six below, and for an uplift three more (7 to 9). NOT PROVEN when any check fails. PARTLY PROVEN when nothing failed but a check could not pass.",
+    "1. Tests ran: at least one test executed in a fresh run, none failed, none was skipped without a reason, and every result file is newer than the code. The counts must be read by this script from result files or a saved raw runner log; counts only typed in cannot reach PROVEN.",
+    "2. Rules traced (rewrite and reimagine): every P0 rule the module answers for is backed by a test that ran and passed: its id is in the test or class name of a result this script parsed, or a test file names it on a line not marked skipped or pending and that file's class ran and passed. A rule named only by skipped, pending or failing tests is named, not run; one only the notes name is claimed. Neither is tested.",
+    "3. Same behavior: the development cases, judged again by compare.py, executed at least one case and none differs or is missing (a difference a person approved is allowed and listed); for an uplift, no regression, no new failure, no missing test and no drop in executed tests against BASELINE.md.",
+    "4. Fresh inputs: at least 10 new inputs, none with the same output as a development case, ran on the legacy and the new code with no difference. Needed whenever the legacy could run here; when it could not, the proof is trace-based and the best verdict is PARTLY PROVEN.",
+    "5. Canary: a deliberate one-line break whose own result file or saved runner log shows failing tests. A line in the notes is a claim.",
+    "6. Source untouched: no file under legacy/<system> is newer than the analysis (PREFLIGHT.md), by a plain file walk; no version-control tool is run.",
+    "7. Baseline measured (uplift): the old version's numbers in BASELINE.md come from per-test result files, a per-test results file or a raw runner log that this script parsed (in analysis/<system>/baseline/, or on a Recorded: or Machine-readable: line of BASELINE.md), and the typed table agrees with them. A table typed by hand, or sources that disagree, cannot reach PROVEN.",
+    "8. Tests kept (uplift): no test file of the untouched legacy tree is missing from the working copy, no more than 25% of them changed, and the legacy tree has test files to compare against (walked by file, no process is run). The list is for a person to review; weakened assertions cannot be detected, only that files changed.",
+    "9. Deltas covered (uplift): every Behavioral-silent delta in DELTA_CATALOG.md has its site's file named, as a whole word, by some test file of the working copy. A name is not proof that the test exercises the change.",
+    "Open questions, unticked criteria and the sign-off are for a person. They never change the verdict.",
+    "A folder that holds only test code and the files that build it is test tooling: it is listed, not judged, and not counted."
+  ],
+  "legacy": {
+    "state": "clean",
+    "method": "by modification time, and no version-control tool was run",
+    "detail": "no file changed after the analysis started (87 files compared)",
+    "files": [],
+    "path": "legacy/TFR12",
+    "target": "/Users/kristofferhellstrand/git/tfi-workspace/STG-claude-TFR12/legacy/STG/TFR12",
+    "ran": false
+  },
+  "problems": [],
+  "modules": [
+    {
+      "name": "F115ICA0,F115ICH0,F115ICT0,F115IHI0,F115IMC0,F115IPA0,F115IPC0,F115ISC0,F115ISR0,F5879010",
+      "track": "rewrite",
+      "path": "modernized/TFR12/F115ICA0,F115ICH0,F115ICT0,F115IHI0,F115IMC0,F115IPA0,F115IPC0,F115ISC0,F115ISR0,F5879010",
+      "verdict": "PARTLY PROVEN",
+      "reasons": [
+        "Rules traced: 1 of 1 P0 rule(s) are not named by any test: RULE-026.",
+        "Same behavior: No equivalence cases were recorded: the new code was never compared with the legacy output.",
+        "Fresh inputs: The legacy could not run here (None of the legacy programs in either built module can execute in this environment. Phase 1 (F7919070,F7919100,F7919270,F7918030,F791TRAC): F7919070/F7919100/F7919270 hit a GnuCOBOL 3.2.0 restriction (REDEFINES field not allowed in PROCEDURE DIVISION USING), F7918030 requires a DB2 precompiler not \u2026), so the proof is trace-based: no fresh-input comparison was possible and the verdict cannot be PROVEN."
+      ],
+      "passed": [
+        "Tests ran: 160 test(s) executed, 0 failed, 1 skipped. Note: 161/162 pass on a clean rebuild (161 executed, 1 deliberately @Disabled: F115ISR0 cursor-qualification gap, documented in TRANSFORMATION_NOTES.md). 2 tests added during this verify pass after a canary exposed a coverage gap; see canary note below.",
+        "Canary: 1 canary run(s) shown by a result file or log; the first (Copied the module to a scratch folder outside modernized/ and analysis/, then force-'fixed' RULE-017's confirmed-preserved gap in SysCodeKeyPolicy (added an unconditional SC-Code validation check that the legacy source's missing End-Evaluate makes unreachable in the real module). A separate, earlie\u2026) made 2 more test(s) fail than the clean run (analysis/TFR12/equivalence/canary/F115ICA0,F115ICH0,F115ICT0,F115IHI0,F115IMC0,F115IPA0,F115IPC0,F115ISC0,F115ISR0,F5879010).",
+        "Source untouched: legacy/TFR12 is untouched: no file changed after the analysis started (87 files compared). Checked by modification time, and no version-control tool was run."
+      ],
+      "checks": [
+        {
+          "id": "tests",
+          "label": "Tests ran",
+          "state": "pass",
+          "detail": "160 test(s) executed, 0 failed, 1 skipped. Note: 161/162 pass on a clean rebuild (161 executed, 1 deliberately @Disabled: F115ISR0 cursor-qualification gap, documented in TRANSFORMATION_NOTES.md). 2 tests added during this verify pass after a canary exposed a coverage gap; see canary note below."
+        },
+        {
+          "id": "rules",
+          "label": "Rules traced",
+          "state": "gap",
+          "detail": "1 of 1 P0 rule(s) are not named by any test: RULE-026."
+        },
+        {
+          "id": "same",
+          "label": "Same behavior",
+          "state": "gap",
+          "detail": "No equivalence cases were recorded: the new code was never compared with the legacy output."
+        },
+        {
+          "id": "fresh",
+          "label": "Fresh inputs",
+          "state": "gap",
+          "detail": "The legacy could not run here (None of the legacy programs in either built module can execute in this environment. Phase 1 (F7919070,F7919100,F7919270,F7918030,F791TRAC): F7919070/F7919100/F7919270 hit a GnuCOBOL 3.2.0 restriction (REDEFINES field not allowed in PROCEDURE DIVISION USING), F7918030 requires a DB2 precompiler not \u2026), so the proof is trace-based: no fresh-input comparison was possible and the verdict cannot be PROVEN."
+        },
+        {
+          "id": "canary",
+          "label": "Canary",
+          "state": "pass",
+          "detail": "1 canary run(s) shown by a result file or log; the first (Copied the module to a scratch folder outside modernized/ and analysis/, then force-'fixed' RULE-017's confirmed-preserved gap in SysCodeKeyPolicy (added an unconditional SC-Code validation check that the legacy source's missing End-Evaluate makes unreachable in the real module). A separate, earlie\u2026) made 2 more test(s) fail than the clean run (analysis/TFR12/equivalence/canary/F115ICA0,F115ICH0,F115ICT0,F115IHI0,F115IMC0,F115IPA0,F115IPC0,F115ISC0,F115ISR0,F5879010)."
+        },
+        {
+          "id": "source",
+          "label": "Source untouched",
+          "state": "pass",
+          "detail": "legacy/TFR12 is untouched: no file changed after the analysis started (87 files compared). Checked by modification time, and no version-control tool was run."
+        }
+      ],
+      "evidence": {
+        "tests": {
+          "executed": 160,
+          "failed": 0,
+          "skipped": 1,
+          "skippedNoReason": 0,
+          "stale": false,
+          "suites": [
+            {
+              "name": "unit tests",
+              "command": "mvn -Dmaven.test.failure.ignore=true clean test",
+              "date": "",
+              "note": "161/162 pass on a clean rebuild (161 executed, 1 deliberately @Disabled: F115ISR0 cursor-qualification gap, documented in TRANSFORMATION_NOTES.md). 2 tests added during this verify pass after a canary exposed a coverage gap; see canary note below.",
+              "source": "result files",
+              "files": 36,
+              "written": "2026-09-29 08:42 UTC",
+              "executed": 160,
+              "failed": 0,
+              "skipped": 1
+            }
+          ]
+        },
+        "legacy": {
+          "ran": false,
+          "how": "",
+          "why": "None of the legacy programs in either built module can execute in this environment. Phase 1 (F7919070,F7919100,F7919270,F7918030,F791TRAC): F7919070/F7919100/F7919270 hit a GnuCOBOL 3.2.0 restriction (REDEFINES field not allowed in PROCEDURE DIVISION USING), F7918030 requires a DB2 precompiler not \u2026"
+        },
+        "rules": {
+          "tied": true,
+          "counted": 8,
+          "outOfScope": 31,
+          "totals": {
+            "P0": {
+              "rules": 1,
+              "tested": 0,
+              "named, not run": 0,
+              "code only": 1,
+              "claimed only": 0,
+              "none": 0
+            },
+            "P1": {
+              "rules": 6,
+              "tested": 6,
+              "named, not run": 0,
+              "code only": 0,
+              "claimed only": 0,
+              "none": 0
+            },
+            "P2": {
+              "rules": 1,
+              "tested": 1,
+              "named, not run": 0,
+              "code only": 0,
+              "claimed only": 0,
+              "none": 0
+            }
+          },
+          "p0NoTests": [
+            "RULE-026"
+          ],
+          "namedNotRun": [],
+          "perTestResults": true,
+          "p0": [
+            {
+              "id": "RULE-026",
+              "name": "Contract data-version selection (Actual vs Work)",
+              "confidence": "Medium",
+              "status": "code only",
+              "main": 2,
+              "tests": 0,
+              "claimed": false,
+              "by": "",
+              "where": "modernized/TFR12/F115ICA0,F115ICH0,F115ICT0,F115IHI0,F115IMC0,F115IPA0,F115IPC0,F115ISC0,F115ISR0,F5879010/src/main/java/com/tfi/tfr12/phase2/dbi/maincontract/MainContractKey.java:24"
+            }
+          ]
+        },
+        "leftOut": [
+          "Fresh-input dual-execution check (verify Step 4) was not attempted for either module: the legacy side cannot run here at all (see legacy.why above), so no legacy output exists to diff a fresh input a\u2026",
+          "Malformed-record inputs were not tried for the same reason (no legacy side to observe tolerating them against)."
+        ],
+        "canary": [
+          {
+            "change": "Copied the module to a scratch folder outside modernized/ and analysis/, then force-'fixed' RULE-017's confirmed-preserved gap in SysCodeKeyPolicy (added an unconditional SC-Code validation check that the legacy source's missing End-Evaluate makes unreachable in the real module). A separate, earlie\u2026",
+            "testsFailed": 2,
+            "shown": true,
+            "where": [
+              "analysis/TFR12/equivalence/canary/F115ICA0,F115ICH0,F115ICT0,F115IHI0,F115IMC0,F115IPA0,F115IPC0,F115ISC0,F115ISR0,F5879010"
+            ]
+          }
+        ]
+      },
+      "caveats": [],
+      "needsPerson": [],
+      "brief": {
+        "found": true,
+        "phase": "",
+        "items": [
+          {
+            "text": "`F7919070`, `F7919100`, `F7919270`, `F7918030`, `F791TRAC` each pass a dual-execution diff against the legacy module for a representative input set",
+            "where": "Phase 1 exit criterion"
+          },
+          {
+            "text": "RULE-036 and RULE-037 proven equivalent",
+            "where": "Phase 1 exit criterion"
+          },
+          {
+            "text": "All 9 DBI modules' read behavior reproduced by the one generic repository pattern, each proven against its table's contract test",
+            "where": "Phase 2 exit criterion"
+          },
+          {
+            "text": "`F5879010` behavior reproduced against a mocked Org Master Data boundary",
+            "where": "Phase 2 exit criterion"
+          },
+          {
+            "text": "RULE-016, RULE-018, RULE-020, RULE-021, RULE-027, RULE-028 proven equivalent",
+            "where": "Phase 2 exit criterion"
+          },
+          {
+            "text": "RULE-001, RULE-002, RULE-003 (percentage/tiered charge calculation, min/max clamping) proven equivalent via dual-execution diff",
+            "where": "Phase 3 exit criterion"
+          },
+          {
+            "text": "RULE-014 (duplicate/conflicting charge abort) proven equivalent",
+            "where": "Phase 3 exit criterion"
+          },
+          {
+            "text": "RULE-011 (percent-of-CA basis) confirmed against the RULE-011 SME question resolution",
+            "where": "Phase 3 exit criterion"
+          },
+          {
+            "text": "RULE-004 (min/max default-value recomputation), RULE-015 (single-payer validation incl. ACCEPT-ILC exception), RULE-026 (Actual/Work version selection) proven equivalent",
+            "where": "Phase 4 exit criterion"
+          },
+          {
+            "text": "RULE-022, RULE-023, RULE-024, RULE-025, RULE-030, RULE-032 proven equivalent",
+            "where": "Phase 4 exit criterion"
+          },
+          {
+            "text": "Shadow-run shows no unexplained diffs against legacy for a full representative traffic sample",
+            "where": "Phase 4 exit criterion"
+          },
+          {
+            "text": "RULE-017 suspected defect (`F115ISC0.src:783-813`): a missing `End-Evaluate` silently skips the mandatory Sys-Code key validation on Update. Fix it, or faithfully reproduce the gap? Blocks Phase 2.",
+            "where": "open question, section 7"
+          },
+          {
+            "text": "RULE-006 suspected defect (`F115L060.src:1050-1101`): charge currency is relabeled without converting the amount when it differs from the contract currency. Fix it, or preserve the current behavior? Blocks Phase 3.",
+            "where": "open question, section 7"
+          },
+          {
+            "text": "RULE-029 overloaded field (`copybooks/R115IPA0.copy:180-183`): one byte carries two unrelated meanings (`Has-Been-Settled` 'A' and `Incom-Swift` Y/N). Clarify intended semantics before modeling it properly in the target. Blocks Phase 2.",
+            "where": "open question, section 7"
+          },
+          {
+            "text": "Org Master Data integration: `F5879010`'s real dependency (`BZXOJOR0`/`BZXOJNA0`, the iHUB-Org DBI programs) is outside this repo's scope. Need the real interface contract \u2014 or an explicit decision to mock it indefinitely \u2014 before Phase 2's Org Master Data Client can be built for real.",
+            "where": "open question, section 7"
+          },
+          {
+            "text": "No production telemetry was available for the assessment (`ASSESSMENT.md`, Production Runtime Profile). Confirm whether performance/SLA targets exist for the new service before Phase 4 sign-off.",
+            "where": "open question, section 7"
+          },
+          {
+            "text": "Target persistence assumption: this brief assumes the 9 DB2 tables + `PO_Feilmelding` stay on DB2 unchanged (JDBC/JPA access only, no data migration). Confirm, or flag if a data-store migration is actually in scope.",
+            "where": "open question, section 7"
+          },
+          {
+            "text": "RULE-009, RULE-010, RULE-031, RULE-033, RULE-035 and the other Medium/Low-confidence P1 rules listed in `BUSINESS_RULES.md`'s SME section were not asked in this review round (only flagged P0s were). Recommend a follow-up `/code-modernization:modernize-review STG/TFR12 p0` \u2192 widen to `all` pass, or \u2026",
+            "where": "open question, section 7"
+          }
+        ],
+        "count": 18
+      },
+      "notProven": [
+        "It does not prove behavior on inputs nobody tried: the equivalence cases and the fresh inputs are samples, not the whole input space.",
+        "The legacy could not run here, so the comparison rests on recorded outputs and traces. It is only as good as that recording.",
+        "It does not cover speed, capacity, security, concurrency, or anything the tests and cases do not exercise.",
+        "It traces only the rules that were extracted: behavior nobody wrote down as a rule has no rule to trace.",
+        "A test that names a rule shows the rule is mentioned, not that the test is a good one. The canary shows only that some test can fail.",
+        "It does not replace the review and sign-off of the people who own the system."
+      ],
+      "verifiedAt": "2026-09-29 08:44 UTC"
+    },
+    {
+      "name": "F7919070,F7919100,F7919270,F7918030,F791TRAC",
+      "track": "rewrite",
+      "path": "modernized/TFR12/F7919070,F7919100,F7919270,F7918030,F791TRAC",
+      "verdict": "PARTLY PROVEN",
+      "reasons": [
+        "Same behavior: No equivalence cases were recorded: the new code was never compared with the legacy output.",
+        "Fresh inputs: The legacy could not run here (None of the legacy programs in either built module can execute in this environment. Phase 1 (F7919070,F7919100,F7919270,F7918030,F791TRAC): F7919070/F7919100/F7919270 hit a GnuCOBOL 3.2.0 restriction (REDEFINES field not allowed in PROCEDURE DIVISION USING), F7918030 requires a DB2 precompiler not \u2026), so the proof is trace-based: no fresh-input comparison was possible and the verdict cannot be PROVEN."
+      ],
+      "passed": [
+        "Tests ran: 67 test(s) executed, 0 failed, 0 skipped. Note: 67/67 pass on a clean rebuild, independently re-run for this verify pass (not reused from modernize-transform).",
+        "Rules traced: No rule this module answers for is rated P0 (2 rule(s) counted).",
+        "Canary: 1 canary run(s) shown by a result file or log; the first (Copied the module to a scratch folder outside modernized/ and analysis/, then inverted ErrorMessageServiceImpl's organization-fallback condition from 'if (orgId != 0)' to 'if (orgId == 0)' (line ~26), which controls whether the org=0/same-language fallback attempt is added to the lookup chain.) made 1 more test(s) fail than the clean run (analysis/TFR12/equivalence/canary/F7919070,F7919100,F7919270,F7918030,F791TRAC).",
+        "Source untouched: legacy/TFR12 is untouched: no file changed after the analysis started (87 files compared). Checked by modification time, and no version-control tool was run."
+      ],
+      "checks": [
+        {
+          "id": "tests",
+          "label": "Tests ran",
+          "state": "pass",
+          "detail": "67 test(s) executed, 0 failed, 0 skipped. Note: 67/67 pass on a clean rebuild, independently re-run for this verify pass (not reused from modernize-transform)."
+        },
+        {
+          "id": "rules",
+          "label": "Rules traced",
+          "state": "pass",
+          "detail": "No rule this module answers for is rated P0 (2 rule(s) counted)."
+        },
+        {
+          "id": "same",
+          "label": "Same behavior",
+          "state": "gap",
+          "detail": "No equivalence cases were recorded: the new code was never compared with the legacy output."
+        },
+        {
+          "id": "fresh",
+          "label": "Fresh inputs",
+          "state": "gap",
+          "detail": "The legacy could not run here (None of the legacy programs in either built module can execute in this environment. Phase 1 (F7919070,F7919100,F7919270,F7918030,F791TRAC): F7919070/F7919100/F7919270 hit a GnuCOBOL 3.2.0 restriction (REDEFINES field not allowed in PROCEDURE DIVISION USING), F7918030 requires a DB2 precompiler not \u2026), so the proof is trace-based: no fresh-input comparison was possible and the verdict cannot be PROVEN."
+        },
+        {
+          "id": "canary",
+          "label": "Canary",
+          "state": "pass",
+          "detail": "1 canary run(s) shown by a result file or log; the first (Copied the module to a scratch folder outside modernized/ and analysis/, then inverted ErrorMessageServiceImpl's organization-fallback condition from 'if (orgId != 0)' to 'if (orgId == 0)' (line ~26), which controls whether the org=0/same-language fallback attempt is added to the lookup chain.) made 1 more test(s) fail than the clean run (analysis/TFR12/equivalence/canary/F7919070,F7919100,F7919270,F7918030,F791TRAC)."
+        },
+        {
+          "id": "source",
+          "label": "Source untouched",
+          "state": "pass",
+          "detail": "legacy/TFR12 is untouched: no file changed after the analysis started (87 files compared). Checked by modification time, and no version-control tool was run."
+        }
+      ],
+      "evidence": {
+        "tests": {
+          "executed": 67,
+          "failed": 0,
+          "skipped": 0,
+          "skippedNoReason": 0,
+          "stale": false,
+          "suites": [
+            {
+              "name": "unit tests",
+              "command": "mvn -Dmaven.test.failure.ignore=true clean test",
+              "date": "",
+              "note": "67/67 pass on a clean rebuild, independently re-run for this verify pass (not reused from modernize-transform).",
+              "source": "result files",
+              "files": 14,
+              "written": "2026-09-29 07:18 UTC",
+              "executed": 67,
+              "failed": 0,
+              "skipped": 0
+            }
+          ]
+        },
+        "legacy": {
+          "ran": false,
+          "how": "",
+          "why": "None of the legacy programs in either built module can execute in this environment. Phase 1 (F7919070,F7919100,F7919270,F7918030,F791TRAC): F7919070/F7919100/F7919270 hit a GnuCOBOL 3.2.0 restriction (REDEFINES field not allowed in PROCEDURE DIVISION USING), F7918030 requires a DB2 precompiler not \u2026"
+        },
+        "rules": {
+          "tied": true,
+          "counted": 2,
+          "outOfScope": 37,
+          "totals": {
+            "P1": {
+              "rules": 2,
+              "tested": 2,
+              "named, not run": 0,
+              "code only": 0,
+              "claimed only": 0,
+              "none": 0
+            }
+          },
+          "p0NoTests": [],
+          "namedNotRun": [],
+          "perTestResults": true,
+          "p0": []
+        },
+        "leftOut": [
+          "Fresh-input dual-execution check (verify Step 4) was not attempted for either module: the legacy side cannot run here at all (see legacy.why above), so no legacy output exists to diff a fresh input a\u2026",
+          "Malformed-record inputs were not tried for the same reason (no legacy side to observe tolerating them against)."
+        ],
+        "canary": [
+          {
+            "change": "Copied the module to a scratch folder outside modernized/ and analysis/, then inverted ErrorMessageServiceImpl's organization-fallback condition from 'if (orgId != 0)' to 'if (orgId == 0)' (line ~26), which controls whether the org=0/same-language fallback attempt is added to the lookup chain.",
+            "testsFailed": 1,
+            "shown": true,
+            "where": [
+              "analysis/TFR12/equivalence/canary/F7919070,F7919100,F7919270,F7918030,F791TRAC"
+            ]
+          }
+        ]
+      },
+      "caveats": [],
+      "needsPerson": [],
+      "brief": {
+        "found": true,
+        "phase": "",
+        "items": [
+          {
+            "text": "`F7919070`, `F7919100`, `F7919270`, `F7918030`, `F791TRAC` each pass a dual-execution diff against the legacy module for a representative input set",
+            "where": "Phase 1 exit criterion"
+          },
+          {
+            "text": "RULE-036 and RULE-037 proven equivalent",
+            "where": "Phase 1 exit criterion"
+          },
+          {
+            "text": "All 9 DBI modules' read behavior reproduced by the one generic repository pattern, each proven against its table's contract test",
+            "where": "Phase 2 exit criterion"
+          },
+          {
+            "text": "`F5879010` behavior reproduced against a mocked Org Master Data boundary",
+            "where": "Phase 2 exit criterion"
+          },
+          {
+            "text": "RULE-016, RULE-018, RULE-020, RULE-021, RULE-027, RULE-028 proven equivalent",
+            "where": "Phase 2 exit criterion"
+          },
+          {
+            "text": "RULE-001, RULE-002, RULE-003 (percentage/tiered charge calculation, min/max clamping) proven equivalent via dual-execution diff",
+            "where": "Phase 3 exit criterion"
+          },
+          {
+            "text": "RULE-014 (duplicate/conflicting charge abort) proven equivalent",
+            "where": "Phase 3 exit criterion"
+          },
+          {
+            "text": "RULE-011 (percent-of-CA basis) confirmed against the RULE-011 SME question resolution",
+            "where": "Phase 3 exit criterion"
+          },
+          {
+            "text": "RULE-004 (min/max default-value recomputation), RULE-015 (single-payer validation incl. ACCEPT-ILC exception), RULE-026 (Actual/Work version selection) proven equivalent",
+            "where": "Phase 4 exit criterion"
+          },
+          {
+            "text": "RULE-022, RULE-023, RULE-024, RULE-025, RULE-030, RULE-032 proven equivalent",
+            "where": "Phase 4 exit criterion"
+          },
+          {
+            "text": "Shadow-run shows no unexplained diffs against legacy for a full representative traffic sample",
+            "where": "Phase 4 exit criterion"
+          },
+          {
+            "text": "RULE-017 suspected defect (`F115ISC0.src:783-813`): a missing `End-Evaluate` silently skips the mandatory Sys-Code key validation on Update. Fix it, or faithfully reproduce the gap? Blocks Phase 2.",
+            "where": "open question, section 7"
+          },
+          {
+            "text": "RULE-006 suspected defect (`F115L060.src:1050-1101`): charge currency is relabeled without converting the amount when it differs from the contract currency. Fix it, or preserve the current behavior? Blocks Phase 3.",
+            "where": "open question, section 7"
+          },
+          {
+            "text": "RULE-029 overloaded field (`copybooks/R115IPA0.copy:180-183`): one byte carries two unrelated meanings (`Has-Been-Settled` 'A' and `Incom-Swift` Y/N). Clarify intended semantics before modeling it properly in the target. Blocks Phase 2.",
+            "where": "open question, section 7"
+          },
+          {
+            "text": "Org Master Data integration: `F5879010`'s real dependency (`BZXOJOR0`/`BZXOJNA0`, the iHUB-Org DBI programs) is outside this repo's scope. Need the real interface contract \u2014 or an explicit decision to mock it indefinitely \u2014 before Phase 2's Org Master Data Client can be built for real.",
+            "where": "open question, section 7"
+          },
+          {
+            "text": "No production telemetry was available for the assessment (`ASSESSMENT.md`, Production Runtime Profile). Confirm whether performance/SLA targets exist for the new service before Phase 4 sign-off.",
+            "where": "open question, section 7"
+          },
+          {
+            "text": "Target persistence assumption: this brief assumes the 9 DB2 tables + `PO_Feilmelding` stay on DB2 unchanged (JDBC/JPA access only, no data migration). Confirm, or flag if a data-store migration is actually in scope.",
+            "where": "open question, section 7"
+          },
+          {
+            "text": "RULE-009, RULE-010, RULE-031, RULE-033, RULE-035 and the other Medium/Low-confidence P1 rules listed in `BUSINESS_RULES.md`'s SME section were not asked in this review round (only flagged P0s were). Recommend a follow-up `/code-modernization:modernize-review STG/TFR12 p0` \u2192 widen to `all` pass, or \u2026",
+            "where": "open question, section 7"
+          }
+        ],
+        "count": 18
+      },
+      "notProven": [
+        "It does not prove behavior on inputs nobody tried: the equivalence cases and the fresh inputs are samples, not the whole input space.",
+        "The legacy could not run here, so the comparison rests on recorded outputs and traces. It is only as good as that recording.",
+        "It does not cover speed, capacity, security, concurrency, or anything the tests and cases do not exercise.",
+        "It traces only the rules that were extracted: behavior nobody wrote down as a rule has no rule to trace.",
+        "A test that names a rule shows the rule is mentioned, not that the test is a good one. The canary shows only that some test can fail.",
+        "It does not replace the review and sign-off of the people who own the system."
+      ],
+      "verifiedAt": "2026-09-29 08:44 UTC"
+    }
+  ],
+  "toolingOnly": [],
+  "signoff": {
+    "name": "",
+    "role": "",
+    "date": "",
+    "decision": ""
+  },
+  "overall": {
+    "verdict": "PARTLY PROVEN",
+    "counts": {
+      "PROVEN": 0,
+      "PARTLY PROVEN": 2,
+      "NOT PROVEN": 0
+    }
+  }
+}

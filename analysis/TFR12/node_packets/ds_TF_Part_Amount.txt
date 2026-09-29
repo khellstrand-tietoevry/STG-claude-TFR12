@@ -1,0 +1,10 @@
+# Node packet: ds:TF_Part_Amount
+Kind: datastore
+Domain: Data stores
+This is a logical DB2 table (datastore), not a source file in this repo — no source packet applies.
+
+## Outbound connections (this node calls/reads/writes)
+- (none)
+
+## Inbound connections (called/read/written by)
+- F115IPA0 -> read

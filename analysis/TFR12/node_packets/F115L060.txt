@@ -1,0 +1,171 @@
+# Node packet: F115L060
+Kind: module
+Domain: Charge Calculation & Listing
+Entry point: False
+LOC (full file): 1585
+
+## First 150 lines of src/F115L060.src (header + start of Data Division)
+       Identification Division.                                         00010099
+       Program-ID. F115L060.                                            00020099
+       Author.  Hallvard Barman.                                        00030099
+      *################################################################*00040099
+      *                                                                 00050099
+      * FD Trade Finance                                                00060099
+      *                                                                 00070099
+      *                                                                 00080099
+      * Copy area, Listing/Computation of sum total of charges.         00090099
+      *                                                                 00100099
+      * If part amount no is supplied, all charges are read from        00110099
+      * table TF_Part_Charge. Else, all charges are read from table     00120099
+      * TF_Main_Charge.                                                 00130099
+      *                                                                 00140099
+      * NB! This module presents figures exactly as they appear from    00150099
+      * one and only one of the two database tables. If you need        00160099
+      * modified figures for settlement or for presentation to the      00170099
+      * end user, use module F115L070!                                  00180099
+      *                                                                 00190099
+      *################################################################*00200099
+      * Date ! Si! Change description                            ! 3A ! 00210099
+      *------+---+-----------------------------------------------+----+ 00220099
+      *111212!NDL! Guarantiees                                        ! 00230099
+      *------+---+-----------------------------------------------+----+ 00231099
+      *191001!NDL! Don't read charges from MC if earlier used    !LO18! 00232099
+      *------+---+-----------------------------------------------+----+ 00240099
+      *170901!NDL! Agent Commision - Feilretting                 !LO18! 00250099
+      *------+---+-----------------------------------------------+----+ 00260099
+      *280601!NDL! Current-orig-Amount instead of Remain-Amount  !LO18! 00270099
+      *------+---+-----------------------------------------------+----+ 00280099
+      *111200!LG ! Ws-Charge-Amount 3 --> 2 decimals             !LG10! 00290099
+      *------+---+-----------------------------------------------+----+ 00300099
+      *100599!HB ! New module                                    !LG10! 00310099
+      *################################################################*00320099
+       Environment Division.                                            00330099
+       Configuration Section.                                           00340099
+       Special-Names.                                                   00350099
+           Decimal-Point Is Comma.                                      00360099
+      *                                                                 00370099
+      *################################################################*00380099
+       Data Division.                                                   00390099
+       Working-Storage Section.                                         00400099
+      *                                                                 00410099
+       01  W-IO-Length                   Pic S9(04)              Comp.  00420099
+      *                                                                 00430099
+       01  WS-Fields.                                                   00440099
+      *                                                                 00450099
+           05  WS-Ind                    Pic S9(02)              Comp.  00460099
+           05  WS-Count-Charges          Pic S9(04)              Comp.  00470099
+           05  WS-Count-Rows             Pic S9(04)              Comp.  00480099
+           05  WS-Contract-Range         Pic  X(20).                    00490099
+             88  SW-Coll                        Value 'COLL-R'.         00500099
+             88  SW-Imp-LC                      Value 'IMP-LC-R'.       00510099
+             88  SW-Exp-LC                      Value 'EXP-LC-R'.       00520099
+             88  SW-Gar                         Value 'GAR-R'.          00521099
+      *                                                                 00530099
+           05  WS-In-Charge-Type         Pic  X(20).                    00540099
+           05  WS-In-Role-Type           Pic  X(20).                    00550099
+           05  WS-CA-Or-PA-Amount        Pic S9(14)V9(03)        Comp-3.00560099
+           05  WS-Display-Amount      Pic zzzzz9999999999v99.           00570099
+      *                                                                 00580099
+           05  WS-Read.                                                 00590099
+               10  WS-No-Read            Pic S9(04)              Comp.  00600099
+               10  WS-Read-From          Pic S9(04)              Comp.  00610099
+               10  WS-Read-To            Pic S9(04)              Comp.  00620099
+               10  WS-Excluded-Charges   Pic S9(04)              Comp.  00630099
+               10  WS-Difference         Pic S9(04)              Comp.  00640099
+      *                                                                 00650099
+           05  WS-Charge.                                               00660099
+               10  WS-Charge-Type        Pic  X(20).                    00670099
+               10  WS-Role-Type          Pic  X(20).                    00680099
+                 88  WS-Seller                Value 'DRWER', 'BENEF'.   00690099
+                 88  WS-Buyer                 Value 'DRWEE', 'ISSUI',   00700099
+                                                    'CUSTM'.            00710099
+                 88  WS-Agent                 Value '     '.            00720099
+               10  WS-Charge-Amount      Pic S9(14)V9(02)        Comp-3.00730099
+               10  WS-Converted-Amount   Pic S9(14)V9(03)        Comp-3.00740099
+               10  WS-Currency           Pic  X(03).                    00750099
+               10  WS-Percent            Pic S9(03)V9(03)        Comp-3.00760099
+               10  WS-Charge-Text        Pic  X(30).                    00761099
+      *                                                                 00770099
+           05  WS-Charge-Totals-Seller.                                 00780099
+      *      10  WS-Ch-Seller-Cred-Agent Pic S9(14)V9(03)        Comp-3.00790099
+             10  WS-Ch-Seller-Cred-T-Bank Pic S9(14)V9(03)       Comp-3.00800099
+             10  WS-Ch-Seller-Cred-W-Bank Pic S9(14)V9(03)       Comp-3.00810099
+             10  WS-Tot-Charge-Seller    Pic S9(14)V9(03)        Comp-3.00820099
+      *                                                                 00830099
+           05  WS-Charge-Totals-Buyer.                                  00840099
+      *      10  WS-Ch-Buyer-Cred-Agent  Pic S9(14)V9(03)        Comp-3.00850099
+             10  WS-Ch-Buyer-Cred-T-Bank Pic S9(14)V9(03)        Comp-3.00860099
+             10  WS-Ch-Buyer-Cred-W-Bank Pic S9(14)V9(03)        Comp-3.00870099
+             10  WS-Tot-Charge-Buyer     Pic S9(14)V9(03)        Comp-3.00880099
+      *                                                                 00890099
+           05  WS-Totals-Agent.                                         00900099
+             10  WS-Tot-Agent-Commission Pic S9(14)V9(03)        Comp-3.00910099
+      *                                                                 00920099
+      *                                                                 00930099
+           05  WS-Check-PA               Pic  X(01).                    00940099
+             88  SW-PA-Checked                Value 'Y'.                00950099
+             88  SW-PA-Not-Checked            Value 'N'.                00960099
+      *----------------------------------------------------------------*00970099
+      * Internal area:                                                  00980099
+      *                                                                 00990099
+       01  W-Int-IO-Area.                                               01000099
+           Copy R115L060.                                               01010099
+      *                                                                 01020099
+      *----------------------------------------------------------------*01030099
+      * Assorted copy-areas:                                            01040099
+      *                                                                 01050099
+       01  Filler.                                                      01060099
+      *                                                                 01070099
+      * DBI TF_Contract_Amount.                                         01080099
+           Copy R115ICA0.                                               01090099
+      *                                                                 01100099
+      * DBI TF_Main_Charge.                                             01110099
+           Copy R115ICH0.                                               01120099
+      *                                                                 01130099
+      * DBI TF_Sys_Charge_Rel.                                          01140099
+      *    Copy R115ICR0.                                               01150099
+      *                                                                 01160099
+      * DBI TF_Sys_Charge_Type.                                         01170099
+           Copy R115ICT0.                                               01180099
+      *                                                                 01190099
+      * DBI TF_Part_Amount.                                             01200099
+           Copy R115IPA0.                                               01210099
+      *                                                                 01220099
+      * DBI TF_Part_Charge.                                             01230099
+           Copy R115IPC0.                                               01240099
+      *                                                                 01250099
+      * DBI TF_Sys_Code_Rel.                                            01260099
+           Copy R115ISR0.                                               01270099
+      *                                                                 01280099
+      * LMOD TF/POP.                                                    01290099
+           Copy R115L150.                                               01300099
+      *                                                                 01310099
+      * LMOD VA Converting amounts of money between currencies.         01320099
+           Copy R116L030.                                               01330099
+      *                                                                 01340099
+      * GSM Get error message.                                          01350099
+       01  Filler.                                                      01360099
+           Copy R7918030.                                               01370099
+      *                                                                 01380099
+      * GSM Timestamp.                                                  01390099
+           Copy R7919070.                                               01400099
+      *                                                                 01410099
+      * External data.                                                  01420099
+       Copy R115X000.                                                   01430099
+      *                                                                 01440099
+      *################################################################.01450099
+       Linkage Section.                                                 01460099
+
+## Outbound connections (this node calls/reads/writes)
+- call -> F115ICA0
+- call -> F115ICH0
+- call -> F115ICT0
+- call -> F115IPA0
+- call -> F115IPC0
+- call -> F115ISR0
+- call -> F115L150
+- call -> F7918030
+- call -> F7919070
+
+## Inbound connections (called/read/written by)
+- F115L070 -> call

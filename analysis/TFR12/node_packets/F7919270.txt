@@ -1,0 +1,163 @@
+# Node packet: F7919270
+Kind: module
+Domain: Date & Time Utilities
+Entry point: False
+LOC (full file): 627
+
+## First 150 lines of src/F7919270.src (header + start of Data Division)
+       Identification Division.                                                 
+       Program-ID. F7919270.                                                    
+       Author.  Henning Langfeldt Rødland.                                      
+      *################################################################*        
+      *                                                                         
+      * Generell submodul for å konvertere mellom timestamp-formater.           
+      *                                                                         
+      * Man leverer enten:                                                      
+      *   - Dato           (ååååmmdd)                                           
+      *   - Tid                                                                 
+      *     enten:                                                              
+      *       - Tid-TMS        (ttmmss)                                         
+      *     eller:                                                              
+      *       - Tid-TMSH       (ttmmsshh)                                       
+      *   - Mikro-sekunder (seks siffer, hvis ønskelig)                         
+      * eller:                                                                  
+      *   - timestamp      (ååååmmddttmmsshh)                                   
+      * eller:                                                                  
+      *   - DB2 timestamp  (åååå-mm-dd-hh.mm.ss.nnnnnn)                         
+      *                                                                         
+      * I retur vil man få alle tilsvarende felter utfylt.                      
+      *                                                                         
+      * Eksempel på anrop:                                                      
+      *    Initialize                          R7919270-Konv-Timestamp          
+      *    Set   R7919270-Versjon        To    True                             
+      *    Move  &ååååmmdd               To    R7919270-In-Dato                 
+      *    Move  &ttmmss                 To    R7919270-In-Tid-TMS              
+      *    Call  'F7919270'              Using R7919270-Konv-Timestamp          
+      *                                        R7919999-Error                   
+      *    End-Call                                                             
+      *    If  R7919999-Retur-Abend                                             
+      *        Move  '&&&&'              To    R7919999-Paragraf                
+      *        Perform Z900-Abend                                               
+      *    End-If                                                               
+      *    Move  R7919270-Ut-Timestamp-DB2                                      
+      *                                  To    ...                              
+      *                                                                         
+      *################################################################*        
+      *DDMMÅÅ! Si! Endringens art                                ! 3A !         
+      *----------------------------------------------------------------         
+      *130924!SM ! Recompile to Cobol 6.3                   !CMAS-1886!*        
+      *------+---+-----------------------------------------------+----+*        
+MIPS  *280521!OBJ! Recompiled to version 6.3 (OptiMIPS)          !    !         
+      *281019!IBA! Rekompilert med Cob.4.2 pga S0C7 i prodcics idag.. !         
+      *----------------------------------------------------------------         
+      *170904!HLR! ('Noe' er endret av Henning...? Hilsen Ingvild)    !         
+      *----------------------------------------------------------------         
+      *110899!SS ! Økt R7919270-Ut-Tid-TMSH fra 9(7) til 9(9)    !LI65!         
+      *----------------------------------------------------------------         
+      *101296!HLR! Ny modul                                      !KC24!         
+      *################################################################*        
+       Environment Division.                                                    
+       Configuration Section.                                                   
+       Special-Names.                                                           
+           Decimal-Point is comma.                                              
+      *################################################################*        
+       Data Division.                                                           
+       Working-Storage Section.                                                 
+      *                                                                         
+       Copy R7919270.                                                           
+      *                                                                         
+       01  W-Arbeids-Felter.                                                    
+      *                                                                         
+           05  W-Display-Tid             Pic  99.99.99.                         
+      *                                                                         
+           05  W-Splitt-Dato             Pic  9(08).                            
+           05  Filler                    Redefines W-Splitt-Dato.               
+               10  W-S-Dato-Aar          Pic  9(04).                            
+               10  W-S-Dato-Mnd          Pic  9(02).                            
+               10  W-S-Dato-Dag          Pic  9(02).                            
+      *                                                                         
+           05  W-Splitt-TMS              Pic  9(06).                            
+           05  Filler                    Redefines W-Splitt-TMS.                
+               10  W-S-TMS-Time          Pic  9(02).                            
+               10  W-S-TMS-Minutt        Pic  9(02).                            
+               10  W-S-TMS-Sekund        Pic  9(02).                            
+      *                                                                         
+           05  W-Splitt-TMSH             Pic  9(08).                            
+           05  Filler                    Redefines W-Splitt-TMSH.               
+               10  W-S-TMSH-Time         Pic  9(02).                            
+               10  W-S-TMSH-Minutt       Pic  9(02).                            
+               10  W-S-TMSH-Sekund       Pic  9(02).                            
+               10  W-S-TMSH-Hundre       Pic  9(02).                            
+      *                                                                         
+           05  W-Splitt-Mikro            Pic  9(06).                            
+           05  Filler                    Redefines W-Splitt-Mikro.              
+               10  W-S-Mikro-Hundre      Pic  9(02).                            
+      *                                                                         
+           05  W-Splitt-Timestamp        Pic  9(16).                            
+           05  Filler                    Redefines W-Splitt-Timestamp.          
+               10  W-S-TS-Aar            Pic  9(04).                            
+               10  W-S-TS-Mnd            Pic  9(02).                            
+               10  W-S-TS-Dag            Pic  9(02).                            
+               10  W-S-TS-Time           Pic  9(02).                            
+               10  W-S-TS-Minutt         Pic  9(02).                            
+               10  W-S-TS-Sekund         Pic  9(02).                            
+               10  W-S-TS-Hundre         Pic  9(02).                            
+      *                                                                         
+           05  W-Splitt-DB2              Pic  X(26).                            
+           05  Filler                    Redefines W-Splitt-DB2.                
+               10  W-S-DB2-Aar           Pic  9(04).                            
+               10  Filler                Pic  X(01).                            
+               10  W-S-DB2-Mnd           Pic  9(02).                            
+               10  Filler                Pic  X(01).                            
+               10  W-S-DB2-Dag           Pic  9(02).                            
+               10  Filler                Pic  X(01).                            
+               10  W-S-DB2-Time          Pic  9(02).                            
+               10  Filler                Pic  X(01).                            
+               10  W-S-DB2-Minutt        Pic  9(02).                            
+               10  Filler                Pic  X(01).                            
+               10  W-S-DB2-Sekund        Pic  9(02).                            
+               10  Filler                Pic  X(01).                            
+               10  W-S-DB2-Mikro         Pic  9(06).                            
+      *                                                                         
+      *----------------------------------------------------------------*        
+      *                                                                         
+       Copy R7919040.                                                           
+       Copy R791904W.                                                           
+      *                                                                         
+       Copy R7919050.                                                           
+       Copy R791905W.                                                           
+      *                                                                         
+       Copy R7919060.                                                           
+       Copy R791906W.                                                           
+      *                                                                         
+      *################################################################*        
+       Linkage Section.                                                         
+      *                                                                         
+       Copy R7919270                     Replacing                              
+                                               R7919270-Konv-Timestamp          
+                                         By    F7919270-Ext-IO-Area.            
+       Copy R7919999.                                                           
+      *                                                                         
+      *----------------------------------------------------------------*        
+      * Her ligger gamle versjoner av copy-området, på grunn av                 
+      * versjonshåndtering.                                                     
+      * Vi skal konvertere til og fra ny layout.                                
+      *                                                                         
+       Copy R791927G.                                                           
+      *                                                                         
+      *################################################################*        
+       Procedure Division                Using F7919270-Ext-IO-Area             
+                                               R7919999-Error.                  
+                                                                                
+       A000-Main                         Section.                               
+      *                                                                         
+           Set   R7919999-Retur-Ok       To    True                             
+      *                                                                         
+           Perform ZI00-Konv-Input-Versjon                                      
+           Perform F7919270-Konv-Timestamp                                      
+
+## Outbound connections (this node calls/reads/writes)
+- (none)
+
+## Inbound connections (called/read/written by)
+- F115IMC0 -> call

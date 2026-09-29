@@ -1,0 +1,168 @@
+# Node packet: F115L150
+Kind: module
+Domain: Charge Calculation & Listing
+Entry point: False
+LOC (full file): 728
+
+## First 150 lines of src/F115L150.src (header + start of Data Division)
+000100 Identification Division.                                         00010072
+000200 Program-ID. F115L150.                                            00020073
+000300 Author.  Hallvard Barman.                                        00030073
+000400*################################################################*00040073
+000500*                                                                 00050073
+000600* FD Trade Finance                                                00060073
+000700*                                                                 00070073
+000800*    Read POP                                                     00080073
+000900*                                                                 00090073
+001000*################################################################*00100073
+001100* Date ! Si! Change description                            ! 3A ! 00110073
+001200*------+---+-----------------------------------------------+----+ 00120073
+001201*280601!NDL! Calculate % out of curr-orig-amount           !LO18! 00120173
+001202*------+---+-----------------------------------------------+----+ 00120273
+001203*100599!HB ! New module                                    !LG10! 00120373
+001204*################################################################*00120473
+001205 Environment Division.                                            00120573
+001206 Configuration Section.                                           00120673
+001207 Special-Names.                                                   00120773
+001208     Decimal-Point Is Comma.                                      00120873
+001209*                                                                 00120973
+001210*################################################################*00121073
+001220 Data Division.                                                   00122073
+001230 Working-Storage Section.                                         00123073
+001240*                                                                 00124073
+001250 01  W-IO-Length                   Pic S9(04)              Comp.  00125073
+001260*                                                                 00126073
+001270 01  WS-Fields.                                                   00127073
+001280*                                                                 00128073
+001290   05  WS-Computation.                                            00129073
+001300     10  WS-Difference             Pic S9(07)V9(03)        Comp-3.00130073
+001400     10  WS-Increment              Pic S9(07)V9(03)        Comp-3.00140073
+001500     10  WS-PA-or-CA-Amount        Pic S9(07)V9(03)        Comp-3.00150073
+001600     10  WS-PA-or-CA-Amount-Ex     Pic S9(07)V9(03)        Comp-3.00160073
+001700*                                                                 00170073
+001800   05  WS-Stored-Gyldig-Til-Bel    Pic S9(07)V9(03)        Comp-3.00180073
+001900*                                                                 00190073
+002000   05  WS-POP-Charge.                                             00200073
+002100     10  WS-POP-Charge-Amount      Pic S9(07)V9(03)        Comp-3.00210073
+002200     10  WS-POP-Max-Charge         Pic S9(07)V9(03)        Comp-3.00220073
+002300     10  WS-POP-Min-Charge         Pic S9(07)V9(03)        Comp-3.00230073
+002400*                                                                 00240073
+002500   05  WS-Charge.                                                 00250073
+002600     10  WS-Charge-Amount          Pic S9(07)V9(03)        Comp-3.00260073
+002700     10  WS-Percent-Comm           Pic S9(02)V9(03)        Comp-3.00270073
+002800     10  WS-Max-Charge             Pic S9(07)V9(03)        Comp-3.00280073
+002900     10  WS-Min-Charge             Pic S9(07)V9(03)        Comp-3.00290073
+003000*                                                                 00300073
+003100   05  WS-Fin-Inst-No              Pic S9(18)              Comp.  00310073
+003200   05  WS-Display-percent          Pic 999v999.                   00320073
+003300   05  WS-Display-Amount           Pic 999999999v999.             00330073
+003400*                                                                 00340073
+003500*----------------------------------------------------------------*00350073
+003600* Internal area:                                                  00360073
+003700*                                                                 00370073
+003800 01  W-Int-IO-Area.                                               00380073
+003900     Copy R115L150.                                               00390073
+004000*                                                                 00400073
+004100*----------------------------------------------------------------*00410073
+004200* Assorted copy-areas:                                            00420073
+004300*                                                                 00430073
+004400 01  Filler.                                                      00440073
+004500*                                                                 00450073
+004600* DBI TF_Contract_Amount.                                         00460073
+004700     Copy R115ICA0.                                               00470073
+004800*                                                                 00480073
+004900* DBI TF_Sys_Charge_Type.                                         00490073
+005000     Copy R115ICT0.                                               00500073
+005100*                                                                 00510073
+005200* DBI TF_Part_Amount.                                             00520073
+005300     Copy R115IPA0.                                               00530073
+005400*                                                                 00540073
+005500* DBI TF_Sys_Code.                                                00550073
+005600     Copy R115ISC0.                                               00560073
+005700*                                                                 00570073
+005800 01  Filler.                                                      00580073
+005900*                                                                 00590073
+006000* LMOD VA Currency conversion.                                    00600073
+006100     Copy R116L030.                                               00610073
+006200*                                                                 00620073
+006300 01  Filler.                                                      00630073
+006400*                                                                 00640073
+006500* DBI PP_Prod-Tjen_Pris.                                          00650073
+006600     Copy R349IPP0.                                               00660073
+006700*                                                                 00670073
+006800 01  Filler.                                                      00680073
+006900*                                                                 00690073
+007000* Get error message.                                              00700073
+007100     Copy R7918030.                                               00710073
+007200*                                                                 00720073
+007300* External data.                                                  00730073
+007400 Copy R115X000.                                                   00740073
+007500*                                                                 00750073
+007600*################################################################.00760073
+007700 Linkage Section.                                                 00770073
+007800*                                                                 00780073
+007900 01  L-Ext-IO-Area                 Pic  X(11328).                 00790073
+008000*                                                                 00800073
+008100* Error handling.                                                 00810073
+008200 Copy R7919999.                                                   00820073
+008300*                                                                 00830073
+008400*################################################################.00840073
+008500 Procedure Division                Using L-Ext-IO-Area            00850073
+008600                                         R7919999-Error-Area.     00860073
+008700*                                                                 00870073
+008800 A000-Main.                                                       00880073
+008900*                                                                 00890073
+009000     Perform B000-Initialize                                      00900073
+009100*                                                                 00910073
+009200     Perform ZI00-Konv-Input-Version                              00920073
+009300     Perform C000-Interface                                       00930073
+009400     Perform ZO00-Konv-Output-Version                             00940073
+009500*                                                                 00950073
+009600     Goback                                                       00960073
+009700     .                                                            00970073
+009800*################################################################*00980073
+009900 B000-Initialize.                                                 00990073
+010000*                                                                 01000073
+010100     Set   R7919999-Return-OK      To    True                     01010073
+010200     Initialize                          WS-Fields                01020073
+010300     .                                                            01030073
+010400*################################################################.01040073
+010500 C000-Interface.                                                  01050073
+010600*                                                                 01060073
+010700     Perform C100-Initialize-Output                               01070073
+010800*                                                                 01080073
+010900* Reading internal system tables to identify input parameters     01090073
+011000* required by the POP database interface.                         01100073
+011100*                                                                 01110073
+011200     Perform C200-Read-Sys-Code                                   01120073
+011300     Perform C300-Read-Sys-Charge-Type                            01130073
+011400*                                                                 01140073
+011500* Reading the first POP occurence and counting the total number   01150073
+011600* of occurences.                                                  01160073
+011700*                                                                 01170073
+011800     Perform C400-Read-1st-Prod-Tjen-Pris                         01180073
+011900*                                                                 01190073
+012000* Finding the currency of the main contract.                      01200073
+012100*                                                                 01210073
+012200     Perform C500-Read-Contract-Amount                            01220073
+012300*                                                                 01230073
+012400* Determining which further action should be taken, depending     01240073
+012500* on the total number of occurences returned from POP.            01250073
+012600*                                                                 01260073
+012700     Evaluate R349IPP0-Ut-Ak-Rader-Totalt                         01270073
+012800       When +0                                                    01280073
+012900         Set   R7919999-Return-OK  To    True                     01290073
+013000*                                                                 01300073
+013100       When +1                                                    01310073
+013200         Perform D000-Process-Unique-Occurence                    01320073
+
+## Outbound connections (this node calls/reads/writes)
+- call -> F115ICA0
+- call -> F115ICT0
+- call -> F115IPA0
+- call -> F115ISC0
+- call -> F7918030
+
+## Inbound connections (called/read/written by)
+- F115L060 -> call
+- FTFRL120 -> call

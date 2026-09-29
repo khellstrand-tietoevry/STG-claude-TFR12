@@ -1,0 +1,50 @@
+graph TD
+    subgraph LOCAL["TFR12 extract - legacy/STG/TFR12 (this repo)"]
+        D1["D1: TFR12 Servo Orchestration<br/>FTFRH120 . FTFRK120 . FTFRL120"]
+        D2["D2: Charge Calc & Listing Logic<br/>F115L060 . F115L070 . F115L150"]
+        D3["D3: Charge/Contract DBI Layer<br/>F115ICA0 . F115ICH0 . F115ICT0<br/>F115IHI0 . F115IMC0 . F115IPA0<br/>F115IPC0 . F115ISC0 . F115ISR0"]
+        D4["D4: Customer/Org Master Data<br/>F5879010"]
+        D5["D5: Date & Time Utilities<br/>F7919070 . F7919100 . F7919270"]
+        D6["D6: GSM Error & Abend Handling<br/>F7918030"]
+        D7["D7: GSM Trace/MQ/CICS Diagnostics<br/>F791TRAC"]
+    end
+
+    subgraph EXTERNAL["External / dangling dependencies (no local .src)"]
+        SQLACC["Per-table SQL access pairs<br/>F115xxxR / F115xxxU"]
+        VERCONV["F115I999 / F115L999<br/>(version-conversion, error helper)"]
+        RATEREF["F116L030 (currency exchange)<br/>F349IPP0 (product/price)"]
+        CUSTID["F1781910 (customer-ID lookup)"]
+        ORGDBI["iHUB Org DBI<br/>BZXOJOR0 / BZXOJNA0 / F587901T"]
+        ORGMISC["F7918110 / F5879990"]
+        ERRINFRA["F7918031 / F7918990<br/>F7919220 / F7919980"]
+        DATESUB["F7919071 / F7919072"]
+        TRACEINFRA["F791CICS / F791MQS0<br/>F7919310 / F7919330 / F7919990"]
+    end
+
+    D1 -->|"FTFRH120→FTFRK120→FTFRL120<br/>src/FTFRH120.src:139,172"| D1
+    D1 -->|"FTFRL120 calls 5 DBI modules directly<br/>src/FTFRL120.src:318,353,469,518,771"| D3
+    D1 -->|"FTFRL120→F115L070/F115L150<br/>src/FTFRL120.src:632,993"| D2
+    D1 -->|"FTFRH120→F7918030<br/>src/FTFRH120.src:346"| D6
+    D1 -->|"FTFRH120→F791TRAC<br/>src/FTFRH120.src:319"| D7
+    D2 -->|"F115L070→F115L060<br/>src/F115L070.src:254"| D2
+    D2 -->|"F115L060→F115L150<br/>src/F115L060.src:1280"| D2
+    D2 -->|"L060/L070/L150 read 6 DBI tables<br/>src/F115L060.src:322-1408, src/F115L150.src:190-371"| D3
+    D2 -->|"F115L060→F7919070<br/>src/F115L060.src:182"| D5
+    D2 -->|"all 3 L-modules on error<br/>src/F115L060.src:1534, src/F115L070.src:967, src/F115L150.src:677"| D6
+    D2 -->|"F115L060/F115L150→F116L030<br/>src/F115L060.src:1177, src/F115L150.src:583"| RATEREF
+    D2 -->|"F115L150→F349IPP0<br/>src/F115L150.src:283"| RATEREF
+    D2 -->|"F115L060/F115L070/F115L150→F115L999<br/>src/F115L060.src:1476"| VERCONV
+    D3 -->|"each DBI module→F5879010<br/>e.g. src/F115ICA0.src:1122"| D4
+    D3 -->|"each DBI module→F7918030<br/>e.g. src/F115ICA0.src:1238"| D6
+    D3 -->|"F115IMC0/F115IPA0→F7919100/F7919270<br/>src/F115IMC0.src:817,834"| D5
+    D3 -->|"each DBI module→own xxxR/xxxU pair<br/>e.g. src/F115ICA0.src:487,774"| SQLACC
+    D3 -->|"each DBI module→F115I999 (version conv.)<br/>e.g. src/F115ICA0.src:1179"| VERCONV
+    D3 -->|"F115IMC0→F1781910<br/>src/F115IMC0.src:1315"| CUSTID
+    D4 -->|"F5879010→F7919100<br/>src/F5879010.src:503"| D5
+    D4 -->|"F5879010→BZXOJOR0/BZXOJNA0/F587901T<br/>src/F5879010.src:271,384,573"| ORGDBI
+    D4 -->|"F5879010→F7918110/F5879990<br/>src/F5879010.src:543,682"| ORGMISC
+    D5 -->|"F7919100→F7919070<br/>src/F7919100.src:962"| D5
+    D5 -->|"F7919070→F7919071/F7919072<br/>src/F7919070.src:181,201"| DATESUB
+    D6 -->|"F7918030→F7918031/F7918990/F7919220/F7919980<br/>src/F7918030.src:176,748,771,822"| ERRINFRA
+    D7 -->|"F791TRAC→F7919070<br/>src/F791TRAC.src:162"| D5
+    D7 -->|"F791TRAC→F791CICS/F791MQS0/F7919310/F7919330/F7919990<br/>src/F791TRAC.src:135,283,338,399,518"| TRACEINFRA

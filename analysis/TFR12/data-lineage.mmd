@@ -1,0 +1,17 @@
+graph LR
+    F115ICA0["F115ICA0"] -->|read| TF_CA[("TF_Contract_Amount")]
+    F115ICH0["F115ICH0"] -->|read| TF_CH[("TF_Main_Charge")]
+    F115ICT0["F115ICT0"] -->|read| TF_CT[("TF_Sys_Charge_Type")]
+    F115IHI0["F115IHI0"] -->|read| TF_HI[("TF_History")]
+    F115IMC0["F115IMC0"] -->|read| TF_MC[("TF_Main_Contract")]
+    F115IPA0["F115IPA0"] -->|read| TF_PA[("TF_Part_Amount")]
+    F115IPC0["F115IPC0"] -->|read| TF_PC[("TF_Part_Charge")]
+    F115ISC0["F115ISC0"] -->|read| TF_SC[("TF_Sys_Code")]
+    F115ISR0["F115ISR0"] -->|read| TF_SR[("TF_Sys_Code_Rel")]
+    F7918030["F7918030"] -->|read| PO_FM[("PO_Feilmelding")]
+
+    F5879010["F5879010<br/>(stub, no local DB access)"] -.->|"delegates to external<br/>iHUB-Org DBI (BZXOJOR0/BZXOJNA0)"| OA_KO[("OA_Konsern<br/>(outside this repo slice)")]
+
+    %% Every table in this extract is read-only from TFR12's perspective:
+    %% no INSERT/UPDATE/DELETE was found reachable from FTFRH120 (confirmed
+    %% independently in the modernize-assess security scan).

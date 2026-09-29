@@ -1,0 +1,163 @@
+# Node packet: F791TRAC
+Kind: module
+Domain: GSM Trace/MQ/CICS Diagnostics
+Entry point: False
+LOC (full file): 525
+
+## First 150 lines of src/F791TRAC.src (header + start of Data Division)
+       Identification Division.                                         00010000
+       Program-Id. F791TRAC.                                            00020000
+       Author. Kruger,Jan-Petter.                                       00030000
+      *################################################################*00040000
+      *                                                                *00050000
+      * GSM Modul for å skrive trace informasjon                       *00060000
+      *                                                                *00070000
+      *################################################################*00080000
+      * Dato ! Si! Endringens art                                ! 3A !*00090000
+      *------+---+-----------------------------------------------+----+*00100000
+      *091197!jpk! Ny Modul                                      !    !*00110000
+      *################################################################*00120000
+       Environment Division.                                            00130000
+       Configuration                     Section.                       00140000
+      *                                                                 00150000
+       Special-Names.                                                   00160000
+      *                                                                 00170000
+           Decimal-Point Is Comma.                                      00180000
+      *                                                                 00190000
+      *################################################################*00200000
+       Data Division.                                                   00210000
+      *                                                                 00220000
+       Working-Storage                   Section.                       00230000
+      *                                                                 00240000
+       01  W-Felter.                                                    00250000
+           05  W-Trace-Area              Pic  x(40000).                 00260000
+      *                                                                 00270000
+           05  W-I-Len                   Pic s9(08)              Binary.00280001
+      *                                                                 00290001
+           05  W-Timestamp               Pic  9(16).                    00300000
+      *                                                                 00310000
+      *----------------------------------------------------------------*00320000
+      * Trace info header                                               00330000
+      *                                                                 00340000
+       Copy R791DBGH.                                                   00350000
+      *                                                                 00360000
+      *----------------------------------------------------------------*00370000
+      * MQ områder                                                      00380000
+      *                                                                 00390000
+       Copy R791MQS0.                                                   00400000
+       Copy R791MQSH.                                                   00410000
+      *                                                                 00420000
+      *----------------------------------------------------------------*00430000
+      * Int-IO-Area:                                                    00440000
+      *                                                                 00450000
+       Copy R791TRAC.                                                   00460000
+      *                                                                 00470000
+      *----------------------------------------------------------------*00480000
+      * Spesielle GSM modul copyområder                                 00490000
+      *                                                                 00500000
+       Copy  R7919070.                                                  00510000
+       Copy  R7919220.                                                  00520000
+       Copy  R7919310.                                                  00530000
+       Copy  R7919330.                                                  00540001
+       Copy  R791CICS.                                                  00550000
+       Copy  R7919999.                                                  00560005
+      *                                                                 00570000
+       Linkage                           Section.                       00580000
+      *                                                                 00590000
+       Copy R791TRAC                     Replacing                      00600000
+                                               R791TRAC-Interface       00610000
+                                         By    F791TRAC-Ext-IO-Area.    00620000
+      *                                                                 00630000
+      *----------------------------------------------------------------*00640000
+      * Her ligger gamle versjoner av copy-området, på grunn av         00650000
+      * versjonshåndtering.                                             00660000
+      * Vi skal konvertere til og fra ny layout.                        00670000
+      *                                                                 00680000
+       Copy R791TRAG.                                                   00690000
+      *                                                                 00700000
+      *################################################################*00710000
+       Procedure Division                Using F791TRAC-Ext-Io-Area.    00720005
+      *                                                                 00730000
+       A000-Main                         Section.                       00740000
+      *                                                                 00750000
+           Initialize                    R7919999-Error                 00760005
+      *                                                                 00770000
+           Perform ZI00-Konv-Input-Versjon                              00780000
+           Perform F791TRAC-Interface                                   00790000
+           Perform ZO00-Konv-Output-Versjon                             00800000
+      *                                                                 00810000
+           Goback.                                                      00820000
+      *################################################################*00830000
+      *                                                                *00840000
+      * Interface. Styrer behandlingen                                 *00850000
+      *                                                                *00860000
+      *----------------------------------------------------------------*00870000
+       F791TRAC-Interface                Section.                       00880000
+      *                                                                 00890000
+           Perform  B000-Initialize                                     00900000
+           Perform  B100-Kontroll                                       00910000
+           Perform  C000-Behandling                                     00920000
+           .                                                            00930000
+      *                                                                 00940000
+       F791TRAC-Interface-Ex.                                           00950000
+           Exit.                                                        00960000
+                                                                        00970000
+      *################################################################*00980000
+      *                                                                *00990000
+      * Utfører initiell initialisering av variabler som skal          *01000000
+      * initialiseres hver gang modulen kalles.                        *01010000
+      *                                                                *01020000
+      *----------------------------------------------------------------*01030000
+       B000-Initialize                   Section.                       01040000
+      *                                                                 01050000
+      *    Initierer diverse                                            01060000
+      *                                                                 01070000
+           Move  Spaces                  To    W-Trace-Area             01080000
+      *                                                                 01090000
+      *    Vi må finne ut hvilket miljø vi kjører i                     01100000
+      *                                                                 01110000
+           If  Not R7919220-Versjon                                     01120000
+               Initialize                      R791DBGH-Trace-Info-Hdr  01130000
+               Set  R791DBGH-Eyecatcher-Val                             01140003
+                                         To    True                     01150003
+               Initialize                      R7919220-Jobb-Informasjon01160000
+               Set   R7919220-Versjon    To    True                     01170000
+               Call  'F7919220'          Using R7919220-Jobb-Informasjon01180000
+                                               R7919999-Error           01190000
+               End-Call                                                 01200000
+               If  R7919999-Retur-Abend                                 01210000
+                   Move  'B001'          To    R7919999-Paragraf        01220000
+                   Perform Z900-Abend                                   01230000
+               End-If                                                   01240000
+                                                                        01250000
+               Evaluate True                                            01260000
+      *                                                                 01270000
+                 When  R7919220-Ut-Cics                                 01280000
+                   Move  'CICS'          To    R791DBGH-Miljo           01290000
+                   Move  R7919220-Ut-Cics-Id                            01300000
+                                         To    R791DBGH-Jobbnavn        01310000
+                   Initialize                  R791CICS-Dfheiblk        01320000
+                   Set  R791CICS-Versjon To    True                     01330000
+                                                                        01340000
+                   Call  'F791CICS'                                     01350000
+                        Using By Reference     R791CICS-Dfheiblk        01360000
+                              By Reference     R7919999-Error           01370000
+                   End-Call                                             01380000
+                   Move  R791CICS-Ut-Eibtrnid                           01390000
+                                         To    R791DBGH-Transid         01400000
+                   Move  R791CICS-Ut-Eibtaskn                           01410000
+                                         To    R791DBGH-Taskno          01420000
+      *                                                                 01430000
+                 When  R7919220-Ut-Ims                                  01440000
+                   Move  'BATCH'         To    R791DBGH-Miljo           01450000
+                   Move  R7919220-Ut-Jobb-Navn                          01460001
+                                         To    R791DBGH-Jobbnavn        01470000
+      *                                                                 01480000
+                 When  R7919220-Ut-Batch                                01490000
+                   Move  'BATCH'         To    R791DBGH-Miljo           01500000
+
+## Outbound connections (this node calls/reads/writes)
+- call -> F7919070
+
+## Inbound connections (called/read/written by)
+- FTFRH120 -> call

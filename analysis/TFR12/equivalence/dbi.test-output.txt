@@ -1,0 +1,117 @@
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::staticFieldBase has been called by com.google.inject.internal.aop.HiddenClassDefiner (file:/usr/local/Cellar/maven/3.9.11/libexec/lib/guice-5.1.0-classes.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.inject.internal.aop.HiddenClassDefiner
+WARNING: sun.misc.Unsafe::staticFieldBase will be removed in a future release
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------< com.tfi.tfr12:tfr12-phase2-data-access >---------------
+[INFO] Building TFR12 Phase 2 - Data Access Layer 0.1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.2.0:clean (default-clean) @ tfr12-phase2-data-access ---
+[INFO] Deleting /Users/kristofferhellstrand/git/tfi-workspace/STG-claude-TFR12/modernized/TFR12/F115ICA0,F115ICH0,F115ICT0,F115IHI0,F115IMC0,F115IPA0,F115IPC0,F115ISC0,F115ISR0,F5879010/target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ tfr12-phase2-data-access ---
+[INFO] skip non existing resourceDirectory /Users/kristofferhellstrand/git/tfi-workspace/STG-claude-TFR12/modernized/TFR12/F115ICA0,F115ICH0,F115ICT0,F115IHI0,F115IMC0,F115IPA0,F115IPC0,F115ISC0,F115ISR0,F5879010/src/main/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ tfr12-phase2-data-access ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 39 source files with javac [debug release 21] to target/classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ tfr12-phase2-data-access ---
+[INFO] skip non existing resourceDirectory /Users/kristofferhellstrand/git/tfi-workspace/STG-claude-TFR12/modernized/TFR12/F115ICA0,F115ICH0,F115ICT0,F115IHI0,F115IMC0,F115IPA0,F115IPC0,F115ISC0,F115ISR0,F5879010/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ tfr12-phase2-data-access ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 10 source files with javac [debug release 21] to target/test-classes
+[INFO] 
+[INFO] --- surefire:3.2.5:test (default-test) @ tfr12-phase2-data-access ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.tfi.tfr12.phase2.dbi.syschargetype.SysChargeTypeServiceTest
+[INFO] Running com.tfi.tfr12.phase2.dbi.syschargetype.SysChargeTypeServiceTest$EngineWiringTests
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.178 s -- in com.tfi.tfr12.phase2.dbi.syschargetype.SysChargeTypeServiceTest$EngineWiringTests
+[INFO] Running com.tfi.tfr12.phase2.dbi.syschargetype.SysChargeTypeServiceTest$KeyPolicyTests
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.043 s -- in com.tfi.tfr12.phase2.dbi.syschargetype.SysChargeTypeServiceTest$KeyPolicyTests
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.269 s -- in com.tfi.tfr12.phase2.dbi.syschargetype.SysChargeTypeServiceTest
+[INFO] Running com.tfi.tfr12.phase2.dbi.syscode.SysCodeServiceTest
+[INFO] Running com.tfi.tfr12.phase2.dbi.syscode.SysCodeServiceTest$EngineWiring
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.033 s -- in com.tfi.tfr12.phase2.dbi.syscode.SysCodeServiceTest$EngineWiring
+[INFO] Running com.tfi.tfr12.phase2.dbi.syscode.SysCodeServiceTest$Rule017Asymmetry
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.019 s -- in com.tfi.tfr12.phase2.dbi.syscode.SysCodeServiceTest$Rule017Asymmetry
+[INFO] Running com.tfi.tfr12.phase2.dbi.syscode.SysCodeServiceTest$InstitutionValidation
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.023 s -- in com.tfi.tfr12.phase2.dbi.syscode.SysCodeServiceTest$InstitutionValidation
+[INFO] Running com.tfi.tfr12.phase2.dbi.syscode.SysCodeServiceTest$StTypeValidation
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in com.tfi.tfr12.phase2.dbi.syscode.SysCodeServiceTest$StTypeValidation
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.102 s -- in com.tfi.tfr12.phase2.dbi.syscode.SysCodeServiceTest
+[INFO] Running com.tfi.tfr12.phase2.dbi.maincontract.MainContractServiceTest
+[INFO] Running com.tfi.tfr12.phase2.dbi.maincontract.MainContractServiceTest$DbiEngineWiringTests
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.021 s -- in com.tfi.tfr12.phase2.dbi.maincontract.MainContractServiceTest$DbiEngineWiringTests
+[INFO] Running com.tfi.tfr12.phase2.dbi.maincontract.MainContractServiceTest$KeyPolicyTests
+[INFO] Running com.tfi.tfr12.phase2.dbi.maincontract.MainContractServiceTest$KeyPolicyTests$LastFailureWinsTests
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in com.tfi.tfr12.phase2.dbi.maincontract.MainContractServiceTest$KeyPolicyTests$LastFailureWinsTests
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.030 s -- in com.tfi.tfr12.phase2.dbi.maincontract.MainContractServiceTest$KeyPolicyTests
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.056 s -- in com.tfi.tfr12.phase2.dbi.maincontract.MainContractServiceTest
+[INFO] Running com.tfi.tfr12.phase2.dbi.partamount.PartAmountServiceTest
+[INFO] Running com.tfi.tfr12.phase2.dbi.partamount.PartAmountServiceTest$DbiEngineWiringTests
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.036 s -- in com.tfi.tfr12.phase2.dbi.partamount.PartAmountServiceTest$DbiEngineWiringTests
+[INFO] Running com.tfi.tfr12.phase2.dbi.partamount.PartAmountServiceTest$Rule029FieldIndependenceTests
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.021 s -- in com.tfi.tfr12.phase2.dbi.partamount.PartAmountServiceTest$Rule029FieldIndependenceTests
+[INFO] Running com.tfi.tfr12.phase2.dbi.partamount.PartAmountServiceTest$KeyPolicyTests
+[INFO] Running com.tfi.tfr12.phase2.dbi.partamount.PartAmountServiceTest$KeyPolicyTests$LastFailureWinsTests
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in com.tfi.tfr12.phase2.dbi.partamount.PartAmountServiceTest$KeyPolicyTests$LastFailureWinsTests
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.105 s -- in com.tfi.tfr12.phase2.dbi.partamount.PartAmountServiceTest$KeyPolicyTests
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.174 s -- in com.tfi.tfr12.phase2.dbi.partamount.PartAmountServiceTest
+[INFO] Running com.tfi.tfr12.phase2.dbi.maincharge.MainChargeServiceTest
+[INFO] Running com.tfi.tfr12.phase2.dbi.maincharge.MainChargeServiceTest$EngineWiringTests
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.039 s -- in com.tfi.tfr12.phase2.dbi.maincharge.MainChargeServiceTest$EngineWiringTests
+[INFO] Running com.tfi.tfr12.phase2.dbi.maincharge.MainChargeServiceTest$KeyPolicyTests
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in com.tfi.tfr12.phase2.dbi.maincharge.MainChargeServiceTest$KeyPolicyTests
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.063 s -- in com.tfi.tfr12.phase2.dbi.maincharge.MainChargeServiceTest
+[INFO] Running com.tfi.tfr12.phase2.dbi.history.HistoryServiceTest
+[INFO] Running com.tfi.tfr12.phase2.dbi.history.HistoryServiceTest$CapabilityGatePrecedesKeyPolicyTests
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in com.tfi.tfr12.phase2.dbi.history.HistoryServiceTest$CapabilityGatePrecedesKeyPolicyTests
+[INFO] Running com.tfi.tfr12.phase2.dbi.history.HistoryServiceTest$KeyPolicyIsNoOpTests
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in com.tfi.tfr12.phase2.dbi.history.HistoryServiceTest$KeyPolicyIsNoOpTests
+[INFO] Running com.tfi.tfr12.phase2.dbi.history.HistoryServiceTest$DbiEngineWiringTests
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.018 s -- in com.tfi.tfr12.phase2.dbi.history.HistoryServiceTest$DbiEngineWiringTests
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.035 s -- in com.tfi.tfr12.phase2.dbi.history.HistoryServiceTest
+[INFO] Running com.tfi.tfr12.phase2.dbi.contractamount.ContractAmountServiceTest
+[INFO] Running com.tfi.tfr12.phase2.dbi.contractamount.ContractAmountServiceTest$DbiEngineWiringTests
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.024 s -- in com.tfi.tfr12.phase2.dbi.contractamount.ContractAmountServiceTest$DbiEngineWiringTests
+[INFO] Running com.tfi.tfr12.phase2.dbi.contractamount.ContractAmountServiceTest$KeyPolicyTests
+[INFO] Running com.tfi.tfr12.phase2.dbi.contractamount.ContractAmountServiceTest$KeyPolicyTests$LastFailureWinsTests
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in com.tfi.tfr12.phase2.dbi.contractamount.ContractAmountServiceTest$KeyPolicyTests$LastFailureWinsTests
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.025 s -- in com.tfi.tfr12.phase2.dbi.contractamount.ContractAmountServiceTest$KeyPolicyTests
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.050 s -- in com.tfi.tfr12.phase2.dbi.contractamount.ContractAmountServiceTest
+[INFO] Running com.tfi.tfr12.phase2.dbi.partcharge.PartChargeServiceTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.019 s -- in com.tfi.tfr12.phase2.dbi.partcharge.PartChargeServiceTest
+[INFO] Running com.tfi.tfr12.phase2.dbi.syscoderel.SysCodeRelServiceTest
+[INFO] Running com.tfi.tfr12.phase2.dbi.syscoderel.SysCodeRelServiceTest$EngineWiring
+[WARNING] Tests run: 7, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.013 s -- in com.tfi.tfr12.phase2.dbi.syscoderel.SysCodeRelServiceTest$EngineWiring
+[INFO] Running com.tfi.tfr12.phase2.dbi.syscoderel.SysCodeRelServiceTest$KeyPolicyNoActiveRequirement
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.tfi.tfr12.phase2.dbi.syscoderel.SysCodeRelServiceTest$KeyPolicyNoActiveRequirement
+[INFO] Running com.tfi.tfr12.phase2.dbi.syscoderel.SysCodeRelServiceTest$CapabilitiesMatchDispatch
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.tfi.tfr12.phase2.dbi.syscoderel.SysCodeRelServiceTest$CapabilitiesMatchDispatch
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.018 s -- in com.tfi.tfr12.phase2.dbi.syscoderel.SysCodeRelServiceTest
+[INFO] Running com.tfi.tfr12.phase2.orgdata.OrgMasterDataClientTest
+[INFO] Running com.tfi.tfr12.phase2.orgdata.OrgMasterDataClientTest$FinInstResolutionTests
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in com.tfi.tfr12.phase2.orgdata.OrgMasterDataClientTest$FinInstResolutionTests
+[INFO] Running com.tfi.tfr12.phase2.orgdata.OrgMasterDataClientTest$Rule039AsOfTodayFiltering
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.030 s -- in com.tfi.tfr12.phase2.orgdata.OrgMasterDataClientTest$Rule039AsOfTodayFiltering
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.041 s -- in com.tfi.tfr12.phase2.orgdata.OrgMasterDataClientTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[WARNING] Tests run: 161, Failures: 0, Errors: 0, Skipped: 1
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  8.400 s
+[INFO] Finished at: 2026-09-29T10:42:48+02:00
+[INFO] ------------------------------------------------------------------------
