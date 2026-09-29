@@ -1,0 +1,32 @@
+-------------------------------------------------------------------------------
+Test set: com.tfi.tfr12.phase3.pricing.PopPricingServiceTest$Rule011PercentBasisIsOriginalAmount
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.037 s <<< FAILURE! -- in com.tfi.tfr12.phase3.pricing.PopPricingServiceTest$Rule011PercentBasisIsOriginalAmount
+com.tfi.tfr12.phase3.pricing.PopPricingServiceTest$Rule011PercentBasisIsOriginalAmount.rule011_noPartAmount_usesOriginalAmount_notRemainingAmount -- Time elapsed: 0.012 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <1000.000> but was: <750.000>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:177)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1145)
+	at com.tfi.tfr12.phase3.pricing.PopPricingServiceTest$Rule011PercentBasisIsOriginalAmount.rule011_noPartAmount_usesOriginalAmount_notRemainingAmount(PopPricingServiceTest.java:213)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+
+com.tfi.tfr12.phase3.pricing.PopPricingServiceTest$Rule011PercentBasisIsOriginalAmount.rule011_partAmountButMethodIsNotPctOfPa_stillUsesOriginalContractAmount -- Time elapsed: 0.005 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <800.000> but was: <300.000>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:177)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1145)
+	at com.tfi.tfr12.phase3.pricing.PopPricingServiceTest$Rule011PercentBasisIsOriginalAmount.rule011_partAmountButMethodIsNotPctOfPa_stillUsesOriginalContractAmount(PopPricingServiceTest.java:263)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+

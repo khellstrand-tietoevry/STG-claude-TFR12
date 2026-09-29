@@ -133,9 +133,9 @@ dual-execution diff against the legacy COBOL over a large sample of real/synthet
 unit tests alone; (2) RULE-006's suspected defect (charge currency is relabeled without converting
 the amount) needs a decision before this phase's behavior contract is locked.
 Entry criteria:
-- [ ] Phase 2 exit criteria met
-- [ ] RULE-006's suspected defect (currency relabeled without conversion, `F115L060.src:1050-1101`) triaged: fix or preserve — decision recorded here
-- [ ] Dual-execution diff harness available (legacy COBOL callable side-by-side with the new service, per `ASSESSMENT.md`'s note that no local COBOL runtime constraint blocks this)
+- [x] Phase 2 exit criteria met — 159/161 characterization tests passing, canary-proven, architecture-reviewed; **not** dual-execution-proven (capped at PARTLY PROVEN in `VERIFICATION.md`, same trace-based limitation as Phase 1). Proceeding on that same basis, not re-litigated.
+- [x] RULE-006's suspected defect (currency relabeled without conversion, `F115L060.src:1050-1101`) triaged: fix or preserve — decision recorded here — **Answered 2026-09-29: preserve the relabel-only behavior.** The new code faithfully reproduces the current behavior (currency label changed to the contract's currency, amount left unconverted); not treated as a bug to fix in this phase.
+- [ ] Dual-execution diff harness available (legacy COBOL callable side-by-side with the new service, per `ASSESSMENT.md`'s note that no local COBOL runtime constraint blocks this) — **still not available**; equivalence for Phase 3 will be trace-based characterization only, same as Phases 1-2.
 Exit criteria:
 - [ ] RULE-001, RULE-002, RULE-003 (percentage/tiered charge calculation, min/max clamping) proven equivalent via dual-execution diff
 - [ ] RULE-014 (duplicate/conflicting charge abort) proven equivalent
@@ -193,9 +193,9 @@ by the business owner on 2026-09-28; `RULE-004` was already High confidence with
 
 ## 7. Open Questions
 
-- [ ] **RULE-017 suspected defect** (`F115ISC0.src:783-813`): a missing `End-Evaluate` silently skips the mandatory Sys-Code key validation on Update. Fix it, or faithfully reproduce the gap? Blocks Phase 2.
-- [ ] **RULE-006 suspected defect** (`F115L060.src:1050-1101`): charge currency is relabeled without converting the amount when it differs from the contract currency. Fix it, or preserve the current behavior? Blocks Phase 3.
-- [ ] **RULE-029 overloaded field** (`copybooks/R115IPA0.copy:180-183`): one byte carries two unrelated meanings (`Has-Been-Settled` 'A' and `Incom-Swift` Y/N). Clarify intended semantics before modeling it properly in the target. Blocks Phase 2.
+- [x] **RULE-017 suspected defect** (`F115ISC0.src:783-813`): a missing `End-Evaluate` silently skips the mandatory Sys-Code key validation on Update. Fix it, or faithfully reproduce the gap? Blocks Phase 2. — **Answered 2026-09-29: preserve the gap** (see Phase 2 entry criteria).
+- [x] **RULE-006 suspected defect** (`F115L060.src:1050-1101`): charge currency is relabeled without converting the amount when it differs from the contract currency. Fix it, or preserve the current behavior? Blocks Phase 3. — **Answered 2026-09-29: preserve the relabel-only behavior** (see Phase 3 entry criteria).
+- [x] **RULE-029 overloaded field** (`copybooks/R115IPA0.copy:180-183`): one byte carries two unrelated meanings (`Has-Been-Settled` 'A' and `Incom-Swift` Y/N). Clarify intended semantics before modeling it properly in the target. Blocks Phase 2. — **Answered 2026-09-29: split into two separate fields** (see Phase 2 entry criteria).
 - [ ] **Org Master Data integration**: `F5879010`'s real dependency (`BZXOJOR0`/`BZXOJNA0`, the iHUB-Org DBI programs) is outside this repo's scope. Need the real interface contract — or an explicit decision to mock it indefinitely — before Phase 2's Org Master Data Client can be built for real.
 - [ ] **No production telemetry was available** for the assessment (`ASSESSMENT.md`, Production Runtime Profile). Confirm whether performance/SLA targets exist for the new service before Phase 4 sign-off.
 - [ ] **Target persistence assumption**: this brief assumes the 9 DB2 tables + `PO_Feilmelding` stay on DB2 unchanged (JDBC/JPA access only, no data migration). Confirm, or flag if a data-store migration is actually in scope.

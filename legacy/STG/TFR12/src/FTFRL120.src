@@ -822,10 +822,10 @@
                   Set Sw-Percent-Reg      To    True                    07950099
               Else                                                      07960099
                   Move Spaces             To    Wa-Percent              07970099
-      *        Beregner prosent utfra kontraktsbeløp/ratebeløp          07980099
+      *        Beregner prosent utfra kontraktsbelï¿½p/ratebelï¿½p          07980099
                   Perform G500-Read-Contract-Amount                     07990099
                   If RTFRE120-I-Part-Amount-No-D > 0                    08000099
-      *        Feilretting juli 01: Finner kontraktsbeløp utfra Curr-   08010099
+      *        Feilretting juli 01: Finner kontraktsbelï¿½p utfra Curr-   08010099
       *        orig-amount dersom methcalc = pct-of-CA                  08020099
                   and NOT R115L070-MethCalc-Pct-Of-CA(WA-Ind)           08030099
                     Perform G600-Read-Part-Amount                       08040099
@@ -865,8 +865,8 @@
                If R115L150-Percent-Comm  > 0                            08380099
                   Perform G500-Read-Contract-Amount                     08390099
       *                                                                 08400099
-      *        Må finne kontraktsbeløp/ratebeløp                        08410099
-      *        Feilretting juli 01: Finner kontraktsbeløp utfra Curr-   08420099
+      *        Mï¿½ finne kontraktsbelï¿½p/ratebelï¿½p                        08410099
+      *        Feilretting juli 01: Finner kontraktsbelï¿½p utfra Curr-   08420099
       *        orig-amount dersom methcalc = pct-of-CA                  08430099
                   If RTFRE120-I-Part-Amount-No-D > 0                    08440099
       *                                                                 08450099
@@ -906,7 +906,7 @@
                If  R115L150-Percent-Comm  > 0                           08790099
                   Perform G500-Read-Contract-Amount                     08800099
       *                                                                 08810099
-      *        Må finne kontraktsbeløp/ratebeløp                        08820099
+      *        Mï¿½ finne kontraktsbelï¿½p/ratebelï¿½p                        08820099
                   If RTFRE120-I-Part-Amount-No-D > 0                    08830099
                   and NOT R115L070-MethCalc-Pct-Of-CA(WA-Ind)           08840099
                     Perform G600-Read-Part-Amount                       08850099
@@ -1279,7 +1279,7 @@ ndl          When False                                                 10270099
       *        Move  Zero                To    WA-Percent-Comm          12300099
       *    End-If                                                       12310099
       *----------------------------------------------------------------*12320099
-      * 19/10/1999. Foreløbig fjernet. Avventer. HB.                    12330099
+      * 19/10/1999. Forelï¿½big fjernet. Avventer. HB.                    12330099
       *                                                                 12340099
       * For Contract Type = Import Letter of Credit, no Issuance        12350099
       * Commision can be charged if the Contract Amount has been        12360099
@@ -1374,10 +1374,45 @@ ndl          When False                                                 10270099
       *      ------------------------------------------------------     13250099
              When other                                                 13260099
       *                                                                 13270099
+      * SEC-003 (CWE-1284/CWE-129/CWE-787): unlike the two branches
+      * above, this one never capped Read-To against the table's 50-row
+      * OCCURS limit (RTFRE120-O-Charge-Type-A), so U160-Iter-Output
+      * could write past element 50 and corrupt adjacent Linkage-Section
+      * memory. Honor the caller's explicit Read-From/Read-To when it
+      * already fits the cap; clamp Read-To only when it would exceed it
+      * (this preserves the caller's real request instead of always
+      * substituting the maximal window, unlike an earlier draft of this
+      * patch, which a reviewer flagged as an undisclosed behavior
+      * change beyond the security fix).
+      * REVIEWER: the sibling "When any also +0" branch's own clamp,
+      * two cases above (unchanged by this patch), computes
+      * "Charge-Type-A + Read-From" for its upper bound, which is
+      * off-by-one for an inclusive window (should be
+      * "Charge-Type-A - 1 + Read-From"); this patch uses the corrected
+      * formula here but does not touch the pre-existing sibling branch,
+      * which is outside SEC-003's cited lines - fix it too for
+      * consistency once this hunk is reviewed.
+      * Not handled: RTFRE120-B-Read-To-D < RTFRE120-B-Read-From-D (an
+      * inverted window) is passed through unchanged, as it was before
+      * this patch - U160-Iter-Output's own row-matching logic (outside
+      * this hunk) determines whether that yields zero rows or needs its
+      * own guard; not re-derived here.
+               If  RTFRE120-B-Read-From-D <  +1
+                 Move  +1                 To    RTFRE120-B-Read-From-D
+               End-If
                Move  RTFRE120-B-Read-From-D                             13280099
                                          To    WA-Read-From             13290099
-               Move  RTFRE120-B-Read-To-D                               13300099
-                                         To    WA-Read-To               13310099
+               Compute  WA-Difference  =  RTFRE120-B-Read-To-D
+                                         -  WA-Read-From
+               End-Compute
+               If  WA-Difference  >  RTFRE120-O-Charge-Type-A - 1
+                 Compute  WA-Read-To  =  RTFRE120-O-Charge-Type-A
+                                      -  1
+                                      +  WA-Read-From
+                 End-Compute
+               Else
+                 Move  RTFRE120-B-Read-To-D  To  WA-Read-To
+               End-If
       *      ------------------------------------------------------     13320099
            End-Evaluate                                                 13330099
       *                                                                 13340099

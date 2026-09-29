@@ -50,11 +50,15 @@
       *<META MISC-COPY2>                                                        
       *</META>                                                                  
       *                                                                         
-      *01  Filler.                                                              
-      *    Place your copybooks below here                                      
-      *                                                                         
-      *                                                                         
-      *################################################################*        
+       01  Filler.
+      * SEC-001 (CWE-862): needed to resolve RTFRE120-I-Fin-Inst-No-D
+      * (an external, caller-supplied code) into the same internal
+      * Konsern-Id domain as R400CH01-Fininst-Id, via the identical
+      * pattern already used by F115IMC0.src's N100-Fetch-Fin-Inst-ID.
+           Copy R5879010.
+      *
+      *
+      *################################################################*
        Linkage Section.                                                         
       *                                                                         
       * Fixed header from STG                                                   
@@ -273,27 +277,27 @@
                Perform  Z700-Error-AE                                           
            End-If                                                               
       *                                                                         
-      *    Tot omk kjøper - gskr a. bank is an output field                     
+      *    Tot omk kjï¿½per - gskr a. bank is an output field                     
       *                                                                         
            If  RTFRE120-O-Tot-Ch-Buy-CrThB-I                                    
                                          =     'U'                              
                Move  'F'                 To                                     
                                          RTFRE120-O-Tot-Ch-Buy-CrThB-O          
                Move  'FELT1'             To    R400CH01-Message-Key(1)          
-               Move  'Tot omk kjøper - gskr a. bank'                            
+               Move  'Tot omk kjï¿½per - gskr a. bank'                            
                                          To    R400CH01-Message-Data(1)         
                Move  'GL-UTFELT-UTFYLT&' To    R400CH01-Message-Code            
                Perform  Z700-Error-AE                                           
            End-If                                                               
       *                                                                         
-      *    Tot omk kjøper - gskr. vår bank is an output field                   
+      *    Tot omk kjï¿½per - gskr. vï¿½r bank is an output field                   
       *                                                                         
            If  RTFRE120-O-Tot-Ch-Buy-CrOuB-I                                    
                                          =     'U'                              
                Move  'F'                 To                                     
                                          RTFRE120-O-Tot-Ch-Buy-CrOuB-O          
                Move  'FELT1'             To    R400CH01-Message-Key(1)          
-               Move  'Tot omk kjøper - gskr. vår bank'                          
+               Move  'Tot omk kjï¿½per - gskr. vï¿½r bank'                          
                                          To    R400CH01-Message-Data(1)         
                Move  'GL-UTFELT-UTFYLT&' To    R400CH01-Message-Code            
                Perform  Z700-Error-AE                                           
@@ -338,14 +342,14 @@
                Perform  Z700-Error-AE                                           
            End-If                                                               
       *                                                                         
-      *    Tot omk selger - gskr vår bank is an output field                    
+      *    Tot omk selger - gskr vï¿½r bank is an output field                    
       *                                                                         
            If  RTFRE120-O-Tot-Ch-Sell-CrOuB-I                                   
                                          =     'U'                              
                Move  'F'                 To                                     
                                          RTFRE120-O-Tot-Ch-Sell-CrOuB-O         
                Move  'FELT1'             To    R400CH01-Message-Key(1)          
-               Move  'Tot omk selger - gskr vår bank'                           
+               Move  'Tot omk selger - gskr vï¿½r bank'                           
                                          To    R400CH01-Message-Data(1)         
                Move  'GL-UTFELT-UTFYLT&' To    R400CH01-Message-Code            
                Perform  Z700-Error-AE                                           
@@ -438,7 +442,7 @@
               End-If                                                            
            End-Perform                                                          
       *                                                                         
-      *    Beløp is an output field                                             
+      *    Belï¿½p is an output field                                             
       *                                                                         
            Perform                                                              
               Varying  Tally             From 1 By 1                            
@@ -450,7 +454,7 @@
                                          RTFRE120-O-Charge-Amount-O             
                                                (Tally)                          
                   Move  'FELT1'          To    R400CH01-Message-Key(1)          
-                  Move  'Beløp'          To    R400CH01-Message-Data(1)         
+                  Move  'Belï¿½p'          To    R400CH01-Message-Data(1)         
                   Move  'GL-UTFELT-UTFYLT&'                                     
                                          To    R400CH01-Message-Code            
                   Perform  Z700-Error-AE                                        
@@ -861,14 +865,45 @@
       *<META E000-CONTROL-BASE>                                                 
        E000-Control-Base                 Section.                               
       *                                                                         
-      *</META>                                                                  
-      *                                                                         
-           Continue                                                             
-      *                                                                         
-           .                                                                    
-      *                                                                         
-      *<META E000-CONTROL-BASE-EX>                                              
-       E000-Control-Base-Ex.                                                    
+      *</META>
+      *
+      * SEC-001 (CWE-862): RTFRE120-I-Fin-Inst-No-D was never validated
+      * against the authenticated session's own institution, so a caller
+      * could read another institution's contract charges/history by
+      * supplying a different Fin-Inst-No. Resolve it to the same
+      * internal Konsern-Id domain R400CH01-Fininst-Id is in (mirroring
+      * F115IMC0.src N100-Fetch-Fin-Inst-ID, lines 1246-1270) before
+      * comparing - comparing the raw external code against the internal
+      * ID directly, as an earlier draft of this patch did, would compare
+      * two different identifier domains and likely never match at all.
+      * REVIEWER: confirm R5879010-Ut-KO-Konsern-Id is genuinely the same
+      * value R400CH01-Fininst-Id holds at runtime (both are populated by
+      * infrastructure outside this repo) before applying; register
+      * message code 'GL-IKKE-TILGANG&' in your shop's message table if
+      * it does not already exist.
+           Initialize                     R5879010-Konsern
+           Set   R5879010-Versjon   To    True
+           Set   R5879010-In-Select To    True
+           Move  RTFRE120-I-Fin-Inst-No-D (1:4)
+                                     To    R5879010-In-Konsernnr
+           Call  'F5879010'         Using R5879010-Konsern
+                                           R7919999-Error
+           End-Call
+           If  Not R7919999-Return-OK
+               Perform Z900-Abend
+           End-If
+           If  R5879010-Ut-KO-Konsern-Id Not = R400CH01-Fininst-Id
+               Move  'F'                 To    RTFRE120-I-Fin-Inst-No-O
+               Move  'FELT1'             To    R400CH01-Message-Key(1)
+               Move  'Fin-Inst-No'       To    R400CH01-Message-Data(1)
+               Move  'GL-IKKE-TILGANG&'  To    R400CH01-Message-Code
+               Perform  Z700-Error-AE
+           End-If
+      *
+           .
+      *
+      *<META E000-CONTROL-BASE-EX>
+       E000-Control-Base-Ex.
            Exit.                                                                
       *</META>                                                                  
                                                                                 

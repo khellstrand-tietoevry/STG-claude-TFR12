@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.tfi.tfr12.phase3.pricing.PopPricingServiceTest$Rule012CurrencyConversion
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in com.tfi.tfr12.phase3.pricing.PopPricingServiceTest$Rule012CurrencyConversion

@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.tfi.tfr12.phase3.pricing.PopPricingServiceTest
+-------------------------------------------------------------------------------
+Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.079 s -- in com.tfi.tfr12.phase3.pricing.PopPricingServiceTest

@@ -3,10 +3,10 @@
   "legacy": {
     "ran": false,
     "how": "",
-    "why": "None of the legacy programs in either built module can execute in this environment. Phase 1 (F7919070,F7919100,F7919270,F7918030,F791TRAC): F7919070/F7919100/F7919270 hit a GnuCOBOL 3.2.0 restriction (REDEFINES field not allowed in PROCEDURE DIVISION USING), F7918030 requires a DB2 precompiler not installed here, F791TRAC calls 3 external programs (F7919220, F791CICS, F791MQS0) not present in this repo slice. Phase 2 (F115ICA0,F115ICH0,F115ICT0,F115IHI0,F115IMC0,F115IPA0,F115IPC0,F115ISC0,F115ISR0,F5879010): the 9 DBI modules embed EXEC SQL, also requiring a DB2 precompiler not installed here; F5879010 hits the same GnuCOBOL REDEFINES restriction. See each module's own TRANSFORMATION_NOTES.md 'Equivalence basis' section for detail. The fresh-input dual-execution check (verify Step 4) could not be performed for either module for this reason: there is no legacy side to run inputs against, so proof for both modules is trace-based (hand-traced characterization tests) only."
+    "why": "Phase 1 (F7919070,F7919100,F7919270,F7918030,F791TRAC): F7919070/F7919100/F7919270 hit a GnuCOBOL 3.2.0 restriction (REDEFINES field not allowed in PROCEDURE DIVISION USING), F7918030 requires a DB2 precompiler not installed here, F791TRAC calls 3 external programs (F7919220, F791CICS, F791MQS0) not present in this repo slice. Phase 2 (F115ICA0,F115ICH0,F115ICT0,F115IHI0,F115IMC0,F115IPA0,F115IPC0,F115ISC0,F115ISR0,F5879010): the 9 DBI modules embed EXEC SQL, also requiring a DB2 precompiler not installed here; F5879010 hits the same GnuCOBOL REDEFINES restriction. Phase 3 (F115L060,F115L070,F115L150): unlike Phase 1/2, all three of these legacy programs DO compile cleanly with GnuCOBOL 3.2.0 in this environment (verified) - dual-execution here was technically possible, but was deliberately NOT pursued per explicit instruction for this phase, which scoped equivalence to hand-traced characterization tests only. This is a deliberate scope decision for Phase 3, not an environment limitation like Phase 1/2. See each module's own TRANSFORMATION_NOTES.md 'Equivalence basis' section for detail. The fresh-input dual-execution check (verify Step 4) could not be performed for any module for these reasons: there is no legacy side being run to diff a fresh input against, so proof for all three modules is trace-based (hand-traced characterization tests) only."
   },
   "leftOut": [
-    "Fresh-input dual-execution check (verify Step 4) was not attempted for either module: the legacy side cannot run here at all (see legacy.why above), so no legacy output exists to diff a fresh input against. Inventing a substitute legacy output was not done, per the rule against improving evidence by hand.",
+    "Fresh-input dual-execution check (verify Step 4) was not attempted for any module: no legacy side is run for any of them (see legacy.why above - infeasible for Phase 1/2, deliberately out of scope for Phase 3), so no legacy output exists to diff a fresh input against. Inventing a substitute legacy output was not done, per the rule against improving evidence by hand.",
     "Malformed-record inputs were not tried for the same reason (no legacy side to observe tolerating them against)."
   ],
   "suites": [
@@ -27,6 +27,15 @@
       "log": ["analysis/TFR12/equivalence/dbi.test-output.txt"],
       "skippedReason": "",
       "note": "161/162 pass on a clean rebuild (161 executed, 1 deliberately @Disabled: F115ISR0 cursor-qualification gap, documented in TRANSFORMATION_NOTES.md). 2 tests added during this verify pass after a canary exposed a coverage gap; see canary note below."
+    },
+    {
+      "module": "F115L060,F115L070,F115L150",
+      "name": "unit tests",
+      "command": "mvn -Dmaven.test.failure.ignore=true clean test",
+      "junit": ["modernized/TFR12/F115L060,F115L070,F115L150/target/surefire-reports"],
+      "log": ["analysis/TFR12/equivalence/phase3.test-output.txt"],
+      "skippedReason": "",
+      "note": "77/77 pass on a clean rebuild, independently re-run for this verify pass. Legacy programs compile cleanly here but dual-execution was out of scope for this phase (see legacy.why)."
     }
   ],
   "canaries": [
@@ -41,6 +50,12 @@
       "change": "Copied the module to a scratch folder outside modernized/ and analysis/, then force-'fixed' RULE-017's confirmed-preserved gap in SysCodeKeyPolicy (added an unconditional SC-Code validation check that the legacy source's missing End-Evaluate makes unreachable in the real module). A separate, earlier canary attempt in this same verify pass (reverting the architecture-review's resolved-key fix in ContractAmountKeyPolicy) found NO test failed - that gap was closed by adding a new regression test (rule018_selectResolvesFinInstNoAndUsesResolvedIdForRepositoryLookup) before re-running this canary.",
       "junit": ["analysis/TFR12/equivalence/canary/F115ICA0,F115ICH0,F115ICT0,F115IHI0,F115IMC0,F115IPA0,F115IPC0,F115ISC0,F115ISR0,F5879010"],
       "log": ["analysis/TFR12/equivalence/canary/F115ICA0,F115ICH0,F115ICT0,F115IHI0,F115IMC0,F115IPA0,F115IPC0,F115ISC0,F115ISR0,F5879010/canary.test-output.txt"]
+    },
+    {
+      "module": "F115L060,F115L070,F115L150",
+      "change": "Copied the module to a scratch folder outside modernized/ and analysis/, then in PopPricingServiceImpl.processUniqueOccurrence swapped the RULE-011 percent-of-contract-amount basis from contractAmount().currOriginalAmount() to contractAmount().remainingAmount() (the source's own commented-out, confirmed-dead alternative at F115L150.src:457).",
+      "junit": ["analysis/TFR12/equivalence/canary/F115L060,F115L070,F115L150/surefire-reports"],
+      "log": ["analysis/TFR12/equivalence/canary/F115L060,F115L070,F115L150/canary.test-output.txt"]
     }
   ]
 }
